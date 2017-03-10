@@ -1,0 +1,399 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pygpseq.tools.io &mdash; pygpseq 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pygpseq 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pygpseq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/howto.html">How to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/changelog.html">CHANGELOG</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">pygpseq</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pygpseq.tools.io</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pygpseq.tools.io</h1><div class="highlight"><pre>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot; Functions for the management of IO operations &quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">time</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">const</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">path</span> <span class="k">as</span> <span class="n">pt</span><span class="p">,</span> <span class="n">string</span> <span class="k">as</span> <span class="n">st</span>
+
+<div class="viewcode-block" id="IOinterface"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.io.IOinterface">[docs]</a><span class="k">class</span> <span class="nc">IOinterface</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Interface with input-output methods</span>
+
+<span class="sd">	Attributes:</span>
+<span class="sd">		logpath (string): path to log file.</span>
+<span class="sd">		verbose (bool): True to be verbose.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">logpath</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+	<span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Args:</span>
+<span class="sd">			path (string): path to the log file</span>
+<span class="sd">			append (bool): whether to append to existing log (opt)</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="nb">super</span><span class="p">(</span><span class="n">IOinterface</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+		<span class="c1"># Append to existing log?</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;append&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">append</span> <span class="o">=</span> <span class="bp">False</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">append</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;append&#39;</span><span class="p">]</span>
+
+		<span class="c1"># Select path for log file</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;path&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">curpath</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">add_trailing_slash</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">())</span>
+			<span class="n">curpath</span> <span class="o">+=</span> <span class="s1">&#39;pyGPSeq/log/&#39;</span>
+			<span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">time</span><span class="p">())</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">_%H:%M:%S&#39;</span><span class="p">)</span>
+			<span class="n">curpath</span> <span class="o">+=</span> <span class="n">now</span> <span class="o">+</span> <span class="s1">&#39;.log&#39;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">curpath</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span>
+
+		<span class="c1"># Create log file directory if missing</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">check_log_dir</span><span class="p">(</span><span class="n">curpath</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">append</span><span class="p">:</span>
+			<span class="c1"># Edit path if logfile exists already</span>
+			<span class="n">c</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="k">while</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">curpath</span><span class="p">):</span>
+				<span class="n">fname</span><span class="p">,</span> <span class="n">fext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">curpath</span><span class="p">)</span>
+				<span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="s1">&#39; (&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
+				<span class="n">curpath</span> <span class="o">=</span> <span class="n">fname</span> <span class="o">+</span> <span class="n">fext</span>
+				<span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">logpath</span> <span class="o">=</span> <span class="n">curpath</span>
+
+<div class="viewcode-block" id="IOinterface.printout"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.io.IOinterface.printout">[docs]</a>	<span class="k">def</span> <span class="nf">printout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">lvl</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Output for user.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			s (string): message string.</span>
+<span class="sd">			lvl (int): message level.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			string: formatted string.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+			<span class="n">s</span> <span class="o">=</span> <span class="n">printout</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lvl</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+		<span class="k">return</span><span class="p">(</span><span class="n">printout</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lvl</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="bp">False</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="IOinterface.log"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.io.IOinterface.log">[docs]</a>	<span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Write to logfile.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			s (string): formatted message string.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			None: writes to logfile.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Create log file directory if missing</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">check_log_dir</span><span class="p">()</span>
+
+		<span class="c1"># Write to logfile</span>
+		<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logpath</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span>
+		<span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+		<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+	
+<div class="viewcode-block" id="IOinterface.check_log_dir"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.io.IOinterface.check_log_dir">[docs]</a>	<span class="k">def</span> <span class="nf">check_log_dir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Create log file directory if missing.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			path (string): optional log path.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			None: creates the folder that will contain the log, if missing.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">if</span> <span class="bp">None</span> <span class="o">==</span> <span class="n">path</span><span class="p">:</span>
+			<span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logpath</span>
+
+		<span class="n">dpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">dpath</span><span class="p">):</span>
+			<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dpath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IOinterface.gen_log_name"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.io.IOinterface.gen_log_name">[docs]</a>	<span class="k">def</span> <span class="nf">gen_log_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Generate logfile name. &quot;&quot;&quot;</span>
+		<span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">time</span><span class="p">())</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">_%H:%M:%S&#39;</span><span class="p">)</span>
+		<span class="n">name</span> <span class="o">=</span> <span class="n">now</span> <span class="o">+</span> <span class="s1">&#39;_pyGPSeq.log&#39;</span>
+		<span class="k">return</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="printout"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.io.printout">[docs]</a><span class="k">def</span> <span class="nf">printout</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">lvl</span><span class="p">,</span> <span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Log to shell.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		s (string): message string.</span>
+<span class="sd">		lvl (int): message level.</span>
+<span class="sd">		verbose (bool): True to display formatted message.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="c1"># Only a string can be logged</span>
+	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="nb">str</span><span class="p">())</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+		<span class="k">return</span><span class="p">()</span>
+
+	<span class="c1"># Add level-based prefix</span>
+	<span class="k">if</span> <span class="o">-</span><span class="mi">2</span> <span class="o">==</span> <span class="n">lvl</span><span class="p">:</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">~~ ERROR ~~ ლ(ಠ益ಠლ)</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">s</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Terminated.</span><span class="se">\n</span><span class="s1">&#39;</span>
+		<span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+		<span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+	<span class="k">elif</span> <span class="o">-</span><span class="mi">1</span> <span class="o">==</span> <span class="n">lvl</span><span class="p">:</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">~~ WARNING ~~ (ノ ゜Д゜)ノ ︵ ┻━┻</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">s</span>
+	<span class="k">elif</span> <span class="mi">0</span> <span class="o">==</span> <span class="n">lvl</span><span class="p">:</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">s</span>
+	<span class="k">elif</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">lvl</span><span class="p">:</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;  · &#39;</span> <span class="o">+</span> <span class="n">s</span>
+	<span class="k">elif</span> <span class="mi">2</span> <span class="o">==</span> <span class="n">lvl</span><span class="p">:</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;    &gt; &#39;</span> <span class="o">+</span> <span class="n">s</span>
+	<span class="k">elif</span> <span class="mi">3</span> <span class="o">==</span> <span class="n">lvl</span><span class="p">:</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;    &gt;&gt; &#39;</span> <span class="o">+</span> <span class="n">s</span>
+	<span class="k">elif</span> <span class="mi">4</span> <span class="o">&lt;=</span> <span class="n">lvl</span><span class="p">:</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;    &gt;&gt;&gt; &#39;</span> <span class="o">+</span> <span class="n">s</span>
+
+	<span class="c1"># Log</span>
+	<span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+		<span class="k">print</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+	<span class="k">return</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">add_trailing_new_line</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="merge_profiles"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.io.merge_profiles">[docs]</a><span class="k">def</span> <span class="nf">merge_profiles</span><span class="p">(</span><span class="n">profiles</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Formats the profiles into a single table.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		profiles (list): list of profile dictionaries.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		np.array: merged profiles.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">nsteps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">profiles</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">])</span>
+	<span class="n">nrows</span> <span class="o">=</span> <span class="n">nsteps</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">profiles</span><span class="p">)</span>
+
+	<span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">DTYPE_PROFILE_EXPORT</span><span class="p">)</span>
+
+	<span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">for</span> <span class="n">profile</span> <span class="ow">in</span> <span class="n">profiles</span><span class="p">:</span>
+		<span class="n">subcsv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nsteps</span><span class="p">,),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">DTYPE_PROFILE_EXPORT</span><span class="p">)</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;condition&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">profile</span><span class="p">[</span><span class="s1">&#39;condition&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsteps</span><span class="p">)]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;dna_mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;dna_median&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">][</span><span class="s1">&#39;median&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;dna_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">][</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;dna_std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">][</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;sig_mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;sig_median&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">][</span><span class="s1">&#39;median&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;sig_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">][</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;sig_std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">][</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;ratio_mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;ratio_median&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;median&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;ratio_mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;ratio_std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;std&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;dna_mean_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">][</span><span class="s1">&#39;mean_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;dna_median_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">][</span><span class="s1">&#39;median_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;dna_mode_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">][</span><span class="s1">&#39;mode_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;dna_std_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">][</span><span class="s1">&#39;std_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;sig_mean_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">][</span><span class="s1">&#39;mean_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;sig_median_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">][</span><span class="s1">&#39;median_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;sig_mode_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">][</span><span class="s1">&#39;mode_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;sig_std_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">][</span><span class="s1">&#39;std_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;ratio_mean_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;mean_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;ratio_median_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;median_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;ratio_mode_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;mode_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;ratio_std_raw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">profile</span><span class="p">[</span><span class="s1">&#39;ratio&#39;</span><span class="p">][</span><span class="s1">&#39;std_raw&#39;</span><span class="p">]</span>
+		<span class="n">subcsv</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">profile</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nsteps</span><span class="p">)]</span>
+		<span class="n">out</span><span class="p">[</span><span class="n">c</span><span class="p">:(</span><span class="n">c</span><span class="o">+</span><span class="n">nsteps</span><span class="p">),]</span> <span class="o">=</span> <span class="n">subcsv</span>
+		<span class="n">c</span> <span class="o">+=</span> <span class="n">nsteps</span>
+
+	<span class="k">return</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Gabriele Girelli.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

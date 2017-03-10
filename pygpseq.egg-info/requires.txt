@@ -1,0 +1,8 @@
+jinja2
+joblib
+matplotlib
+numpy
+pandas
+scipy
+scikit-image
+weasyprint

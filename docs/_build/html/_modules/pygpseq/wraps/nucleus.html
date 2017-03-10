@@ -1,0 +1,607 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pygpseq.wraps.nucleus &mdash; pygpseq 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pygpseq 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pygpseq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/howto.html">How to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/changelog.html">CHANGELOG</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">pygpseq</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pygpseq.wraps.nucleus</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pygpseq.wraps.nucleus</h1><div class="highlight"><pre>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">ndimage</span> <span class="k">as</span> <span class="n">ndi</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage.morphology</span> <span class="kn">import</span> <span class="n">distance_transform_edt</span>
+<span class="kn">import</span> <span class="nn">skimage.io</span> <span class="kn">as</span> <span class="nn">io</span>
+<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span><span class="p">,</span> <span class="n">marching_cubes</span><span class="p">,</span> <span class="n">mesh_surface_area</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">..tools</span> <span class="kn">import</span> <span class="n">io</span> <span class="k">as</span> <span class="n">iot</span><span class="p">,</span> <span class="n">image</span> <span class="k">as</span> <span class="n">imt</span><span class="p">,</span> <span class="n">stat</span> <span class="k">as</span> <span class="n">stt</span><span class="p">,</span> <span class="n">string</span> <span class="k">as</span> <span class="n">st</span>
+<span class="kn">from</span> <span class="nn">..tools</span> <span class="kn">import</span> <span class="n">vector</span> <span class="k">as</span> <span class="n">vt</span>
+
+<div class="viewcode-block" id="Nucleus"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.nucleus.Nucleus">[docs]</a><span class="k">class</span> <span class="nc">Nucleus</span><span class="p">(</span><span class="n">iot</span><span class="o">.</span><span class="n">IOinterface</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;GPSeq nucleus.</span>
+
+<span class="sd">	Attributes:</span>
+<span class="sd">		__version__ (string): package version.</span>
+<span class="sd">		s (int): series id (1-indexed).</span>
+<span class="sd">		n (int): nucleus id (1-indexed).</span>
+<span class="sd">		box (tuple(float)): nucleus bounding box corner coordinates.</span>
+<span class="sd">		aspect (tuple[float]): relative/absolute px/vx size.</span>
+<span class="sd">		dna_bg (float): dna channel estimated background.</span>
+<span class="sd">		sig_bg (float): signal channel estimated background.</span>
+<span class="sd">		flat_size (int): nucleus size in Z projection.</span>
+<span class="sd">		size (int): number of px/vx in the nucleus.</span>
+<span class="sd">		unit (string): px or vx.</span>
+<span class="sd">		surf (float): nucleus mesh surface.</span>
+<span class="sd">		sumI (float): sum of the intensity of every px/vx in the nucleus.</span>
+<span class="sd">		meanI (float): mean of the intensity of every px/vx in the nucleus.</span>
+<span class="sd">		shape (float): nucleus shape descriptor.</span>
+<span class="sd">		thr (float): global threshold used to identify the nucleus.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">__version__</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">VERSION</span>
+	<span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">box</span> <span class="o">=</span> <span class="p">()</span>
+	<span class="n">aspect</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+	<span class="n">dna_bg</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">sig_bg</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">flat_size</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">size</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+	<span class="n">surf</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">sumI</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">meanI</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">shape</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">thr</span> <span class="o">=</span> <span class="mi">0</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logpath</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">series_id</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">thr</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">aspect</span><span class="p">,</span>
+		<span class="n">dna_bg</span><span class="p">,</span> <span class="n">sig_bg</span><span class="p">,</span> <span class="n">calc_n_surface</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Run IOinterface __init__ method.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			logpath (string): path to the log file.</span>
+<span class="sd">			n (int): nucleus id (1-indexed).</span>
+<span class="sd">			series_id (int): series id (1-indexed).</span>
+<span class="sd">			mask (numpy.array): binary image.</span>
+<span class="sd">			i (numpy.array): image.</span>
+<span class="sd">			thr (uint16): threshold obtained with Otsu&#39;s method.</span>
+<span class="sd">			offset (tuple[int]): dimensions box/square offset.</span>
+<span class="sd">			aspect (tuple[float]): pixel/voxel dimension proportion.</span>
+<span class="sd">			dna_bg (uint16): median background for DNA channel.</span>
+<span class="sd">			sig_bg (uint16): median background for Signal channel.</span>
+<span class="sd">			calc_n_surface (bool): True to calculate the nucleus</span>
+<span class="sd">				mesh surface (opt, def True).</span>
+<span class="sd">			**kwargs</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		
+		<span class="c1"># parent class __init__</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">Nucleus</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">path</span> <span class="o">=</span> <span class="n">logpath</span><span class="p">,</span> <span class="n">append</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+
+		<span class="c1"># Default values</span>
+		<span class="k">if</span> <span class="bp">None</span> <span class="o">==</span> <span class="n">calc_n_surface</span><span class="p">:</span>
+			<span class="n">calc_n_surface</span> <span class="o">=</span> <span class="bp">True</span>
+
+		<span class="c1"># Store parameters locally</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">series_id</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">box</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_bounding_box</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">thr</span> <span class="o">=</span> <span class="n">thr</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">dna_bg</span> <span class="o">=</span> <span class="n">dna_bg</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">sig_bg</span> <span class="o">=</span> <span class="n">sig_bg</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">aspect</span> <span class="o">=</span> <span class="n">aspect</span>
+
+		<span class="c1"># Apply box selection to the image</span>
+		<span class="n">i</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">apply_box</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">)</span>
+		<span class="n">mask</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">apply_box</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">)</span>
+
+		<span class="c1"># Nuclear measurements</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+		<span class="k">if</span> <span class="mi">3</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">flat_size</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">flat_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">get_unit</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">sumI</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">meanI</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumI</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">describe_shape</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aspect</span><span class="p">)</span>
+		<span class="k">if</span> <span class="mi">3</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="ow">and</span> <span class="n">calc_n_surface</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">surf</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">calc_surface</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aspect</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">surf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
+
+<div class="viewcode-block" id="Nucleus.get_bounding_box"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.nucleus.Nucleus.get_bounding_box">[docs]</a>	<span class="k">def</span> <span class="nf">get_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return the bounding box (2d or 3d) of the object in mask.</span>
+
+<span class="sd">		Note:</span>
+<span class="sd">			An offset can be specified for each dimension. If no offset is</span>
+<span class="sd">			specified, it defaults to 0. If only one offset is specified, it</span>
+<span class="sd">			will be used for every dimension. If the number of offsets</span>
+<span class="sd">			specified does not match the number of dimensions, onlyt the first</span>
+<span class="sd">			will be used for every dimension.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			mask (np.array): thresholded image.</span>
+<span class="sd">			offset (tuple[int]): bounding box offset in px/vx [Z Y X].</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			list[int]: bounding box corner coordinates.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">if</span> <span class="mi">2</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+			<span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_2d_bounding_box</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">offset</span><span class="p">))</span>
+		<span class="k">elif</span> <span class="mi">3</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+			<span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_3d_bounding_box</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">offset</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Nucleus.get_2d_bounding_box"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.nucleus.Nucleus.get_2d_bounding_box">[docs]</a>	<span class="k">def</span> <span class="nf">get_2d_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return the bounding box (2d) of the object in mask.</span>
+
+<span class="sd">		Note:</span>
+<span class="sd">			An offset can be specified for each dimension. If no offset is</span>
+<span class="sd">			specified, it defaults to 0. If only one offset is specified, it</span>
+<span class="sd">			will be used for every dimension. If the number of offsets specified</span>
+<span class="sd">			does not match the number of dimensions, onlyt the first will be</span>
+<span class="sd">			used for every dimension.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			mask (np.array): thresholded image.</span>
+<span class="sd">			offset (tuple[int]): bounding box offset in px/vx [Z Y X].</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			list[int]: bounding square corner coordinates.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Check provided offset</span>
+		<span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_box_offset</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+
+		<span class="c1"># Binarize mask if it is not</span>
+		<span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;bool&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;uint8&#39;</span><span class="p">)</span>
+
+		<span class="n">box</span> <span class="o">=</span> <span class="p">[]</span>
+
+		<span class="c1"># Y-side boundaries</span>
+		<span class="n">vy</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+		<span class="n">vy_min</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">vy</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+		<span class="n">vy</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+		<span class="n">vy_max</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vy</span><span class="p">)</span> <span class="o">-</span> <span class="n">vy</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+		<span class="n">box</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">vy_min</span><span class="p">,</span> <span class="n">vy_max</span><span class="p">))</span>
+
+		<span class="c1"># X-side boundaries</span>
+		<span class="n">vx</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+		<span class="n">vx_min</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">vx</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="n">vx</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+		<span class="n">vx_max</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vx</span><span class="p">)</span> <span class="o">-</span> <span class="n">vx</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="n">box</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">vx_min</span><span class="p">,</span> <span class="n">vx_max</span><span class="p">))</span>
+
+		<span class="k">return</span><span class="p">(</span><span class="n">box</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Nucleus.get_3d_bounding_box"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.nucleus.Nucleus.get_3d_bounding_box">[docs]</a>	<span class="k">def</span> <span class="nf">get_3d_bounding_box</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Return the bounding box (3d) of the object in mask.</span>
+
+<span class="sd">		Note:</span>
+<span class="sd">			An offset can be specified for each dimension. If no offset is</span>
+<span class="sd">			specified, it defaults to 0. If only one offset is specified, it</span>
+<span class="sd">			will be used for every dimension. If the number of offsets specified</span>
+<span class="sd">			does not match the number of dimensions, onlyt the first will be</span>
+<span class="sd">			used for every dimension.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			mask (np.array): thresholded image.</span>
+<span class="sd">			offset (tuple[int]): bounding box offset in px/vx [Z Y X].</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			list[int]: bounding box corner coordinates.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Check provided offset</span>
+		<span class="n">offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_box_offset</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">offset</span><span class="p">)</span>
+
+		<span class="c1"># Binarize mask if it is not</span>
+		<span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;bool&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;uint8&#39;</span><span class="p">)</span>
+
+		<span class="c1"># Retrieve 2D bounding box</span>
+		<span class="n">box</span> <span class="o">=</span> <span class="p">[()]</span>
+		<span class="n">box</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_2d_bounding_box</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]))</span>
+
+		<span class="c1"># Z-side boundaries</span>
+		<span class="n">vz</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+		<span class="n">vz_min</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">vz</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="n">vz</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+		<span class="n">vz_max</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">vz</span><span class="p">)</span> <span class="o">-</span> <span class="n">vz</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">vz_min</span><span class="p">,</span> <span class="n">vz_max</span><span class="p">)</span>
+
+		<span class="k">return</span><span class="p">(</span><span class="n">box</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Nucleus.check_box_offset"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.nucleus.Nucleus.check_box_offset">[docs]</a>	<span class="k">def</span> <span class="nf">check_box_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">offset</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Check bounding box offset.</span>
+
+<span class="sd">		Note:</span>
+<span class="sd">			If no offset is specified, it defaults to 0. If only one offset is</span>
+<span class="sd">			specified, it will be used for every dimension. If the number of</span>
+<span class="sd">			offsets specified does not match the number of dimensions, onlyt the</span>
+<span class="sd">			first will be used for every dimension.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			shape (tuple[int]): image shape.</span>
+<span class="sd">			offset (tuple[int]): bounding box offset in px/vx [Z Y X].</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			tuple[int]: corrected box offset.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="k">if</span> <span class="bp">None</span> <span class="o">==</span> <span class="n">offset</span><span class="p">:</span>
+			<span class="n">offset</span> <span class="o">=</span> <span class="mi">0</span>
+
+		<span class="c1"># Make offset into a list</span>
+		<span class="k">if</span> <span class="nb">type</span><span class="p">([])</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="n">offset</span><span class="p">):</span>
+			<span class="n">offset</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+
+		<span class="c1"># Identify the offset for every dimension</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+			<span class="n">offset</span> <span class="o">=</span> <span class="p">[</span><span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">shape</span><span class="p">]</span>
+
+		<span class="c1"># Output</span>
+		<span class="k">return</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Nucleus.get_data"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.nucleus.Nucleus.get_data">[docs]</a>	<span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dna_ch</span><span class="p">,</span> <span class="n">sig_ch</span><span class="p">,</span> <span class="n">an_type</span><span class="p">,</span> <span class="n">aspect</span><span class="p">,</span> <span class="n">debugging</span><span class="p">,</span>
+		<span class="n">part_n_erosion</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Get nuclear data.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			dna_ch (np.array): image (dimensionality based on an_type).</span>
+<span class="sd">			sig_ch (np.array): image (dimensionality based on an_type).</span>
+<span class="sd">			an_type (int): analysis type according to pygpseq.const.</span>
+<span class="sd">			aspect (tuple[float]): pixel/voxel dimension proportion.</span>
+<span class="sd">			debugging (bool): True for debugging mode.</span>
+<span class="sd">			part_n_erosion (float): partial nucleus erosion distance threshold.</span>
+<span class="sd">			**kwargs</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			tuple: nuclear data and log string.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># SET PARAMS ===========================================================</span>
+
+		<span class="c1"># Set output suffix</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;suffix&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">suffix</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">add_leading_dot</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">])</span>
+
+		<span class="c1"># Set plotting</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;plotting&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;plotting&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+		<span class="c1"># RETRIEVE DATA ========================================================</span>
+
+		<span class="c1"># Start log</span>
+		<span class="n">log</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+		<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Retrieving single-pixel data for nucleus #&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+		<span class="c1"># Apply box selection to channels</span>
+		<span class="n">dna</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">apply_box</span><span class="p">(</span><span class="n">dna_ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">)</span>
+		<span class="n">sig</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">apply_box</span><span class="p">(</span><span class="n">sig_ch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">)</span>
+
+		<span class="c1"># Produce or select mask</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;mask&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">bi</span> <span class="o">=</span> <span class="n">Binarize</span><span class="p">(</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logpath</span><span class="p">,</span> <span class="n">append</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+			<span class="n">bi</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span>
+			<span class="n">mask</span><span class="p">,</span> <span class="n">thr</span><span class="p">,</span> <span class="n">tmp_log</span> <span class="o">=</span> <span class="n">bi</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dna</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">mask</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">apply_box</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mask&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">box</span><span class="p">)</span>
+
+		<span class="c1"># Select largest object only</span>
+		<span class="n">L</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+		<span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">L</span><span class="o">.</span><span class="n">max</span><span class="p">():</span>
+			<span class="n">sizes</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">get_objects_xysize</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+			<span class="n">mask</span> <span class="o">=</span> <span class="n">L</span> <span class="o">==</span> <span class="n">sizes</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">sizes</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>
+		<span class="k">elif</span> <span class="mi">0</span> <span class="o">==</span> <span class="n">L</span><span class="o">.</span><span class="n">max</span><span class="p">():</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Found empty nucleus&#39;</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39; [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;].&#39;</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+		<span class="c1"># Apply mask to boxes</span>
+		<span class="n">dna</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="n">sig</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+		<span class="k">if</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_MID</span> <span class="o">==</span> <span class="n">an_type</span> <span class="ow">and</span> <span class="mi">3</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+			<span class="c1"># Identify middle section</span>
+			<span class="k">if</span> <span class="s1">&#39;mid_type&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+				<span class="n">mid</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">get_mid_section_idx</span><span class="p">(</span><span class="n">dna</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mid_type&#39;</span><span class="p">])</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">mid</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">get_mid_section_idx</span><span class="p">(</span><span class="n">dna</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+			<span class="c1"># Select only mid-section</span>
+			<span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">mid</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+			<span class="n">dna</span> <span class="o">=</span> <span class="n">dna</span><span class="p">[</span><span class="n">mid</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+			<span class="n">sig</span> <span class="o">=</span> <span class="n">sig</span><span class="p">[</span><span class="n">mid</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+		<span class="c1"># Perform distance transform</span>
+		<span class="n">D</span> <span class="o">=</span> <span class="n">distance_transform_edt</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">aspect</span><span class="p">[</span><span class="mi">3</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">):])</span>
+
+		<span class="c1"># Export single-nucleus images in debugging mode</span>
+		<span class="k">if</span> <span class="n">debugging</span><span class="p">:</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">OUTDIR_DEBUG</span>
+			<span class="n">fname</span> <span class="o">+=</span> <span class="s1">&#39;s&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;n&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;plotting&#39;</span><span class="p">]:</span>
+				<span class="n">io</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">fname</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;u4&#39;</span><span class="p">))</span>
+			<span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;plotting&#39;</span><span class="p">]:</span>
+				<span class="n">io</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">fname</span> <span class="o">+</span> <span class="s1">&#39;.dist&#39;</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="n">D</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;u4&#39;</span><span class="p">))</span>
+			<span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;plotting&#39;</span><span class="p">]:</span>
+				<span class="n">io</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">fname</span> <span class="o">+</span> <span class="s1">&#39;.dna&#39;</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="n">dna</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;u4&#39;</span><span class="p">))</span>
+			<span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;plotting&#39;</span><span class="p">]:</span>
+				<span class="n">io</span><span class="o">.</span><span class="n">imsave</span><span class="p">(</span><span class="n">fname</span> <span class="o">+</span> <span class="s1">&#39;.sig&#39;</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="n">sig</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;u4&#39;</span><span class="p">))</span>
+
+		<span class="c1"># Select pixels for partial 3D nuclear analysis</span>
+		<span class="n">sm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;u4&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_3D</span> <span class="o">==</span> <span class="n">an_type</span><span class="p">:</span>
+			<span class="c1"># Get selection mask</span>
+			<span class="n">sm</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">get_partial_nuclear_volume</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">dna</span><span class="p">,</span> <span class="n">part_n_erosion</span><span class="p">)</span>
+
+			<span class="c1"># Log error message</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;&#39;</span> <span class="o">==</span> <span class="n">e</span><span class="p">:</span>
+				<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		
+		<span class="c1"># Convert image into a list</span>
+		<span class="n">mask_flat</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)])</span>
+		<span class="n">mask_flat</span> <span class="o">=</span> <span class="n">mask_flat</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+		<span class="n">mask_flat</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mask_flat</span><span class="p">))</span> <span class="k">if</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">mask_flat</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+
+		<span class="c1"># Prepare output</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mask_flat</span><span class="p">),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">DTYPE_NUCLEAR_DATA</span><span class="p">)</span>
+
+		<span class="c1"># Flatten data for export</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">flatten_and_select</span><span class="p">(</span><span class="n">dna</span><span class="p">,</span> <span class="n">mask_flat</span><span class="p">)</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">flatten_and_select</span><span class="p">(</span><span class="n">sig</span><span class="p">,</span> <span class="n">mask_flat</span><span class="p">)</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">flatten_and_select</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">mask_flat</span><span class="p">)</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;part&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">flatten_and_select</span><span class="p">(</span><span class="n">sm</span><span class="p">,</span> <span class="n">mask_flat</span><span class="p">)</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">]]</span>
+
+		<span class="c1"># Remove background</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">])</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">][</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">dna_bg</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dna_bg</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;dna&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">dna_bg</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">])</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">][</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig_bg</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig_bg</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;sig&#39;</span><span class="p">])</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig_bg</span>
+
+		<span class="c1"># Add normalized distance</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;dnorm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">])</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="mf">0.</span> <span class="o">==</span> <span class="nb">max</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;dnorm&#39;</span><span class="p">]):</span>
+			<span class="n">data</span><span class="p">[</span><span class="s1">&#39;dnorm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dnorm&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="nb">max</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;dnorm&#39;</span><span class="p">])</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Found 0 maximum distance at &#39;</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+			<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+		<span class="c1"># Output</span>
+		<span class="k">return</span><span class="p">((</span><span class="n">data</span><span class="p">,</span> <span class="n">log</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Nucleus.get_summary"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.nucleus.Nucleus.get_summary">[docs]</a>	<span class="k">def</span> <span class="nf">get_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Get nuclear summary. &quot;&quot;&quot;</span>
+
+		<span class="c1"># Output</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+			<span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">s</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">flat_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surf</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumI</span><span class="p">,</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">meanI</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">DTYPE_NUCLEAR_SUMMARY</span><span class="p">)</span>
+
+		<span class="k">return</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Nucleus.export"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.nucleus.Nucleus.export">[docs]</a>	<span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Export nuclear data. &quot;&quot;&quot;</span>
+
+		<span class="c1"># Set output suffix</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;suffix&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">suffix</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">add_leading_dot</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">])</span>
+
+		<span class="c1"># Get nuclear data</span>
+		<span class="n">data</span><span class="p">,</span> <span class="n">log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+		<span class="c1"># Export as csv file</span>
+		<span class="n">out_fname</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;series_name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.nucleus&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+		<span class="n">out_fname</span> <span class="o">+=</span> <span class="n">suffix</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+		<span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">fname</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span>
+			<span class="n">header</span> <span class="o">=</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">]),</span>
+			<span class="n">delimiter</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">comments</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+
+	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Allow get item. &quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="k">return</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Allow set item. &quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Gabriele Girelli.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

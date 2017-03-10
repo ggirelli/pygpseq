@@ -1,0 +1,993 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pygpseq.main &mdash; pygpseq 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pygpseq 0.1.0 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> pygpseq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../_static/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_static/howto.html">How to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_static/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../_static/changelog.html">CHANGELOG</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">pygpseq</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>pygpseq.main</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pygpseq.main</h1><div class="highlight"><pre>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">pickle</span> <span class="kn">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">Environment</span><span class="p">,</span> <span class="n">FileSystemLoader</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">numpy.lib.recfunctions</span> <span class="kn">import</span> <span class="n">append_fields</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">weasyprint</span> <span class="kn">import</span> <span class="n">HTML</span><span class="p">,</span> <span class="n">CSS</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">const</span>
+
+<span class="kn">from</span> <span class="nn">.tools</span> <span class="kn">import</span> <span class="n">io</span> <span class="k">as</span> <span class="n">iot</span>
+<span class="kn">from</span> <span class="nn">.tools</span> <span class="kn">import</span> <span class="n">path</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="kn">from</span> <span class="nn">.tools</span> <span class="kn">import</span> <span class="n">plot</span>
+<span class="kn">from</span> <span class="nn">.tools</span> <span class="kn">import</span> <span class="n">stat</span> <span class="k">as</span> <span class="n">stt</span>
+<span class="kn">from</span> <span class="nn">.tools</span> <span class="kn">import</span> <span class="n">string</span> <span class="k">as</span> <span class="n">st</span>
+<span class="kn">from</span> <span class="nn">.tools</span> <span class="kn">import</span> <span class="n">vector</span> <span class="k">as</span> <span class="n">vt</span>
+
+<span class="kn">from</span> <span class="nn">.wraps.analysis</span> <span class="kn">import</span> <span class="n">Analyzer</span>
+<span class="kn">from</span> <span class="nn">.wraps.condition</span> <span class="kn">import</span> <span class="n">Condition</span>
+
+<div class="viewcode-block" id="Main"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main">[docs]</a><span class="k">class</span> <span class="nc">Main</span><span class="p">(</span><span class="n">Analyzer</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;GPSeq data manager (extends Analyzer).</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		__version__ (string): package version.</span>
+<span class="sd">		basedir (string): input data directory path.</span>
+<span class="sd">		outdir (string): output directory path.</span>
+<span class="sd">		skip (list): steps to be skipped.</span>
+<span class="sd">			1  : skip instantiation (need gpi.inst.cpickle, otherwise unskips).</span>
+<span class="sd">			2  : skip segmentation (need gpi.seg.cpickle, otherwise unskips).</span>
+<span class="sd">			3  : skip analysis (need gpi.an.cpickle, otherwise unskips).</span>
+<span class="sd">			3.5: skip single-nuclei boxplot (end of step 3).</span>
+<span class="sd">			4  : final plots.</span>
+<span class="sd">			5  : final report.</span>
+<span class="sd">		conds (list[pygpseq.wraps.Condition]): conditions.</span>
+<span class="sd">		ext (string): image file extension.</span>
+<span class="sd">		font_size (int): plot fontsize.</span>
+<span class="sd">		ncores (int): number of cores for parallel computation.</span>
+<span class="sd">		reg (string): regular expression for image file identification.</span>
+<span class="sd">		debugging (bool): True for debugging mode. Debugging mode, effects:</span>
+<span class="sd">			Save intermediate nuclear tif images of DNA, Sig, D and mask.</span>
+<span class="sd">		plotting (bool): True to generate plot.</span>
+<span class="sd">		suffix (string): suffix to every output file.</span>
+<span class="sd">		notes (string): user-provided notes.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">__version__</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">VERSION</span>
+	<span class="n">basedir</span> <span class="o">=</span> <span class="s1">&#39;./&#39;</span>
+	<span class="n">outdir</span> <span class="o">=</span> <span class="s1">&#39;./output/&#39;</span>
+	<span class="n">skip</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">conds</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">ext</span> <span class="o">=</span> <span class="s1">&#39;.tif&#39;</span>
+	<span class="n">reg</span> <span class="o">=</span> <span class="s1">&#39;^(?P&lt;&#39;</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">REG_CHANNEL_NAME</span> <span class="o">+</span> <span class="s1">&#39;&gt;[^/]*)&#39;</span>
+	<span class="n">reg</span> <span class="o">+=</span> <span class="s1">&#39;\.(?P&lt;&#39;</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">REG_CHANNEL_ID</span> <span class="o">+</span> <span class="s1">&#39;&gt;channel[0-9]+)&#39;</span>
+	<span class="n">reg</span> <span class="o">+=</span> <span class="s1">&#39;\.(?P&lt;&#39;</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">REG_SERIES_ID</span> <span class="o">+</span> <span class="s1">&#39;&gt;series[0-9]+)&#39;</span>
+	<span class="n">reg</span> <span class="o">+=</span> <span class="s1">&#39;(?P&lt;&#39;</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">REG_EXT</span> <span class="o">+</span> <span class="s1">&#39;&gt;\.tif)$&#39;</span>
+	<span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+	<span class="n">font_size</span> <span class="o">=</span> <span class="mi">8</span>
+	<span class="n">debugging</span> <span class="o">=</span> <span class="bp">False</span>
+	<span class="n">plotting</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">ncores</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="n">notes</span> <span class="o">=</span> <span class="s1">&#39;...&#39;</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ncores</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">font_size</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Run Analyzer __init__ method.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			ncores (int): number of cores (opt, def: 1).</span>
+<span class="sd">			font_size (int): plotting fontsize (opt, def: 8).</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">Main</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+		<span class="c1"># Read additional parameters</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">ncores</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">ncores</span> <span class="o">=</span> <span class="n">ncores</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">font_size</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">font_size</span> <span class="o">=</span> <span class="n">font_size</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Main.run"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.run">[docs]</a>	<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Run the GPSeq manager. &quot;&quot;&quot;</span>
+
+		<span class="c1"># INIT =================================================================</span>
+
+		<span class="c1"># Suppress RuntimeWarning(s)</span>
+		<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span> <span class="o">=</span> <span class="ne">FutureWarning</span><span class="p">)</span>
+		<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span> <span class="o">=</span> <span class="ne">RuntimeWarning</span><span class="p">)</span>
+		<span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">category</span> <span class="o">=</span> <span class="ne">UserWarning</span><span class="p">)</span>
+
+		<span class="c1"># Check number of cores</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncores</span> <span class="o">&gt;</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">():</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">ncores</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Decreased core number to maximum allowed: </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncores</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Please, don</span><span class="se">\&#39;</span><span class="s1">t ask for the impossible... ಠ_ಠ&#39;</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="c1"># Warn for log freezing if parallelization is on</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncores</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;pyGPSeq log might freeze due to parallelization.</span><span class="se">\n</span><span class="s1">&#39;</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;But do NOT dispair. Everything will work out, eventually...&#39;</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39; Just be patient.</span><span class="se">\n</span><span class="s1">┬─┬﻿ ノ( ゜-゜ノ)&#39;</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="c1"># Check parameters</span>
+		<span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+		<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">add_leading_dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">basedir</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">add_trailing_slash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">add_trailing_slash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">)</span>
+
+		<span class="c1"># Create basedir and outdir if missing</span>
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">]:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+				<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+		<span class="c1"># Make profile output folder</span>
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">OUTDIR_PDF</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">OUTDIR_PNG</span><span class="p">,</span>
+			<span class="n">const</span><span class="o">.</span><span class="n">OUTDIR_PNG_REPORT</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">OUTDIR_MASK</span><span class="p">]:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="n">d</span><span class="p">):</span>
+				<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="n">d</span><span class="p">)</span>
+		<span class="n">debug_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">OUTDIR_DEBUG</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">debugging</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">debug_dir</span><span class="p">):</span>
+			<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">debug_dir</span><span class="p">)</span>
+
+		<span class="c1"># Plot font-size</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;font_size&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;font_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">font_size</span>
+
+		<span class="c1"># Number of cores for parallelization</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;ncores&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;ncores&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncores</span>
+
+		<span class="c1"># Output directory</span>
+		<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;out_dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span>
+
+		<span class="c1"># Distance field for profiles</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_distance</span><span class="p">:</span>
+			<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dfield&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;dnorm&#39;</span>
+			<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dlabel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Relative distance from nuclear lamina&#39;</span>
+			<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dlabel&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="s1">&#39; [a.u.]&#39;</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dfield&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;d&#39;</span>
+			<span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;dlabel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Distance from nuclear lamina [a.u.]&#39;</span>
+
+		<span class="c1"># Update kwargs with self attributes</span>
+		<span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">([(</span><span class="n">n</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+			<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">KWARGS_TYPELIST</span> <span class="ow">and</span>
+			<span class="ow">not</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">KWARGS_AVOIDLIST</span><span class="p">])</span>
+
+		<span class="c1"># SINGLE STEPS =========================================================</span>
+
+		<span class="c1"># INSTANTIATION --------------------------------------------------------</span>
+		<span class="c1"># Check whether to skip instantiation</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_skipped</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;gpi.inst&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.cpickle&#39;</span>
+			<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Skipping instantiation...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Loading dumped instance...</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+				<span class="k">try</span><span class="p">:</span>
+					<span class="c1"># Load</span>
+					<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+					<span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PARAM_SEG</span><span class="p">)</span>
+					<span class="n">keys</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PARAM_AN</span><span class="p">))</span>
+					<span class="bp">self</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+					<span class="c1"># Dump</span>
+					<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+					<span class="n">cp</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+				<span class="k">except</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Unable to load dumped instance...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Unskipping instantiation...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">unskip</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Unskipping instantiation...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">unskip</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_skipped</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+			<span class="c1"># Run instantiation if not skipped</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">run_initialization</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+			<span class="c1"># Dump</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;gpi.inst&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.cpickle&#39;</span>
+			<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+			<span class="n">cp</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+			<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+		<span class="c1"># SEGMENTATION ---------------------------------------------------------</span>
+		<span class="c1"># Check whether to skip segmentation</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_skipped</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;gpi.seg&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.cpickle&#39;</span>
+			<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Skipping segmentation...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Loading dumped instance...</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+				<span class="k">try</span><span class="p">:</span>
+					<span class="c1"># Load</span>
+					<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+					<span class="bp">self</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">PARAM_AN</span><span class="p">)</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+					<span class="c1"># Dump</span>
+					<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+					<span class="n">cp</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+				<span class="k">except</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Unable to load dumped instance...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Unskipping segmentation...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">unskip</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Unskipping segmentation...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">unskip</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_skipped</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+			<span class="c1"># Run segmentation if not skipped</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">run_segmentation</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+			<span class="c1"># Dump</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;gpi.seg&#39;</span><span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span><span class="s1">&#39;.cpickle&#39;</span>
+			<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+			<span class="n">cp</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+			<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+		<span class="c1"># ANALYSIS -------------------------------------------------------------</span>
+		<span class="c1"># Check whether to skip analysis</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_skipped</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;gpi.an&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.cpickle&#39;</span>
+			<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Skipping analysis...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Loading dumped instance...</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+				<span class="k">try</span><span class="p">:</span>
+					<span class="c1"># Load</span>
+					<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+					<span class="bp">self</span><span class="p">,</span> <span class="n">profiles</span><span class="p">,</span> <span class="n">sumd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+					<span class="c1"># Dump</span>
+					<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+					<span class="n">cp</span><span class="o">.</span><span class="n">dump</span><span class="p">((</span><span class="bp">self</span><span class="p">,</span> <span class="n">profiles</span><span class="p">,</span> <span class="n">sumd</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
+					<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span> 
+				<span class="k">except</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Unable to load dumped instance...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Unskipping analysis...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">unskip</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Unskipping analysis...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">unskip</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_skipped</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+			<span class="c1"># Run analysis if not skipped</span>
+			<span class="n">profiles</span><span class="p">,</span> <span class="n">sumd</span><span class="p">,</span> <span class="n">md</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_analysis</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+			<span class="c1"># Dump</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;gpi.an&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.cpickle&#39;</span>
+			<span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+			<span class="n">cp</span><span class="o">.</span><span class="n">dump</span><span class="p">((</span><span class="bp">self</span><span class="p">,</span> <span class="n">profiles</span><span class="p">,</span> <span class="n">sumd</span><span class="p">),</span> <span class="n">f</span><span class="p">)</span>
+			<span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+			<span class="c1"># Generate general boxplots if not skipped</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_skipped</span><span class="p">(</span><span class="mf">3.5</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">mk_general_boxplots</span><span class="p">(</span><span class="n">profiles</span><span class="p">,</span> <span class="n">sumd</span><span class="p">,</span> <span class="n">md</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+		<span class="c1"># FINAL PLOTS ----------------------------------------------------------</span>
+		<span class="c1"># Produce final plots if not skipped</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_skipped</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">mk_general_plots</span><span class="p">(</span><span class="n">profiles</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Skipping final plots...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="c1"># FINAL REPORT ---------------------------------------------------------</span>
+		<span class="c1"># Execution end</span>
+		<span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+		<span class="c1"># Generate final report if not skipped</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_skipped</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Generating final report...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">mk_report</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Skipping final report...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="c1"># CONCLUSION ===========================================================</span>
+
+		<span class="c1"># Final remarks</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;~ took </span><span class="si">%s</span><span class="s1"> s ~&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> ~ FIN ~&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">└[∵┌] └[ ∵ ]┘ [┐∵]┘</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="k">return</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Main.run_initialization"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.run_initialization">[docs]</a>	<span class="k">def</span> <span class="nf">run_initialization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Initialize run. &quot;&quot;&quot;</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Starting GPSeq manager...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Looking into folder: &quot;&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">basedir</span> <span class="o">+</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="c1"># Instantiate OOP architecture</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;* Building OOP Architecture *&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="c1"># Select condition folders</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conds</span> <span class="o">=</span> <span class="n">pt</span><span class="o">.</span><span class="n">select_folders</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="p">)</span>
+		<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Found &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conds</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; condition folder(s)...&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="c1"># Instantiate conditions</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conds</span> <span class="o">=</span> <span class="p">[</span><span class="n">Condition</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">main</span> <span class="o">=</span> <span class="bp">self</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conds</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Main.run_segmentation"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.run_segmentation">[docs]</a>	<span class="k">def</span> <span class="nf">run_segmentation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Run segmentation. &quot;&quot;&quot;</span>
+
+		<span class="c1"># Check analysis/segmentation types</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">check_anseg_types</span><span class="p">()</span>
+
+		<span class="c1"># Identify nuclei</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;* Looking for nuclei *&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">find_nuclei</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conds</span><span class="p">]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Main.run_analysis"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.run_analysis">[docs]</a>	<span class="k">def</span> <span class="nf">run_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Run analysis. &quot;&quot;&quot;</span>
+
+		<span class="c1"># Retrieve and save nuclear data</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;* Retrieving nuclear data *&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+		<span class="c1"># [{dtype:{x:float, y:float}, n:int, condition:string}]</span>
+		<span class="n">data</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">analyze_nuclei</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conds</span><span class="p">]</span>
+		<span class="n">profiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span>
+		<span class="n">sumd</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span>
+		<span class="n">md</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span>
+
+		<span class="k">return</span><span class="p">((</span><span class="n">profiles</span><span class="p">,</span> <span class="n">sumd</span><span class="p">,</span> <span class="n">md</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Main.mk_general_boxplots"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.mk_general_boxplots">[docs]</a>	<span class="k">def</span> <span class="nf">mk_general_boxplots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profiles</span><span class="p">,</span> <span class="n">sumd</span><span class="p">,</span> <span class="n">md</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Generate general boxplots. &quot;&quot;&quot;</span>
+		
+		<span class="c1"># Common destinations</span>
+		<span class="n">out_pdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;out_pdf/&#39;</span>
+		<span class="n">out_png</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;out_png/&#39;</span>
+		
+		<span class="c1"># Multi-condition single-nucleus boxplots</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Preparing general single-nuclei boxplot...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="n">fig</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">multi_condition_boxplot</span><span class="p">(</span><span class="n">profiles</span><span class="p">,</span> <span class="n">sumd</span><span class="p">,</span> <span class="n">md</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+		<span class="c1"># Export PDF</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="n">out_pdf</span> <span class="o">+</span> <span class="s1">&#39;boxplots&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.pdf&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">plot</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;pdf&#39;</span><span class="p">)</span>
+
+		<span class="c1"># Export PNG</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="n">out_png</span> <span class="o">+</span> <span class="s1">&#39;boxplots&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">plot</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;png&#39;</span><span class="p">)</span>
+
+		<span class="c1"># Close figure</span>
+		<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+		<span class="c1"># Calculate boxplot relative widths</span>
+		<span class="n">bp_widths</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;n&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">profiles</span><span class="p">]</span>
+		<span class="n">bp_widths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bp_widths</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;float&#39;</span><span class="p">)</span>
+		<span class="n">bp_widths</span> <span class="o">=</span> <span class="n">bp_widths</span> <span class="o">/</span> <span class="n">bp_widths</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.9</span>
+
+		<span class="c1"># Per nucleus boxplots</span>
+		<span class="n">bpitems</span> <span class="o">=</span> <span class="p">[</span>
+			<span class="c1"># Per nucleus size boxplots</span>
+			<span class="p">(</span><span class="n">plot</span><span class="o">.</span><span class="n">get_nsf_label</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NSEL_SIZE</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;seg_type&#39;</span><span class="p">])</span>
+				<span class="o">+</span> <span class="s1">&#39; [per nucleus]&#39;</span><span class="p">,</span> <span class="s1">&#39;size&#39;</span><span class="p">),</span>
+
+			<span class="c1"># Per nucleus shape boxplots</span>
+			<span class="p">(</span><span class="n">plot</span><span class="o">.</span><span class="n">get_nsf_label</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NSEL_SHAPE</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;seg_type&#39;</span><span class="p">])</span>
+				<span class="o">+</span> <span class="s1">&#39; [per nucleus]&#39;</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">),</span>
+
+			<span class="c1"># Per nucleus intensity average boxplots</span>
+			<span class="p">(</span><span class="s1">&#39;mean(DNA [a.u.]) [per nucleus]&#39;</span><span class="p">,</span> <span class="s1">&#39;meanI&#39;</span><span class="p">),</span>
+
+			<span class="c1"># Per nucleus intensity sum boxplots</span>
+			<span class="p">(</span><span class="s1">&#39;sum(DNA [a.u.]) [per nucleus]&#39;</span><span class="p">,</span> <span class="s1">&#39;sumI&#39;</span><span class="p">)</span>
+		<span class="p">]</span>
+		<span class="k">for</span> <span class="p">(</span><span class="n">ylab</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bpitems</span><span class="p">:</span>
+			<span class="n">plot</span><span class="o">.</span><span class="n">multi_condition_single_boxplot</span><span class="p">(</span><span class="n">profiles</span><span class="p">,</span> <span class="n">sumd</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span>
+				<span class="n">bp_widths</span><span class="p">,</span> <span class="n">ylab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">OUTDIR_PNG_REPORT</span><span class="p">,</span>
+				<span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+		<span class="c1"># Calculate boxplot relative widths</span>
+		<span class="n">bp_widths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">md</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;float&#39;</span><span class="p">)</span>
+		<span class="n">bp_widths</span> <span class="o">=</span> <span class="n">bp_widths</span> <span class="o">/</span> <span class="n">bp_widths</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.9</span>
+
+		<span class="c1"># Per pixel boxplots</span>
+		<span class="n">bpitems</span> <span class="o">=</span> <span class="p">[</span>
+			<span class="c1"># Per pixel DNA intensity</span>
+			<span class="p">(</span><span class="s1">&#39;DNA [a.u.] [per pixel]&#39;</span><span class="p">,</span> <span class="s1">&#39;dna&#39;</span><span class="p">),</span>
+
+			<span class="c1"># Per pixel Signal intensity</span>
+			<span class="p">(</span><span class="s1">&#39;Signal [a.u.] [per pixel]&#39;</span><span class="p">,</span> <span class="s1">&#39;sig&#39;</span><span class="p">)</span>
+		<span class="p">]</span>
+		<span class="k">for</span> <span class="p">(</span><span class="n">ylab</span><span class="p">,</span> <span class="n">field</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bpitems</span><span class="p">:</span>
+			<span class="n">plot</span><span class="o">.</span><span class="n">multi_condition_single_boxplot</span><span class="p">(</span><span class="n">profiles</span><span class="p">,</span> <span class="n">md</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span>
+				<span class="n">bp_widths</span><span class="p">,</span> <span class="n">ylab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="n">const</span><span class="o">.</span><span class="n">OUTDIR_PNG_REPORT</span><span class="p">,</span>
+				<span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+		<span class="c1"># Compare per pixel distributions --------------------------------------</span>
+		
+		<span class="c1"># Add condition column to nuclear data</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">md</span><span class="p">)):</span>
+			<span class="n">md</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">append_fields</span><span class="p">(</span><span class="n">md</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+				<span class="n">names</span> <span class="o">=</span> <span class="s1">&#39;condition&#39;</span><span class="p">,</span>
+				<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">profiles</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;condition&#39;</span><span class="p">],</span> <span class="n">md</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+				<span class="n">dtypes</span> <span class="o">=</span> <span class="s1">&#39;S100&#39;</span><span class="p">)</span>
+		<span class="n">md</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">vt</span><span class="o">.</span><span class="n">merge_nparrays</span><span class="p">(</span><span class="n">md</span><span class="p">))</span>
+
+		<span class="c1"># Run WMW U test</span>
+		<span class="n">pvals</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">merge_nparrays</span><span class="p">([</span>
+			<span class="n">stt</span><span class="o">.</span><span class="n">wilcox_sets</span><span class="p">(</span><span class="n">md</span><span class="p">,</span> <span class="s1">&#39;condition&#39;</span><span class="p">,</span> <span class="s1">&#39;dna&#39;</span><span class="p">),</span>
+			<span class="n">stt</span><span class="o">.</span><span class="n">wilcox_sets</span><span class="p">(</span><span class="n">md</span><span class="p">,</span> <span class="s1">&#39;condition&#39;</span><span class="p">,</span> <span class="s1">&#39;sig&#39;</span><span class="p">)</span>
+		<span class="p">])</span>
+
+		<span class="c1"># Export as CSV</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;single_pixel_wmw&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pvals</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Main.mk_general_plots"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.mk_general_plots">[docs]</a>	<span class="k">def</span> <span class="nf">mk_general_plots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">profiles</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Generate final plots &quot;&quot;&quot;</span>
+
+		<span class="c1"># Common destinations</span>
+		<span class="n">out_pdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;out_pdf/&#39;</span>
+		<span class="n">out_png</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;out_png/&#39;</span>
+
+		<span class="k">for</span> <span class="n">yfield</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;mode&#39;</span><span class="p">]:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Preparing multi-condition profiles plot [&#39;</span> <span class="o">+</span> <span class="n">yfield</span> <span class="o">+</span> <span class="s1">&#39;]...&#39;</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+			<span class="c1"># Plot</span>
+			<span class="n">fig</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">multi_condition_profiles</span><span class="p">(</span><span class="n">profiles</span><span class="p">,</span>
+				<span class="n">yfield</span> <span class="o">=</span> <span class="n">yfield</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+			<span class="c1"># Export PDF</span>
+			<span class="n">common_name</span> <span class="o">=</span> <span class="s1">&#39;profiles.&#39;</span> <span class="o">+</span> <span class="n">yfield</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="n">out_pdf</span> <span class="o">+</span> <span class="n">common_name</span> <span class="o">+</span> <span class="s1">&#39;.pdf&#39;</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">plot</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;pdf&#39;</span><span class="p">)</span>
+
+			<span class="c1"># Export PNG</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="n">out_png</span> <span class="o">+</span> <span class="n">common_name</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">plot</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s1">&#39;png&#39;</span><span class="p">)</span>
+
+			<span class="c1"># Close figure</span>
+			<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+		<span class="c1"># Export profiles to CSV</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Exporting profiles to CSV...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="n">mprof</span> <span class="o">=</span> <span class="n">iot</span><span class="o">.</span><span class="n">merge_profiles</span><span class="p">(</span><span class="n">profiles</span><span class="p">)</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;profiles&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">mprof</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+		<span class="c1"># Compare profiles</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Comparing profiles with WMW U test...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+		<span class="n">pvals</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">mprof</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">mprof</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">mprof</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;condition&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">]:</span>
+				<span class="n">pvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stt</span><span class="o">.</span><span class="n">wilcox_sets</span><span class="p">(</span><span class="n">mprof</span><span class="p">,</span> <span class="s1">&#39;condition&#39;</span><span class="p">,</span> <span class="n">col</span><span class="p">))</span>
+		<span class="n">pvals</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">merge_nparrays</span><span class="p">(</span><span class="n">pvals</span><span class="p">)</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;profiles_wmw&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pvals</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+		<span class="c1"># Partial volume profile</span>
+		<span class="k">if</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_3D</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">an_type</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Selecting partial-volume pixels...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+			<span class="n">part_profiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;part&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">profiles</span><span class="p">]</span>
+
+			<span class="k">for</span> <span class="n">yfield</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;median&#39;</span><span class="p">,</span> <span class="s1">&#39;mode&#39;</span><span class="p">]:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Preparing partial volume multi-condition profiles plot [&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="n">yfield</span> <span class="o">+</span> <span class="s1">&#39;]...&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+				<span class="c1"># Plot</span>
+				<span class="n">fig</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">multi_condition_profiles</span><span class="p">(</span><span class="n">part_profiles</span><span class="p">,</span>
+					<span class="n">yfield</span> <span class="o">=</span> <span class="n">yfield</span><span class="p">,</span> <span class="n">title_comment</span> <span class="o">=</span> <span class="s1">&#39;partial_volume &#39;</span>
+					<span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;part_n_erosion&#39;</span><span class="p">]),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+				<span class="c1"># Export PDF</span>
+				<span class="n">common_name</span> <span class="o">=</span> <span class="s1">&#39;profiles.part.&#39;</span> <span class="o">+</span> <span class="n">yfield</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span>
+				<span class="n">fname</span> <span class="o">=</span> <span class="n">out_pdf</span> <span class="o">+</span> <span class="n">common_name</span> <span class="o">+</span> <span class="s1">&#39;.pdf&#39;</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">plot</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s1">&#39;pdf&#39;</span><span class="p">)</span>
+
+				<span class="c1"># Export PNG</span>
+				<span class="n">fname</span> <span class="o">=</span> <span class="n">out_png</span> <span class="o">+</span> <span class="n">common_name</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">plot</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+
+				<span class="c1"># Close</span>
+				<span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+			<span class="c1"># Export profiles to CSV</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Exporting partial profiles to CSV...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+			<span class="n">mpartprof</span> <span class="o">=</span> <span class="n">iot</span><span class="o">.</span><span class="n">merge_profiles</span><span class="p">(</span><span class="n">part_profiles</span><span class="p">)</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;profiles.part&#39;</span> <span class="o">+</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">mpartprof</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+			<span class="c1"># Compare profiles</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Comparing partial profiles with WMW U test...&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+			<span class="n">pvals</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">mpartprof</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">mpartprof</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">mpartprof</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;condition&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">]:</span>
+					<span class="n">pvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stt</span><span class="o">.</span><span class="n">wilcox_sets</span><span class="p">(</span><span class="n">mpartprof</span><span class="p">,</span> <span class="s1">&#39;condition&#39;</span><span class="p">,</span> <span class="n">col</span><span class="p">))</span>
+			<span class="n">pvals</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">merge_nparrays</span><span class="p">(</span><span class="n">pvals</span><span class="p">)</span>
+			<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;profiles_wmw.part&#39;</span>
+			<span class="n">fname</span> <span class="o">+=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.csv&#39;</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pvals</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Main.mk_report"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.mk_report">[docs]</a>	<span class="k">def</span> <span class="nf">mk_report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="n">path</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Produce PDF report.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			start_time (int): start time UNIX timestamp.</span>
+<span class="sd">			end_time (int): end time UNIX timestamp.</span>
+<span class="sd">			path (string): report file path (opt).</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			None: writes PDF report.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># From time to timestamp</span>
+		<span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">start_time</span><span class="p">)</span>
+		<span class="n">start_time</span> <span class="o">=</span> <span class="n">start_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+		<span class="n">end_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">end_time</span><span class="p">)</span>
+		<span class="n">end_time</span> <span class="o">=</span> <span class="n">end_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+
+		<span class="c1"># Load template</span>
+		<span class="n">gpdir</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PACK_NAME</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+		<span class="n">gpdir</span> <span class="o">+=</span> <span class="s1">&#39;/static/&#39;</span>
+		<span class="n">env</span> <span class="o">=</span> <span class="n">Environment</span><span class="p">(</span><span class="n">loader</span> <span class="o">=</span> <span class="n">FileSystemLoader</span><span class="p">(</span><span class="n">gpdir</span><span class="p">))</span>
+		<span class="n">env</span><span class="o">.</span><span class="n">filters</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">type</span>
+		<span class="n">env</span><span class="o">.</span><span class="n">filters</span><span class="p">[</span><span class="s1">&#39;has_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">a</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+		<span class="n">template</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="s2">&quot;report_template.html&quot;</span><span class="p">)</span>
+
+		<span class="c1"># Prepare variables to fill the template</span>
+		<span class="n">tempv</span> <span class="o">=</span> <span class="p">{</span>
+			<span class="s1">&#39;starttime&#39;</span> <span class="p">:</span> <span class="n">start_time</span><span class="p">,</span>
+			<span class="s1">&#39;endtime&#39;</span> <span class="p">:</span> <span class="n">end_time</span><span class="p">,</span>
+			<span class="s1">&#39;basedir&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="p">,</span>
+			<span class="s1">&#39;outdir&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span><span class="p">,</span>
+			<span class="s1">&#39;logpath&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">logpath</span><span class="p">,</span>
+			<span class="s1">&#39;reg&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">reg</span><span class="p">,</span>
+			<span class="s1">&#39;ext&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ext</span><span class="p">,</span>
+			<span class="s1">&#39;skip&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">STEP_DESCR</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip</span>
+				<span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">STEP_DESCR</span><span class="p">))],</span>
+			<span class="s1">&#39;ncores&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ncores</span><span class="p">,</span>
+			<span class="c1">#&#39;correctca&#39; : self.correctCA,</span>
+			<span class="s1">&#39;verbose&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">,</span>
+			<span class="s1">&#39;debugging&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">debugging</span><span class="p">,</span>
+			<span class="s1">&#39;suffix&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">suffix</span><span class="p">,</span>
+			<span class="s1">&#39;dna_names&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">dna_names</span><span class="p">,</span>
+			<span class="s1">&#39;sig_names&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sig_names</span><span class="p">,</span>
+			<span class="s1">&#39;plotting&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotting</span><span class="p">,</span>
+			<span class="s1">&#39;fontsize&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">font_size</span><span class="p">,</span>
+			<span class="s1">&#39;nbins&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">nbins</span><span class="p">,</span>
+			<span class="s1">&#39;sigma&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
+			<span class="s1">&#39;seg_type&#39;</span> <span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_LABELS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">seg_type</span><span class="p">],</span>
+			<span class="s1">&#39;adp_thr&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_neighbourhood</span><span class="p">,</span>
+			<span class="s1">&#39;radius_interval&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius_interval</span><span class="p">,</span>
+			<span class="s1">&#39;min_z_size&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span><span class="p">,</span>
+			<span class="s1">&#39;offset&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">offset</span><span class="p">,</span>
+			<span class="s1">&#39;rm_z_tips&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_clear_Z_borders</span><span class="p">,</span>
+			<span class="s1">&#39;an_type&#39;</span> <span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_LABELS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">an_type</span><span class="p">],</span>
+			<span class="s1">&#39;mid_type&#39;</span> <span class="p">:</span> <span class="n">const</span><span class="o">.</span><span class="n">MID_SEC_LABELS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">mid_type</span><span class="p">],</span>
+			<span class="s1">&#39;aspect&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">aspect</span><span class="p">,</span>
+			<span class="s1">&#39;nsf&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">NSEL_NAMES</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsf</span>
+				<span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NSEL_NAMES</span><span class="p">))],</span>
+			<span class="s1">&#39;part_n_erosion&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">part_n_erosion</span><span class="p">,</span>
+			<span class="s1">&#39;norm_d&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize_distance</span><span class="p">,</span>
+			<span class="s1">&#39;rescale_deconvolved&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rescale_deconvolved</span><span class="p">,</span>
+			<span class="s1">&#39;notes&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">notes</span><span class="p">,</span>
+			<span class="s1">&#39;conds&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">conds</span><span class="p">,</span>
+			<span class="s1">&#39;cnuclei&#39;</span> <span class="p">:</span> <span class="p">[</span><span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">nuclei</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">series</span><span class="p">])</span>
+				<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conds</span><span class="p">],</span>
+			<span class="s1">&#39;cdescr&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cdescr</span>
+		<span class="p">}</span>
+
+		<span class="c1"># Escape characters</span>
+		<span class="k">for</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tempv</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+			<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+				<span class="n">tempv</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&lt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;lt;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&gt;&#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;gt;&#39;</span><span class="p">)</span>
+
+		<span class="c1"># Fill template</span>
+		<span class="n">html_out</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">tempv</span><span class="p">)</span>
+
+		<span class="c1"># Hide CSS warnings</span>
+		<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;weasyprint&#39;</span><span class="p">)</span>
+		<span class="n">logger</span><span class="o">.</span><span class="n">handlers</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="s1">&#39;/tmp/weasyprint.log&#39;</span><span class="p">))</span>
+
+		<span class="c1"># Output</span>
+		<span class="n">suffix</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span>
+		<span class="n">suffix</span> <span class="o">=</span> <span class="n">suffix</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outdir</span> <span class="o">+</span> <span class="s1">&#39;report.&#39;</span> <span class="o">+</span> <span class="n">suffix</span> <span class="o">+</span> <span class="s1">&#39;.pdf&#39;</span>
+		<span class="n">HTML</span><span class="p">(</span><span class="n">string</span> <span class="o">=</span> <span class="n">html_out</span><span class="p">)</span><span class="o">.</span><span class="n">write_pdf</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span></div>
+
+		<span class="c1"># f = open(self.outdir + &#39;report.&#39; + suffix + &#39;.htm&#39;, &#39;w&#39;)</span>
+		<span class="c1"># f.write(html_out)</span>
+		<span class="c1"># f.close()		</span>
+
+<div class="viewcode-block" id="Main.is_skipped"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.is_skipped">[docs]</a>	<span class="k">def</span> <span class="nf">is_skipped</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Check if a run step should be skipped. &quot;&quot;&quot;</span>
+		<span class="k">return</span><span class="p">(</span><span class="n">step</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Main.unskip"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.unskip">[docs]</a>	<span class="k">def</span> <span class="nf">unskip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Unskips a run step that was supposed to be skipped. &quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">skip</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip</span> <span class="k">if</span> <span class="n">step</span> <span class="o">!=</span> <span class="n">i</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Main.load"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.load">[docs]</a>	<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">more_keys</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Re-load a dumped pyGPSeq instance.</span>
+
+<span class="sd">		Note:</span>
+<span class="sd">			The function keeps some parameters from the current instance.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			f (file): file pointer to dumped instance.</span>
+<span class="sd">			more_keys (list[string]): list of attribute names to be kept</span>
+<span class="sd">				from the current instance.</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			pygpseq.Main: dumped instance with some attributes from the current.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Parameters to keep from current instance</span>
+		<span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">PARAM_STATIC</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">None</span> <span class="o">==</span> <span class="n">more_keys</span><span class="p">:</span>
+			<span class="n">keys</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">more_keys</span><span class="p">))</span>
+		<span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">]</span>
+
+		<span class="c1"># Load</span>
+		<span class="n">loaded</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+		<span class="c1"># If the loaded cpickle bundle contained a Main instance</span>
+		<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">loaded</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="c1"># Set parameters back</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)):</span>
+				<span class="n">loaded</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+			<span class="c1"># Propagate parameters</span>
+			<span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">PARAM_PROPAGATE</span><span class="p">:</span>
+				<span class="n">loaded</span><span class="o">.</span><span class="n">propagate_attr</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">loaded</span><span class="p">):</span>
+			<span class="c1"># Identify the Main instance</span>
+			<span class="n">i</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">loaded</span><span class="p">))</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">loaded</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span>
+			<span class="n">tmp</span> <span class="o">=</span> <span class="n">loaded</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+
+			<span class="c1"># Set parameters back</span>
+			<span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">)):</span>
+				<span class="n">tmp</span><span class="p">[</span><span class="n">keys</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">=</span> <span class="n">vals</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+			<span class="c1"># Propagate parameters</span>
+			<span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">const</span><span class="o">.</span><span class="n">PARAM_PROPAGATE</span><span class="p">:</span>
+				<span class="n">tmp</span><span class="o">.</span><span class="n">propagate_attr</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+			<span class="c1"># Prepare output</span>
+			<span class="n">loaded</span> <span class="o">=</span> <span class="p">[</span><span class="n">tmp</span> <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="n">i</span> <span class="k">else</span> <span class="n">loaded</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">loaded</span><span class="p">))]</span>
+			<span class="n">loaded</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">loaded</span><span class="p">)</span>
+
+		<span class="k">return</span><span class="p">(</span><span class="n">loaded</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Main.propagate_attr"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.propagate_attr">[docs]</a>	<span class="k">def</span> <span class="nf">propagate_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Propagate attribute current value to every condition. &quot;&quot;&quot;</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conds</span><span class="p">)):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conds</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Allow get item. &quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="k">return</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Allow set item. &quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Check the attribute and set it. &quot;&quot;&quot;</span>
+
+		<span class="c1"># Check the attribute</span>
+		<span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_attr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="bp">True</span> <span class="o">==</span> <span class="n">check</span><span class="p">:</span>
+			<span class="c1"># Set the attribute</span>
+			<span class="k">return</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">Main</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c1"># Don&#39;t set the attribute</span>
+			<span class="k">return</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Main.check_attr"><a class="viewcode-back" href="../../pygpseq.html#pygpseq.main.Main.check_attr">[docs]</a>	<span class="k">def</span> <span class="nf">check_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Check attribute format and value.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			name (string): attribute name</span>
+<span class="sd">			value: attribute value</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			bool: whether the provided (name,value) couple passed its</span>
+<span class="sd">				name-specific test</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Default answer</span>
+		<span class="n">checked</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">Main</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">check_attr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;basedir&#39;</span><span class="p">,</span> <span class="s1">&#39;outdir&#39;</span><span class="p">]:</span>
+			<span class="c1"># Require a string</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="c1"># # Require an existing folder</span>
+			<span class="c1"># elif not os.path.isdir(value):</span>
+			<span class="c1"># 	checked = False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be an existing folder</span><span class="se">\&#39;</span><span class="s1">s path.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value.&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;ncores&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Require an integer</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="c1"># Require a positive non-zero integer</span>
+			<span class="k">elif</span> <span class="mi">0</span> <span class="o">&gt;=</span> <span class="n">value</span><span class="p">:</span>
+					<span class="n">checekd</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a positive non-zero integer.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value.&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;ext&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Require a string</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="c1"># Require a file extension (\..+)</span>
+			<span class="k">elif</span> <span class="ow">not</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a file extension&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39; (start with &quot;.&quot;).</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value.&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;skip&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Require a list</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">([])</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="k">elif</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="c1"># Require integer list</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">type</span><span class="p">(</span><span class="mi">0</span><span class="p">)]</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">types</span><span class="p">)</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">types</span><span class="p">:</span>
+					<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be an integer list (can be empty).</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value.&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;font_size&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Require positive number</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="mf">0.</span><span class="p">)]:</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="k">elif</span> <span class="mi">0</span> <span class="o">&gt;=</span> <span class="n">value</span><span class="p">:</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a positive non-zero number.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value.&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;reg&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Require a string</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a regular expression (string).</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value.&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		
+		<span class="c1"># Output</span>
+		<span class="k">return</span><span class="p">(</span><span class="n">checked</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Gabriele Girelli.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+	<meta charset="UTF-8">
+	<title>GPSeq report {{time}}</title>
+
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+	<style type="text/css">
+	html, body {
+		margin: 0;
+		padding: 0;
+
+		font-family: arial;
+		font-size: 1em;
+	}
+
+	.table-sm {
+		font-size: 0.6em;
+	}
+
+	table th,
+	table td {
+		text-align: center;
+	}
+
+	table td li {
+		list-style: none;
+	}
+
+	ul{
+		padding-left: 1em;
+		list-style-type: square;
+	}
+
+	.magenta_span {
+		display: inline-block;
+		padding: .1em .3em;
+		background-color: #ff00ff !important;
+	}
+	.green_span {
+		display: inline-block;
+		padding: .1em .3em;
+		background-color: #00ff00 !important;
+	}
+	.yellow_span {
+		display: inline-block;
+		padding: .1em .3em;
+		background-color: #fff000 !important;
+	}
+	</style>
+</head>
+<body>
+
+	<!-- Timing -->
+	<table class="table table-bordered">
+		<tr>
+			<th>Started at:</th>
+			<td><kbd>{{starttime}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Finished at:</th>
+			<td><kbd>{{endtime}}</kbd></td>
+		</tr>
+	</table>
+
+	<h1 class='h1'>Parameters</h1>
+
+	<!-- General parameters -->
+	<h3 class="h3">General</h3>
+	<table class='table table-bordered table-hover'>
+		<tr>
+			<th>Data folder:</th>
+			<td><kbd>{{basedir}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Output folder:</th>
+			<td><kbd>{{outdir}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Log path:</th>
+			<td><kbd>{{logpath}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Regular expression:</th>
+			<td><kbd>{{reg}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Extension:</th>
+			<td><kbd>{{ext}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Cores:</th>
+			<td><kbd>{{ncores}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Skipped steps:</th>
+			<td>
+				{% if skip|type == []|type or skip|type == ()|type %}
+				<ul>
+					{% for ss in skip %}
+					<li>
+						<kbd>{{ss}}</kbd>
+					</li>
+					{% endfor %}
+				</ul>
+				{% else %}
+				<kbd>{{skip}}</kbd>
+				{% endif %}
+			</td>
+		</tr>
+		<!--<tr>
+			<th>CA correction:</th>
+			<td>{{correctca}}</td>
+		</tr>-->
+		<tr>
+			<th>Verbose:</th>
+			<td><kbd>{{verbose}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Debug mode:</th>
+			<td><kbd>{{debugging}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Output suffix:</th>
+			<td><kbd>{{suffix}}</kbd></td>
+		</tr>
+	</table>
+
+	<!-- Image-related parameters -->
+	<h3 class="h3">Images</h3>
+	<table class="table table-bordered table-hover">
+		<tr>
+			<th>Pixel aspect:</th>
+			<td><kbd>{{aspect}}</kbd></td>
+		</tr>
+		<tr>
+			<th>DNA channel names:</th>
+			<td>
+				{% if dna_names|type == []|type or dna_names|type == ()|type %}
+				<ul>
+					{% for dn in dna_names %}
+					<li>
+						<kbd>{{dn}}</kbd>
+					</li>
+					{% endfor %}
+				</ul>
+				{% else %}
+				<kbd>{{dna_names}}</kbd>
+				{% endif %}
+			</td>
+		</tr>
+		<tr>
+			<th>Signal channel names:</th>
+			<td>
+				{% if sig_names|type == []|type or sig_names|type == ()|type %}
+				<kbd>{{ sig_names|join(', ') }}</kbd>
+				{% else %}
+				<kbd>{{sig_names}}</kbd>
+				{% endif %}
+			</td>
+		</tr>
+	</table>
+
+	<!-- Plot-related parameters -->
+	<h3 class="h3" style='page-break-before: always;'>Plot</h3>
+	<table class="table table-bordered table-hover">
+		<tr>
+			<th>Plotting:</th>
+			<td><kbd>{{plotting}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Font-size</th>
+			<td><kbd>{{fontsize}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Number of bins</th>
+			<td><kbd>{{nbins}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Sigma (for smoothing):</th>
+			<td><kbd>{{sigma}}</kbd></td>
+		</tr>
+	</table>
+
+	<!-- Segmentation parameters-->
+	<h3 class='h3'>Segmentation</h3>
+	<table class='table table-bordered table-hover'>
+		<tr>
+			<th>Segmentation type</th>
+			<td><kbd>{{seg_type}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Radius interval:</th>
+			<td><kbd>{{radius_interval}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Adaptive threshold box side:</th>
+			<td><kbd>{{adp_thr}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Remove Z-stack object tips (top/bottom):</th>
+			<td><kbd>{{rm_z_tips}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Offset:</th>
+			<td><kbd>{{offset}}</kbd></td>
+		</tr>
+		{% if seg_type == '3D' %}
+		<tr>
+			<th>Minimum Z size</th>
+			<td><kbd>{{min_z_size}}</kbd></td>
+		</tr>
+		{% endif %}
+	</table>
+
+	<!-- Analysis parameters-->
+	<h3 class="h3">Analysis</h3>
+	<table class='table table-bordered table-hover'>
+		<tr>
+			<th>Analysis type</th>
+			<td><kbd>{{an_type}}{% if 'Mid-section' == an_type %} ({{mid_type}}){% endif %}</kbd></td>
+		</tr>
+		<tr>
+			<th>Nuclear selection features:</th>
+			<td>
+				{% if nsf|type == []|type or nsf|type == ()|type %}
+				<ul>
+					{% for nf in nsf %}
+					<li>
+						<kbd>{{nf}}</kbd>
+					</li>
+					{% endfor %}
+				</ul>
+				{% else %}
+				<kbd>{{nsf}}</kbd>
+				{% endif %}
+			</td>
+		</tr>
+		<tr>
+			<th>Partial nucleus erosion (3D):</th>
+			<td><kbd>{{part_n_erosion}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Normalize distance:</th>
+			<td><kbd>{{norm_d}}</kbd></td>
+		</tr>
+		<tr>
+			<th>Rescale deconvolved images:</th>
+			<td><kbd>{{rescale_deconvolved}}</kbd></td>
+		</tr>
+	</table>
+
+	<!-- Notes on the run -->
+	<h3 class="h3">Notes</h3>
+	<p>{{notes}}</p>
+
+	<!-- Dataset description -->
+	<h1 class="h1" style='page-break-before: always;'>Dataset description</h1>
+	<p>Found {{conds|length}} conditions.</p>
+
+	<!-- background -->
+	{% for i in range(conds|length) %}
+		<img src="file://{{outdir}}out_png/report/{{conds[i].name}}.backgrounds{{suffix}}.png" style="width: 250px;">
+	{% endfor %}
+	<h4 class='h4' style='text-align: center;'>
+		<img src="file://{{outdir}}out_png/report/backgrounds{{suffix}}.png">
+	</h4>
+
+	<h3 class="h3" style='text-align: center;'>Boxplots</h3>
+	{% for i in range(conds|length) %}
+	<ul>
+		<li>
+		{% if cdescr|has_key(conds[i].name) %}
+		{{i+1}} : {{cdescr[conds[i].name]}}
+		{% else %}
+		{{i+1}} : {{conds[i].name}}
+		{% endif %}
+		</li>
+	</ul>
+	{% endfor %}
+
+	<!-- Multi-condition per-nucleus boxplots -->
+	<img src="file://{{outdir}}out_png/report/boxplot.size{{suffix}}.png" alt="Size per nucleus boxplot not found" />
+	<img src="file://{{outdir}}out_png/report/boxplot.shape{{suffix}}.png" alt="Shape per nucleus boxplot not found" />
+	<img src="file://{{outdir}}out_png/report/boxplot.meanI{{suffix}}.png" alt="mean(DNA) per nucleus boxplot not found" />
+	<img src="file://{{outdir}}out_png/report/boxplot.sumI{{suffix}}.png" alt="sum(DNA) per nucleus boxplot not found" />
+
+	<!-- Multi-condition per-pixel boxplots -->
+	<img src="file://{{outdir}}out_png/report/boxplot.sig{{suffix}}.png" alt="DNA per pixel boxplot not found" />
+	<img src="file://{{outdir}}out_png/report/boxplot.dna{{suffix}}.png" alt="Signal per pixel boxplot not found" />
+
+	<h3 class="h3" style='page-break-before: always; text-align: center;'>Segmentation and nuclear selection</h3>
+	<!-- Segmentation and nuclear selection -->
+	<ul>
+		{% for i in range(conds|length) %}
+		<li{% if i != 0 and i % 2 == 0 %}  style='page-break-before: always;'{% endif %}>
+			{% if cdescr|has_key(conds[i].name) %}
+			Condition "{{cdescr[conds[i].name]}}" with {{conds[i].series|length}} series and {{cnuclei[i]}} nuclei.<br />
+			{% else %}
+			Condition "{{conds[i].name}}" with {{conds[i].series|length}} series and {{cnuclei[i]}} nuclei.<br />
+			{% endif %}
+			<table>
+				<tr>
+					<td><div style="width: 200px; height: 350px;">
+						<img style="position: absolute; display: block; width: 250px; clip: rect(0px,300px,300px,0px);" src="file://{{outdir}}out_masks/{{conds[i].name}}.series001.mask{{suffix}}.png" alt="{{conds[i].name}}.series001.mask not found" />
+					</div></td>
+					<td>
+						<img style="display: block; height: 300px; margin: 0 auto;" src="file://{{outdir}}out_png/{{conds[i].name}}.threshold_summary{{suffix}}.png" alt="{{conds[i].name}}.threshold_summary not found" />
+					</td>
+				</tr>
+			</table>
+		</li>
+		{% endfor %}
+	</ul>
+
+	<h1 class="h1" style='page-break-before: always;'>Results</h1>
+	
+	<!-- Number of pixels -->
+	<h3 class="h3">Number of pixels</h3>
+	<p>
+		{% for i in range(conds|length) %}
+		<img style="width: 300px;" src="file://{{outdir}}out_png/report/{{conds[i].name}}.dna.npx.png" alt="Number of pixels not found">
+		{% if an_type == '3D' %}
+		<img style="width: 300px;" src="file://{{outdir}}out_png/report/{{conds[i].name}}.dna.npx.part.png" alt="Number of pixels not found">
+		{% endif %}
+		{% endfor %}
+	</p>
+
+	<!-- Mean profiles-->
+	<h4 class='h4' style='page-break-before: always; text-align: center;'>Mean profiles</h4>
+	<p>
+		<img src="file://{{outdir}}out_png/profiles.mean{{suffix}}.png" alt="Mean profiles not found" />
+	</p>
+	<table class="table table-sm table-bordered">
+		<thead>
+			<tr>
+				<th rowspan="2" colspan="2">Condition</th>
+				<th colspan="3">DNA</th>
+				<th colspan="3">Signal</th>
+				<th colspan="3">Signal / DNA</th>
+			</tr>
+			<tr>
+				<th>Data</th>
+				<th>1st D</th>
+				<th>2nd D</th>
+				<th>Data</th>
+				<th>1st D</th>
+				<th>2nd D</th>
+				<th>Data</th>
+				<th>1st D</th>
+				<th>2nd D</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for i in range(conds|length) %}
+			<tr>
+				<td rowspan="2">
+					{{conds[i].name}}<br />
+					{% if cdescr|has_key(conds[i].name) %}
+					{{i+1}} : {{cdescr[conds[i].name]}}
+					{% endif %}
+				</td>
+				<td>Intercepts [x]</td>
+				<td><ul>{% for d in profeat[i]['dna'][0]['mean'][0] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['dna'][0]['mean'][1] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['dna'][0]['mean'][2] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['sig'][0]['mean'][0] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['sig'][0]['mean'][1] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['sig'][0]['mean'][2] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['ratio'][0]['mean'][0] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['ratio'][0]['mean'][1] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['ratio'][0]['mean'][2] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+			</tr>
+			<tr>
+				<td>Area [a.u.]</td>
+				<td colspan="3">{{profeat[i]['dna'][1]['mean']|round(3)}}</td>
+				<td colspan="3">{{profeat[i]['sig'][1]['mean']|round(3)}}</td>
+				<td colspan="3">{{profeat[i]['ratio'][1]['mean']|round(3)}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<!-- Mean profiles for partial volume -->
+	{% if an_type == '3D' %}
+	<h4 class='h4' style='page-break-before: always; text-align: center;'>Mean partial volume profiles</h4>
+	<p>
+		<img src="file://{{outdir}}out_png/profiles.part.mean{{suffix}}.png" alt="Mean partial volume profiles not found" />
+	</p>
+	{% endif %}
+
+	<!-- Median profiles -->
+	<h4 class='h4' style='page-break-before: always; text-align: center;'>Median profiles</h4>
+	<p>
+		<img src="file://{{outdir}}out_png/profiles.median{{suffix}}.png" alt="Median profiles not found" />
+	</p>
+	<table class="table table-sm table-bordered">
+		<thead>
+			<tr>
+				<th rowspan="2" colspan="2">Condition</th>
+				<th colspan="3">DNA</th>
+				<th colspan="3">Signal</th>
+				<th colspan="3">Signal / DNA</th>
+			</tr>
+			<tr>
+				<th>Data</th>
+				<th>1st D</th>
+				<th>2nd D</th>
+				<th>Data</th>
+				<th>1st D</th>
+				<th>2nd D</th>
+				<th>Data</th>
+				<th>1st D</th>
+				<th>2nd D</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for i in range(conds|length) %}
+			<tr>
+				<td rowspan="2">
+					{{conds[i].name}}<br />
+					{% if cdescr|has_key(conds[i].name) %}
+					{{i+1}} : {{cdescr[conds[i].name]}}
+					{% endif %}
+				</td>
+				<td>Intercepts [x]</td>
+				<td><ul>{% for d in profeat[i]['dna'][0]['median'][0] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['dna'][0]['median'][1] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['dna'][0]['median'][2] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['sig'][0]['median'][0] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['sig'][0]['median'][1] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['sig'][0]['median'][2] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['ratio'][0]['median'][0] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['ratio'][0]['median'][1] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['ratio'][0]['median'][2] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+			</tr>
+			<tr>
+				<td>Area [a.u.]</td>
+				<td colspan="3">{{profeat[i]['dna'][1]['median']|round(3)}}</td>
+				<td colspan="3">{{profeat[i]['sig'][1]['median']|round(3)}}</td>
+				<td colspan="3">{{profeat[i]['ratio'][1]['median']|round(3)}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<!-- Median profiles for partial volume -->
+	{% if an_type == '3D' %}
+	<h4 class='h4' style='page-break-before: always; text-align: center;'>Median partial volume profiles</h4>
+	<p>
+		<img src="file://{{outdir}}out_png/profiles.part.median{{suffix}}.png" alt="Median partial volume profiles not found" />
+	</p>
+	{% endif %}
+
+	<!-- Mode profiles -->
+	<h4 class='h4' style='page-break-before: always; text-align: center;'>Mode profiles</h4>
+	<p>
+		<img src="file://{{outdir}}out_png/profiles.mode{{suffix}}.png" alt="Mode profiles not found" />
+	</p>
+	<table class="table table-sm table-bordered">
+		<thead>
+			<tr>
+				<th rowspan="2" colspan="2">Condition</th>
+				<th colspan="3">DNA</th>
+				<th colspan="3">Signal</th>
+				<th colspan="3">Signal / DNA</th>
+			</tr>
+			<tr>
+				<th>Data</th>
+				<th>1st D</th>
+				<th>2nd D</th>
+				<th>Data</th>
+				<th>1st D</th>
+				<th>2nd D</th>
+				<th>Data</th>
+				<th>1st D</th>
+				<th>2nd D</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for i in range(conds|length) %}
+			<tr>
+				<td rowspan="2">
+					{{conds[i].name}}<br />
+					{% if cdescr|has_key(conds[i].name) %}
+					{{i+1}} : {{cdescr[conds[i].name]}}
+					{% endif %}
+				</td>
+				<td>Intercepts [x]</td>
+				<td><ul>{% for d in profeat[i]['dna'][0]['mode'][0] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['dna'][0]['mode'][1] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['dna'][0]['mode'][2] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['sig'][0]['mode'][0] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['sig'][0]['mode'][1] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['sig'][0]['mode'][2] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['ratio'][0]['mode'][0] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['ratio'][0]['mode'][1] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+				<td><ul>{% for d in profeat[i]['ratio'][0]['mode'][2] %}
+					<li>{{d|round(3)}}</li>
+				{% endfor %}</ul></td>
+			</tr>
+			<tr>
+				<td>Area [a.u.]</td>
+				<td colspan="3">{{profeat[i]['dna'][1]['mode']|round(3)}}</td>
+				<td colspan="3">{{profeat[i]['sig'][1]['mode']|round(3)}}</td>
+				<td colspan="3">{{profeat[i]['ratio'][1]['mode']|round(3)}}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<!-- Mode profiles for partial volume -->
+	{% if an_type == '3D' %}
+	<h4 class='h4' style='page-break-before: always; text-align: center;'>Mode partial volume profiles</h4>
+	<p>
+		<img src="file://{{outdir}}out_png/profiles.part.mode{{suffix}}.png" alt="Mode partial volume profiles not found" />
+	</p>
+	{% endif %}
+
+	<!-- DNA density profile -->
+	<p style="page-break-before: always;">
+		<h4 class='h4' style='text-align: center;'>DNA channel density profiles</h4>
+		<p style="text-align: center;">
+			<span class="magenta_span">mode</span>, <span class="green_span">median</span>, <span class="yellow_span">mean</span>
+		</p>
+		{% for i in range(conds|length) %}
+		<img style="width: 300px;" src="file://{{outdir}}out_png/report/{{conds[i].name}}.dna.density_profile{{suffix}}.png" alt="DNA channel density scatter plot for condition '{{conds[i].name}}' not found." />
+		{% endfor %}
+	</p>
+
+	<!-- DNA density profile for partial volume -->
+	{% if an_type == '3D' %}
+	<p style="page-break-before: always;">
+		<h4 class='h4' style='text-align: center;'>DNA channel density profiles [partial volume]</h4>
+		<p style="text-align: center;">
+			<span class="magenta_span">mode</span>, <span class="green_span">median</span>, <span class="yellow_span">mean</span>
+		</p>
+		{% for i in range(conds|length) %}
+		<img style="width: 300px;" src="file://{{outdir}}out_png/report/{{conds[i].name}}.dna.density_profile.part{{suffix}}.png" alt="DNA channel density scatter plot for condition '{{conds[i].name}}' not found." />
+		{% endfor %}
+	</p>
+	{% endif %}
+
+	<!-- Signal density profile -->
+	<p style="page-break-before: always;">
+		<h4 class='h4' style='text-align: center;'>Signal channel density profiles</h4>
+		<p style="text-align: center;">
+			<span class="magenta_span">mode</span>, <span class="green_span">median</span>, <span class="yellow_span">mean</span>
+		</p>
+		{% for i in range(conds|length) %}
+		<img style="width: 300px;" src="file://{{outdir}}out_png/report/{{conds[i].name}}.signal.density_profile{{suffix}}.png" alt="Signal channel density scatter plot for condition '{{conds[i].name}}' not found." />
+		{% endfor %}
+	</p>
+
+	<!-- Signal density profile for partial volume -->
+	{% if an_type == '3D' %}
+	<p style="page-break-before: always;">
+		<h4 class='h4' style='text-align: center;'>Signal channel density profiles [partial volume]</h4>
+		<p style="text-align: center;">
+			<span class="magenta_span">mode</span>, <span class="green_span">median</span>, <span class="yellow_span">mean</span>
+		</p>
+		{% for i in range(conds|length) %}
+		<img style="width: 300px;" src="file://{{outdir}}out_png/report/{{conds[i].name}}.signal.density_profile.part{{suffix}}.png" alt="Signal channel density scatter plot for condition '{{conds[i].name}}' not found." />
+		{% endfor %}
+	</p>
+	{% endif %}
+
+	<!-- Ratio density profile -->	
+	<p style="page-break-before: always;">
+		<h4 class='h4' style='text-align: center;'>Signal/DNA channels density profiles</h4>
+		<p style="text-align: center;">
+			<span class="magenta_span">mode</span>, <span class="green_span">median</span>, <span class="yellow_span">mean</span>
+		</p>
+		{% for i in range(conds|length) %}
+		<img style="width: 300px;" src="file://{{outdir}}out_png/report/{{conds[i].name}}.signal_dna.density_profile{{suffix}}.png" alt="Ratio density scatter plot for condition '{{conds[i].name}}' not found." />
+		{% endfor %}
+	</p>
+
+	<!-- Ratio density profile for partial volume -->	
+	{% if an_type == '3D' %}
+	<p style="page-break-before: always;">
+		<h4 class='h4' style='text-align: center;'>Signal/DNA channels density profiles [partial volume]</h4>
+		<p style="text-align: center;">
+			<span class="magenta_span">mode</span>, <span class="green_span">median</span>, <span class="yellow_span">mean</span>
+		</p>
+		{% for i in range(conds|length) %}
+		<img style="width: 300px;" src="file://{{outdir}}out_png/report/{{conds[i].name}}.signal_dna.density_profile.part{{suffix}}.png" alt="Ratio density scatter plot for condition '{{conds[i].name}}' not found." />
+		{% endfor %}
+	</p>
+	{% endif %}
+
+</body>
+</html>

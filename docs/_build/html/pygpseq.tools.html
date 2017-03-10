@@ -1,0 +1,1885 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pygpseq.tools package &mdash; pygpseq 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pygpseq 0.1.0 documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pygpseq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="_static/intro.html">Intro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_static/howto.html">How to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_static/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_static/changelog.html">CHANGELOG</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">pygpseq</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>pygpseq.tools package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/pygpseq.tools.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pygpseq-tools-package">
+<h1>pygpseq.tools package<a class="headerlink" href="#pygpseq-tools-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pygpseq.tools.binarize">
+<span id="pygpseq-tools-binarize-module"></span><h2>pygpseq.tools.binarize module<a class="headerlink" href="#module-pygpseq.tools.binarize" title="Permalink to this headline">¶</a></h2>
+<p>Image binarization module.</p>
+<p>This module contains code to binarize images.</p>
+<dl class="class">
+<dt id="pygpseq.tools.binarize.Binarize">
+<em class="property">class </em><code class="descclassname">pygpseq.tools.binarize.</code><code class="descname">Binarize</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/binarize.html#Binarize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.binarize.Binarize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pygpseq.tools.io.IOinterface" title="pygpseq.tools.io.IOinterface"><code class="xref py py-class docutils literal"><span class="pre">pygpseq.tools.io.IOinterface</span></code></a></p>
+<p>Image binarization class.</p>
+<p>If the class has public attributes, they may be documented here
+in an <code class="docutils literal"><span class="pre">Attributes</span></code> section and follow the same formatting as a
+function&#8217;s <code class="docutils literal"><span class="pre">Args</span></code> section. Alternatively, attributes may be documented
+inline with the attribute&#8217;s declaration (see __init__ method below).</p>
+<p>Properties created with the <code class="docutils literal"><span class="pre">&#64;property</span></code> decorator should be documented
+in the property&#8217;s getter method.</p>
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.an_type">
+<code class="descname">an_type</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.an_type" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; analysis type accordin to <cite>pygpseq.const</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.seg_type">
+<code class="descname">seg_type</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.seg_type" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; segmentation type accordin to <cite>pygpseq.const</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.do_global_thr">
+<code class="descname">do_global_thr</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.do_global_thr" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; True to apply global threshol (Otsu).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.do_adaptive_thr">
+<code class="descname">do_adaptive_thr</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.do_adaptive_thr" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; True to apply local (adaptive) threshold.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.adaptive_neighbourhood">
+<code class="descname">adaptive_neighbourhood</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.adaptive_neighbourhood" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; neighbourhood square side for local thr.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.do_clear_borders">
+<code class="descname">do_clear_borders</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.do_clear_borders" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; True to remove objects touching the borders.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.do_clear_Z_borders">
+<code class="descname">do_clear_Z_borders</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.do_clear_Z_borders" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; True to remove objects touching Z borders.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.do_fill_holes">
+<code class="descname">do_fill_holes</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.do_fill_holes" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; True to fill holes (both 2D and 3D).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.radius_interval">
+<code class="descname">radius_interval</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.radius_interval" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple[float]</em> &#8211; object radius interval.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.binarize.Binarize.min_z_size">
+<code class="descname">min_z_size</code><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.min_z_size" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; minimum Z (relative) size of the objects.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">adaptive_neighbourhood</code><em class="property"> = 101</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">an_type</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.tools.binarize.Binarize.check_attr">
+<code class="descname">check_attr</code><span class="sig-paren">(</span><em>name</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/binarize.html#Binarize.check_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.check_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check attribute format and value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; attribute name</li>
+<li><strong>value</strong> &#8211; attribute value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>whether the provided (name,value) couple passed its</dt>
+<dd><p class="first last">name-specific test</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)">bool</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">do_adaptive_thr</code><em class="property"> = True</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">do_clear_Z_borders</code><em class="property"> = False</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">do_clear_borders</code><em class="property"> = True</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">do_fill_holes</code><em class="property"> = True</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">do_global_thr</code><em class="property"> = True</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.tools.binarize.Binarize.filter_obj_XY_size">
+<code class="descname">filter_obj_XY_size</code><span class="sig-paren">(</span><em>mask</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/binarize.html#Binarize.filter_obj_XY_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.filter_obj_XY_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter objects XY size.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Uses self.radius_interval to filter the objects in the provided
+mask based on the selected segmentation type.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mask</strong> (<em>np.array</em>) &#8211; binary image</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">filtered binary image and log string</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/functions.html#tuple" title="(in Python v2.7)">tuple</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.tools.binarize.Binarize.filter_obj_Z_size">
+<code class="descname">filter_obj_Z_size</code><span class="sig-paren">(</span><em>mask</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/binarize.html#Binarize.filter_obj_Z_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.filter_obj_Z_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter objects Z size.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Uses self.min_z_size to filter the objects in the provided mask.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mask</strong> (<em>np.array</em>) &#8211; binary image</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">filtered binary image and log string</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/functions.html#tuple" title="(in Python v2.7)">tuple</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">min_z_size</code><em class="property"> = 0.25</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">radius_interval</code><em class="property"> = (10.0, inf)</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.tools.binarize.Binarize.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>im</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/binarize.html#Binarize.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.binarize.Binarize.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binarize image with current instance settings.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>im</strong> (<em>np.array</em>) &#8211; image to be thresholded</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">binarized image, Otsu&#8217;s threshold value and log string</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/functions.html#tuple" title="(in Python v2.7)">tuple</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">seg_type</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.tools.chromab">
+<span id="pygpseq-tools-chromab-module"></span><h2>pygpseq.tools.chromab module<a class="headerlink" href="#module-pygpseq.tools.chromab" title="Permalink to this headline">¶</a></h2>
+<p>Functions for chromatic aberration correction</p>
+<dl class="function">
+<dt id="pygpseq.tools.chromab.correct_stack">
+<code class="descclassname">pygpseq.tools.chromab.</code><code class="descname">correct_stack</code><span class="sig-paren">(</span><em>stack</em>, <em>chname</em>, <em>m</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/chromab.html#correct_stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.chromab.correct_stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply chromatic aberraction correction to a 3D image (stack),
+using the specified channel as a reference.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>stack</strong> (<em>ndarray</em>) &#8211; </li>
+<li><strong>chname</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; name of the stack&#8217;s channel</li>
+<li><strong>m</strong> (<a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; CA correction measurements {cnames, P:ndarray, N:int}}</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.chromab.dot_candidates">
+<code class="descclassname">pygpseq.tools.chromab.</code><code class="descname">dot_candidates</code><span class="sig-paren">(</span><em>I</em>, <em>sigma=None</em>, <em>sigma_diff=None</em>, <em>max_n_dots=None</em>, <em>padding=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/chromab.html#dot_candidates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.chromab.dot_candidates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract dots from the stack I as local maximas and order them
+according to the DoG (difference of Gaussians).</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Function built ONLY for 3D images.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>I</strong> (<em>ndarray</em>) &#8211; 3D image (stack)</li>
+<li><strong>sigma</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; sigma for DoG calculation (opt, def 1.2)</li>
+<li><strong>sigma_diff</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; sigmas distance for DoG (opt, def 1e-2)</li>
+<li><strong>max_n_dots</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; maximum number of dots to extract (opt, def 1e4)</li>
+<li><strong>padding</strong> (<em>tuple[int]</em>) &#8211; padding to clear borders ZYX (opt, def (1,5,5))</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>a record array with the following field:</dt>
+<dd><ul class="first last simple">
+<li>dog (f): DoG value for that maxima</li>
+<li>int (f): intensity for that maxima (actually, I.dtype)</li>
+<li>x, y, z (u4): coordinates in I</li>
+</ul>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.chromab.dot_fitting">
+<code class="descclassname">pygpseq.tools.chromab.</code><code class="descname">dot_fitting</code><span class="sig-paren">(</span><em>I</em>, <em>P</em>, <em>cluster_min_dist</em>, <em>figmas</em>, <em>use_clustering=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/chromab.html#dot_fitting"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.chromab.dot_fitting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum-likelihood localization of points P in image I.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>I</strong> (<em>ndarray</em>) &#8211; 3D image (stack)</li>
+<li><strong>P</strong> (<em>ndarray</em>) &#8211; table with extracted dots</li>
+<li><strong>cluster_min_dist</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; shortest distance for clustering</li>
+<li><strong>sigmas</strong> (<em>{dim[float]}</em>) &#8211; size of Gaussian profile to be fitted [x,y,z]</li>
+<li><strong>use_clustering</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to use clustering</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.chromab.poly2mat">
+<code class="descclassname">pygpseq.tools.chromab.</code><code class="descname">poly2mat</code><span class="sig-paren">(</span><em>m</em>, <em>i</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/chromab.html#poly2mat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.chromab.poly2mat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the i-th polynomial matrix of m.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.chromab.set_borders">
+<code class="descclassname">pygpseq.tools.chromab.</code><code class="descname">set_borders</code><span class="sig-paren">(</span><em>I</em>, <em>paddings=None</em>, <em>value=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/chromab.html#set_borders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.chromab.set_borders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the edge pixels to the provided value.</p>
+<dl class="docutils">
+<dt>Args</dt>
+<dd>I (np.array): 3D image
+paddings (tuple[int]): padding for every dimension (opt, def 0)
+value (I.dtype): border pixels will be set to this value (opt, def 0)</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.tools.image">
+<span id="pygpseq-tools-image-module"></span><h2>pygpseq.tools.image module<a class="headerlink" href="#module-pygpseq.tools.image" title="Permalink to this headline">¶</a></h2>
+<p>Functions for the management of images</p>
+<dl class="function">
+<dt id="pygpseq.tools.image.apply_box">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">apply_box</code><span class="sig-paren">(</span><em>i</em>, <em>box</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#apply_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.apply_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply square/box selection to an image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<em>np.array</em>) &#8211; image.</li>
+<li><strong>box</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; selection square/box corner coordinates.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">square/box selection of the provided image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.autoselect_time_frame">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">autoselect_time_frame</code><span class="sig-paren">(</span><em>im</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#autoselect_time_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.autoselect_time_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Selects the first non-empty time frame found.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>im</strong> (<em>np.array</em>) &#8211; image.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.binarize">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">binarize</code><span class="sig-paren">(</span><em>i</em>, <em>thr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#binarize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.binarize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binarize an image using the provided threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<em>np.array</em>) &#8211; image.</li>
+<li><strong>thr</strong> (<em>float or int</em>) &#8211; intensity threshold.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">thresholded image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.calc_surface">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">calc_surface</code><span class="sig-paren">(</span><em>mask</em>, <em>spacing=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#calc_surface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.calc_surface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the surface of a binary mask.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The provided mask is expected to have only one object.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mask</strong> (<em>np.array</em>) &#8211; thresholded image.</li>
+<li><strong>spacing</strong> (<em>tuple[float]</em>) &#8211; pixel/voxel side sizes.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">mesh surface area of the provided object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.check_box">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">check_box</code><span class="sig-paren">(</span><em>shape</em>, <em>box</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#check_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.check_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if a square/box selection can be applied to an image.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If not enough corners are specified, the whole dimension is selected.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>shape</strong> (<em>tuple[int]</em>) &#8211; image shape.</li>
+<li><strong>box</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; selection square/box corner coordinates.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.clear_borders">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">clear_borders</code><span class="sig-paren">(</span><em>i</em>, <em>clean_z=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#clear_borders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.clear_borders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove objects touching the borders of the image.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<em>np.array</em>) &#8211; image.</li>
+<li><strong>clean_z</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to remove the objects touching the Z borders.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">cleaned image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.describe_shape">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">describe_shape</code><span class="sig-paren">(</span><em>mask</em>, <em>spacing=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#describe_shape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.describe_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate sphericity (3d) or solidity (2d) of the provided mask.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The provided mask is expected to have only one object.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mask</strong> (<em>np.array</em>) &#8211; thresholded image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">shape descriptor of the provided object.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)">float</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.estimate_background">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">estimate_background</code><span class="sig-paren">(</span><em>i</em>, <em>mask</em>, <em>seg_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#estimate_background"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.estimate_background" title="Permalink to this definition">¶</a></dt>
+<dd><p>Estimates background median.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<em>np.array</em>) &#8211; image.</li>
+<li><strong>seg_type</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; segmentation type as defined in pygpseq.const.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">estimated background.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.get_mid_section_idx">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">get_mid_section_idx</code><span class="sig-paren">(</span><em>i</em>, <em>mask</em>, <em>mid_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#get_mid_section_idx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.get_mid_section_idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify mid-section index.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<dl class="last docutils">
+<dt>Possible mid-section definitions:</dt>
+<dd><ul class="first last simple">
+<li>const.MID_SEC_CENTRAL : middle section</li>
+<li>const.MID_SEC_LARGEST : largest (size) section</li>
+<li>const.MID_SEC_MAXSUMI : section with maximum DNA intensity sum</li>
+<li>const.MID_SEC_DEFAULT : const.MID_SEC_LARGEST</li>
+</ul>
+</dd>
+</dl>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<em>np.array</em>) &#8211; image (DNA channel).</li>
+<li><strong>mask</strong> (<em>np.array</em>) &#8211; binarized version of i.</li>
+<li><strong>mid_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; mid-section definition.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">mid-section index using provided mid-section definition.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.get_objects_xysize">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">get_objects_xysize</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#get_objects_xysize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.get_objects_xysize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve objects size (2/3D).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>L</strong> (<em>np.array</em>) &#8211; labelled thresholded image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">XY size of every object in the labelled image.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.get_objects_zsize">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">get_objects_zsize</code><span class="sig-paren">(</span><em>L</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#get_objects_zsize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.get_objects_zsize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve objects size (2/3D).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>L</strong> (<em>np.array</em>) &#8211; labelled thresholded image.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Z size of every object in the labelled image.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.get_partial_nuclear_volume">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">get_partial_nuclear_volume</code><span class="sig-paren">(</span><em>mask</em>, <em>i</em>, <em>erosion</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#get_partial_nuclear_volume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.get_partial_nuclear_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the partial volume of a nucleus.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Top half (from highest intensity sum slice).
+Central portion (through erosion).</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mask</strong> (<em>np.array</em>) &#8211; thresholded image.</li>
+<li><strong>i</strong> (<em>np.array</em>) &#8211; image.</li>
+<li><strong>erosion</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; maximum distance allowed.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>sel_mask</strong> &#8211; partial volume mask.
+err_log (string): error log if anything bad occurred.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.get_rescaling_factor">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">get_rescaling_factor</code><span class="sig-paren">(</span><em>path</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#get_rescaling_factor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.get_rescaling_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rescaling factor for deconvolved.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; </li>
+<li><strong>**kwargs</strong> &#8211; basedir additional argument</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">scaling factor</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.get_unit">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">get_unit</code><span class="sig-paren">(</span><em>shape</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#get_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.get_unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get size unity.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>shape</strong> (<em>tuple[int]</em>) &#8211; image shape.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">&#8220;vx&#8221; for 3d images, &#8220;px&#8221; for 2d images.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string">string</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.mk_z_projection">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">mk_z_projection</code><span class="sig-paren">(</span><em>i</em>, <em>p_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#mk_z_projection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.mk_z_projection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make Z-projection.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Allowed p_types: SUM and MAX. Otherwise return the original image.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<em>np.array</em>) &#8211; image.</li>
+<li><strong>p_type</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; Z-projection type according to pygpseq.const.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Z-projection.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.slice_k_d_img">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">slice_k_d_img</code><span class="sig-paren">(</span><em>img</em>, <em>k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#slice_k_d_img"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.slice_k_d_img" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select one k-d image from a n-d image.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">n &gt;= k</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>img</strong> (<em>np.array</em>) &#8211; image.</li>
+<li><strong>k</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of dimensions to keep.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">k-d image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.image.threshold_adaptive">
+<code class="descclassname">pygpseq.tools.image.</code><code class="descname">threshold_adaptive</code><span class="sig-paren">(</span><em>i</em>, <em>block_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/image.html#threshold_adaptive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.image.threshold_adaptive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adaptive threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<em>np.array</em>) &#8211; image.</li>
+<li><strong>block_size</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; neighbourhood, if even then it is incremented by 1.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">thresholded image.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.tools.io">
+<span id="pygpseq-tools-io-module"></span><h2>pygpseq.tools.io module<a class="headerlink" href="#module-pygpseq.tools.io" title="Permalink to this headline">¶</a></h2>
+<p>Functions for the management of IO operations</p>
+<dl class="class">
+<dt id="pygpseq.tools.io.IOinterface">
+<em class="property">class </em><code class="descclassname">pygpseq.tools.io.</code><code class="descname">IOinterface</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/io.html#IOinterface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.io.IOinterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Interface with input-output methods</p>
+<dl class="attribute">
+<dt id="pygpseq.tools.io.IOinterface.logpath">
+<code class="descname">logpath</code><a class="headerlink" href="#pygpseq.tools.io.IOinterface.logpath" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>string</em> &#8211; path to log file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.tools.io.IOinterface.verbose">
+<code class="descname">verbose</code><a class="headerlink" href="#pygpseq.tools.io.IOinterface.verbose" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> &#8211; True to be verbose.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.tools.io.IOinterface.check_log_dir">
+<code class="descname">check_log_dir</code><span class="sig-paren">(</span><em>path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/io.html#IOinterface.check_log_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.io.IOinterface.check_log_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create log file directory if missing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; optional log path.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">creates the folder that will contain the log, if missing.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/constants.html#None" title="(in Python v2.7)">None</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.tools.io.IOinterface.gen_log_name">
+<code class="descname">gen_log_name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/io.html#IOinterface.gen_log_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.io.IOinterface.gen_log_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate logfile name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.tools.io.IOinterface.log">
+<code class="descname">log</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/io.html#IOinterface.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.io.IOinterface.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write to logfile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>s</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; formatted message string.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">writes to logfile.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/constants.html#None" title="(in Python v2.7)">None</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">logpath</code><em class="property"> = ''</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.tools.io.IOinterface.printout">
+<code class="descname">printout</code><span class="sig-paren">(</span><em>s</em>, <em>lvl</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/io.html#IOinterface.printout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.io.IOinterface.printout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Output for user.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>s</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; message string.</li>
+<li><strong>lvl</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; message level.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">formatted string.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string">string</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">verbose</code><em class="property"> = True</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.io.merge_profiles">
+<code class="descclassname">pygpseq.tools.io.</code><code class="descname">merge_profiles</code><span class="sig-paren">(</span><em>profiles</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/io.html#merge_profiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.io.merge_profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Formats the profiles into a single table.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>profiles</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of profile dictionaries.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">merged profiles.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.io.printout">
+<code class="descclassname">pygpseq.tools.io.</code><code class="descname">printout</code><span class="sig-paren">(</span><em>s</em>, <em>lvl</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/io.html#printout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.io.printout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log to shell.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>s</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; message string.</li>
+<li><strong>lvl</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; message level.</li>
+<li><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to display formatted message.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.tools.path">
+<span id="pygpseq-tools-path-module"></span><h2>pygpseq.tools.path module<a class="headerlink" href="#module-pygpseq.tools.path" title="Permalink to this headline">¶</a></h2>
+<p>Functions for the management of paths</p>
+<dl class="function">
+<dt id="pygpseq.tools.path.add_extension">
+<code class="descclassname">pygpseq.tools.path.</code><code class="descname">add_extension</code><span class="sig-paren">(</span><em>path</em>, <em>ext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/path.html#add_extension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.path.add_extension" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add extension to path.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If the provided path is missing the extension, add it.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; </li>
+<li><strong>ext</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; extension.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">path + extension.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string">string</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.path.add_leading_dot">
+<code class="descclassname">pygpseq.tools.path.</code><code class="descname">add_leading_dot</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/path.html#add_leading_dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.path.add_leading_dot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add leading dot.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.path.add_trailing_slash">
+<code class="descclassname">pygpseq.tools.path.</code><code class="descname">add_trailing_slash</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/path.html#add_trailing_slash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.path.add_trailing_slash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add trailing slash.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.path.select_files">
+<code class="descclassname">pygpseq.tools.path.</code><code class="descname">select_files</code><span class="sig-paren">(</span><em>path</em>, <em>ext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/path.html#select_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.path.select_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select the files with the proper .ext in the provided path.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; base directory path.</li>
+<li><strong>ext</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; extensions to look for.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of selected path&#8217;s files <a href="#id1"><span class="problematic" id="id2">*</span></a>.ext.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.path.select_folders">
+<code class="descclassname">pygpseq.tools.path.</code><code class="descname">select_folders</code><span class="sig-paren">(</span><em>path</em>, <em>ext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/path.html#select_folders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.path.select_folders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select subdirectories containing files with the given extension.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; base directory path.</li>
+<li><strong>ext</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; extensions to look for.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of selected path&#8217;s subdirectories containing file <a href="#id3"><span class="problematic" id="id4">*</span></a>.ext.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.path.select_series">
+<code class="descclassname">pygpseq.tools.path.</code><code class="descname">select_series</code><span class="sig-paren">(</span><em>flist</em>, <em>reg</em>, <em>series_field=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/path.html#select_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.path.select_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group a list of files by series based on the provided regexp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>flist</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of file paths.</li>
+<li><strong>reg</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; regular expression to identify series.</li>
+<li><strong>series_field</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; name of the series ID field in the regexp.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">series channel paths with separated fields in a dictionary.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.tools.plot">
+<span id="pygpseq-tools-plot-module"></span><h2>pygpseq.tools.plot module<a class="headerlink" href="#module-pygpseq.tools.plot" title="Permalink to this headline">¶</a></h2>
+<p>Functions for the management of plots</p>
+<dl class="function">
+<dt id="pygpseq.tools.plot.boxplot">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">boxplot</code><span class="sig-paren">(</span><em>fig</em>, <em>subplot</em>, <em>data</em>, <em>labels</em>, <em>widths</em>, <em>ylabel</em>, <em>nnuclei</em>, <em>xaxis1=None</em>, <em>xaxis2=None</em>, <em>ylab_pos=None</em>, <em>forceSciNotation=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#boxplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.boxplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate single condition boxplot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>fig</strong> (<em>plt.figure</em>) &#8211; figure canvas.</li>
+<li><strong>subplot</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; subplot signature (i.e., 111, 122,...).</li>
+<li><strong>data</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of datasets to boxplot.</li>
+<li><strong>labels</strong> (<em>list[string]</em>) &#8211; x-axis #1 tick values.</li>
+<li><strong>widths</strong> (<em>list[float]</em>) &#8211; boxplot widths.</li>
+<li><strong>ylabel</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; y-axis label.</li>
+<li><strong>nnuclei</strong> (<em>list(int</em>) &#8211; x-axis #2 tick values.</li>
+<li><strong>xaxis1</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to plot x-axis #1 (opt, def True).</li>
+<li><strong>xaxis2</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to plot x-axis #2 (opt, def True).</li>
+<li><strong>ylab_pos</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; y-axis position (opt, def &#8216;left&#8217;).</li>
+<li><strong>forceSciNotation</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to force sci. notation (opt, def False).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">plot in-place in the provided figure canvas object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.density_with_range">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">density_with_range</code><span class="sig-paren">(</span><em>density</em>, <em>fwhm_range</em>, <em>new_figure=None</em>, <em>show=None</em>, <em>close=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#density_with_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.density_with_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot density curve and FWHM range.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Density should be the output of .stat.calc_density</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>density</strong> (<a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; dictionary w/ density function and coords for its plot.</li>
+<li><strong>fwhm_range</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; FWHM range of major density peak.</li>
+<li><strong>new_figure</strong> (<em>plt.figure</em>) &#8211; figure object to plot to.</li>
+<li><strong>show</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to display the figure.</li>
+<li><strong>close</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to close the open canvas.</li>
+<li><strong>**kwargs</strong> &#8211; optional keyword arguments (xlab, ylab, title)</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.export">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">export</code><span class="sig-paren">(</span><em>path</em>, <em>exp_format=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export the current plot to the provided path.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The formats should be specified.
+Also, a plot object can be exported instead of the current one.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>path</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; output file path.</li>
+<li><strong>exp_format</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; output format (supported: pdf, png, jpg).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.get_nsf_label">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">get_nsf_label</code><span class="sig-paren">(</span><em>nsfi</em>, <em>seg_type=None</em>, <em>an_type=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#get_nsf_label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.get_nsf_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the proper plot label for the selected nuclear selection feature,
+based on the current segmentation type</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The function needs one of the two: an_type or seg_type.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>nsfi</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; nuclear selection feature index according to pygpseq.const.</li>
+<li><strong>seg_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; segmentation type according to pygpseq.const.</li>
+<li><strong>an_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; analysis type according to pygpseq.const.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the provided nuclear selection feature label.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string">string</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.multi_condition_boxplot">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">multi_condition_boxplot</code><span class="sig-paren">(</span><em>profiles</em>, <em>summaries</em>, <em>merged</em>, <em>an_type=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#multi_condition_boxplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.multi_condition_boxplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate multi condition boxplots.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>profiles</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of profile dictionaries.</li>
+<li><strong>summaries</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of condition nuclear summaries.</li>
+<li><strong>merged</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of condition nuclear single-pixel tables.</li>
+<li><strong>an_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; analysis type as defined in pygpseq.const.</li>
+<li><strong>**kwargs</strong> &#8211; additional keyword arguments.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">figure canvas with plot.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">plt.figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.multi_condition_profiles">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">multi_condition_profiles</code><span class="sig-paren">(</span><em>profiles</em>, <em>font_size=None</em>, <em>hspace=None</em>, <em>wspace=None</em>, <em>yfield=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#multi_condition_profiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.multi_condition_profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save three single condition profiles.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>profiles</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; [{dtype:{x:float, y:float}, n:int, condition:string}].</li>
+<li><strong>font_size</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; </li>
+<li><strong>hspace</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; horizontal intra-plot spacing.</li>
+<li><strong>wspace</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; vertical intra-plot spacing.</li>
+<li><strong>yfield</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; y-axis label.</li>
+<li><strong>**kwargs</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.multi_condition_single_boxplot">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">multi_condition_single_boxplot</code><span class="sig-paren">(</span><em>profiles</em>, <em>data</em>, <em>data_field</em>, <em>bp_widths</em>, <em>ylab</em>, <em>out_png</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#multi_condition_single_boxplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.multi_condition_single_boxplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate multi condition boxplot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>profiles</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of profile dictionaries.</li>
+<li><strong>data</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of datasets to boxplot.</li>
+<li><strong>data_field</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; column (in the datasets) to boxplot.</li>
+<li><strong>bp_widths</strong> (<em>list(float</em>) &#8211; boxplot widths.</li>
+<li><strong>ylab</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; y-axis label</li>
+<li><strong>out_png</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; path to png output folder.</li>
+<li><strong>**kwargs</strong> &#8211; optional keyword arguments (suffix).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the produced plot is directly exported in PNG}</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/constants.html#None" title="(in Python v2.7)">None</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.profile_density_scatterplot">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">profile_density_scatterplot</code><span class="sig-paren">(</span><em>pp</em>, <em>field_label</em>, <em>nbins</em>, <em>xyrange</em>, <em>profile</em>, <em>new_figure=None</em>, <em>dlabel=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#profile_density_scatterplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.profile_density_scatterplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot profile pixel density scatterplot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pp</strong> (<em>np.array</em>) &#8211; bin-normalized density.</li>
+<li><strong>field_label</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; y-axis label.</li>
+<li><strong>nbins</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of bins.</li>
+<li><strong>xyrange</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; x/y-axis range [min, max].</li>
+<li><strong>profile</strong> (<em>list(np.array</em>) &#8211; mean, median, mode, std (smoothed and raw).</li>
+<li><strong>new_figure</strong> (<em>boolean</em>) &#8211; whether to plot in a new figure (and return it).</li>
+<li><strong>dlabel</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; distance label.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">if new_figure is True, return canvas object.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">plt.figure or None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.set_font_size">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">set_font_size</code><span class="sig-paren">(</span><em>size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#set_font_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.set_font_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set plot font size.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.single_condition_profiles">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">single_condition_profiles</code><span class="sig-paren">(</span><em>profiles</em>, <em>font_size=None</em>, <em>color=None</em>, <em>hspace=None</em>, <em>wspace=None</em>, <em>n_nuclei=None</em>, <em>new_figure=None</em>, <em>cdescr=None</em>, <em>yfield=None</em>, <em>dlabel=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#single_condition_profiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.single_condition_profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save three single condition profiles.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>profiles</strong> (<a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; {dtype:{x:float, y:float}, n: int, condition:string}.</li>
+<li><strong>font_size</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; (opt).</li>
+<li><strong>color</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; (opt).</li>
+<li><strong>hspace</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; horizontal intra-plot spacing (opt).</li>
+<li><strong>wspace</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; vertical intra-plot spacing (opt).</li>
+<li><strong>n_nuclei</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of nuclei (opt).</li>
+<li><strong>new_figure</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; plot line color (opt).</li>
+<li><strong>cdescr</strong> (<a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; better condition description (opt).</li>
+<li><strong>yfield</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; which measure to plot (opt).</li>
+<li><strong>dlabel</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; distance label (opt).</li>
+<li><strong>**kwargs</strong> &#8211; title_comment, sigma, nbins.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">figure canvase if new_figure is True.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">plt.figure or None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.plot.single_pixel_study">
+<code class="descclassname">pygpseq.tools.plot.</code><code class="descname">single_pixel_study</code><span class="sig-paren">(</span><em>xs</em>, <em>ys</em>, <em>field_label</em>, <em>profile</em>, <em>nbins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/plot.html#single_pixel_study"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.plot.single_pixel_study" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a study of single-pixel and general behaviour of profile data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xs</strong> (<em>np.array</em>) &#8211; pixel (relative) distance from nuclear lamina.</li>
+<li><strong>ys</strong> (<em>np.array</em>) &#8211; pixel channel intensity.</li>
+<li><strong>field_label</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; y-axis label.</li>
+<li><strong>profile</strong> (<a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; profile to study.</li>
+<li><strong>nbins</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; study precision (opt, def 200).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">current figure canvas.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">plt.figure</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.tools.stat">
+<span id="pygpseq-tools-stat-module"></span><h2>pygpseq.tools.stat module<a class="headerlink" href="#module-pygpseq.tools.stat" title="Permalink to this headline">¶</a></h2>
+<p>Functions for the management of statistical operations</p>
+<dl class="function">
+<dt id="pygpseq.tools.stat.binned_mode">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">binned_mode</code><span class="sig-paren">(</span><em>x</em>, <em>nbins</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#binned_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.binned_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify binned mode.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>np.array</em>) &#8211; dataset.</li>
+<li><strong>nbins</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of bins.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the most occupied bin in the provided dataset.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)">int</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.binned_profile">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">binned_profile</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>nbins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#binned_profile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.binned_profile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce an approximation of sparse data by binning it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numeric</em>) &#8211; x coordinates.</li>
+<li><strong>y</strong> (<em>numeric</em>) &#8211; y coordinates.</li>
+<li><strong>nbins</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; curve precision (opt, def: 200).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">profiles.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.calc_density">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">calc_density</code><span class="sig-paren">(</span><em>data</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#calc_density"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.calc_density" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the Gaussian KDE of the provided data series.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sigma</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; standard deviation used for covariance calculation (opt).</li>
+<li><strong>nbins</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; #steps for the density curve calculation (opt, def: 1000).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">density curve (x, y) and function (f).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)">dict</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.get_fwhm">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">get_fwhm</code><span class="sig-paren">(</span><em>xs</em>, <em>ys</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#get_fwhm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.get_fwhm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate FWHM of highest peak in a curve.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>xs</strong> (<em>np.array</em>) &#8211; x-coordinates of the curve.</li>
+<li><strong>ys</strong> (<em>np.array</em>) &#8211; y-coordinates of the curve.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">FWHM interval x-coords of highest peak.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.get_norm_pdf">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">get_norm_pdf</code><span class="sig-paren">(</span><em>mu</em>, <em>sigma</em>, <em>x</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#get_norm_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.get_norm_pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normal distribution N(mu, sigma) probability value at x.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mu</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; normal distribution mean.</li>
+<li><strong>sigma</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; normal distribution standard deviation.</li>
+<li><strong>x</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; x-coordinate.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">N(mu, sigma) probability value at x.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.get_outliers">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">get_outliers</code><span class="sig-paren">(</span><em>x</em>, <em>non=None</em>, <em>fig=None</em>, <em>close=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#get_outliers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.get_outliers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identifies the outliers in a data set.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>np.array</em>) &#8211; data set.</li>
+<li><strong>non</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; whether to return outliers or non-outliers.</li>
+<li><strong>fig</strong> (<em>plt.figure</em>) &#8211; for boxplot purposes.</li>
+<li><strong>close</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; whether to close the figure before return.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">(non-)outlier indexes.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.r_to_size">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">r_to_size</code><span class="sig-paren">(</span><em>r_interval</em>, <em>size_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#r_to_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.r_to_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert radius interval to size (Area/Volume) interval.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>r_interval</strong> (<em>tuple[float]</em>) &#8211; radius interval.</li>
+<li><strong>size_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; segmentation type (according to pygpseq.const).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>tuple</strong> &#8211; size (volume of area) interval.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)">float</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.round_unicode">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">round_unicode</code><span class="sig-paren">(</span><em>n</em>, <em>nsig</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#round_unicode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.round_unicode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Round operation on unicode number in scientific notation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#unicode" title="(in Python v2.7)"><em>unicode</em></a>) &#8211; number in scientific notation.</li>
+<li><strong>nsig</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of significant digits.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">rounded unicode number in scientific notation.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#unicode" title="(in Python v2.7)">unicode</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.smooth_gaussian">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">smooth_gaussian</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>sigma=None</em>, <em>nbins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#smooth_gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.smooth_gaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Smoothen a curve.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<em>numeric</em>) &#8211; x coordinates.</li>
+<li><strong>y</strong> (<em>numeric</em>) &#8211; y coordinates.</li>
+<li><strong>nbins</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; curve precision (opt, def: 500).</li>
+<li><strong>sigma</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; smoothing factor (opt, def: 0.01).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">smoothened curve.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.smooth_sparse_gaussian">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">smooth_sparse_gaussian</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>nbins=None</em>, <em>sigma=None</em>, <em>rescale_sigma=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#smooth_sparse_gaussian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.smooth_sparse_gaussian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a smooth approximation of sparse data.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Basically a smoothened binned distribution.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; x coordinates.</li>
+<li><strong>y</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; y coordinates.</li>
+<li><strong>nbins</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; curve precision (opt, def: 200).</li>
+<li><strong>sigma</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; smoothing factor (opt, def: 0.01).</li>
+<li><strong>rescale_sigma</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; whether to multiply sigma to max(x).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">various metrics profiles (mean, median, mode, std).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)">dict</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.stat.wilcox_sets">
+<code class="descclassname">pygpseq.tools.stat.</code><code class="descname">wilcox_sets</code><span class="sig-paren">(</span><em>df</em>, <em>groupkey</em>, <em>setkey</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/stat.html#wilcox_sets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.stat.wilcox_sets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform Wilcoxon-Mann-Whitney U test on the provided list of sets.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>df</strong> (<em>pandas.DataFrame</em>) &#8211; data frame with distributions to be compared.</li>
+<li><strong>groupkey</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; df column of set labels.</li>
+<li><strong>setkey</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; df column with distributions to be compared.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dataset with WMW U-test p-value of compared distribution.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dd</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;condition&#39;</span><span class="p">,</span> <span class="s1">&#39;S100&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;float&#39;</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="s1">&#39;c1&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;c2&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)],</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">dd</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">p</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">wilcox_sets</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="s1">&#39;condition&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">))</span>
+<span class="go">[(&#39;y&#39;, &#39;c2&#39;, &#39;c1&#39;, 1.0, &#39;&#39;)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.tools.string">
+<span id="pygpseq-tools-string-module"></span><h2>pygpseq.tools.string module<a class="headerlink" href="#module-pygpseq.tools.string" title="Permalink to this headline">¶</a></h2>
+<p>Functions for the management of strings</p>
+<dl class="function">
+<dt id="pygpseq.tools.string.add_leading_dot">
+<code class="descclassname">pygpseq.tools.string.</code><code class="descname">add_leading_dot</code><span class="sig-paren">(</span><em>s</em>, <em>not_empty=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/string.html#add_leading_dot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.string.add_leading_dot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds leading dot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>s</strong> (<a class="reference internal" href="#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; string to recieve leading dot.</li>
+<li><strong>not_empty</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; whether to add leading dot to empty string.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.string.add_trailing_new_line">
+<code class="descclassname">pygpseq.tools.string.</code><code class="descname">add_trailing_new_line</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/string.html#add_trailing_new_line"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.string.add_trailing_new_line" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds trailing new line.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.tools.vector">
+<span id="pygpseq-tools-vector-module"></span><h2>pygpseq.tools.vector module<a class="headerlink" href="#module-pygpseq.tools.vector" title="Permalink to this headline">¶</a></h2>
+<p>Functions for the management of vectors</p>
+<dl class="function">
+<dt id="pygpseq.tools.vector.flatten_and_select">
+<code class="descclassname">pygpseq.tools.vector.</code><code class="descname">flatten_and_select</code><span class="sig-paren">(</span><em>v</em>, <em>s</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/vector.html#flatten_and_select"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.vector.flatten_and_select" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flatten the array v and select rows based on s.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>v</strong> (<em>np.array</em>) &#8211; </li>
+<li><strong>s</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of v rows indexes.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.vector.merge_nparrays">
+<code class="descclassname">pygpseq.tools.vector.</code><code class="descname">merge_nparrays</code><span class="sig-paren">(</span><em>npal</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/vector.html#merge_nparrays"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.vector.merge_nparrays" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge a list of numpy arrays into one.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The numpy arrays MUST have the same dtype definition.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>npal</strong> (<em>list[np.array]</em>) &#8211; list of numpy arrays.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a merged numpy array.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">np.array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.vector.rm_from_mask">
+<code class="descclassname">pygpseq.tools.vector.</code><code class="descname">rm_from_mask</code><span class="sig-paren">(</span><em>L</em>, <em>torm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/vector.html#rm_from_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.vector.rm_from_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove elements from a mask.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>L</strong> (<em>np.array[int]</em>) &#8211; labelled objects.</li>
+<li><strong>torm</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of objects indexes (to remove).</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.tools.vector.uniquec">
+<code class="descclassname">pygpseq.tools.vector.</code><code class="descname">uniquec</code><span class="sig-paren">(</span><em>l</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/tools/vector.html#uniquec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.tools.vector.uniquec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the instances of the uniqued integers in l.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>l</strong> (<em>list[int]</em>) &#8211; list of integers.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">list of (n, count(n)) for every n in unique(l).</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list[tuple]</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-pygpseq.tools"></span></div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Gabriele Girelli.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pygpseq.tools.vector &mdash; pygpseq 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pygpseq 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pygpseq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/howto.html">How to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/changelog.html">CHANGELOG</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">pygpseq</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pygpseq.tools.vector</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pygpseq.tools.vector</h1><div class="highlight"><pre>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot; Functions for the management of vectors &quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="uniquec"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.vector.uniquec">[docs]</a><span class="k">def</span> <span class="nf">uniquec</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Count the instances of the uniqued integers in l.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		l (list[int]): list of integers.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		list[tuple]: list of (n, count(n)) for every n in unique(l).</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="c1"># Possible integer values</span>
+	<span class="n">possible</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+	<span class="c1"># Count elements occurrences</span>
+	<span class="n">counts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">possible</span><span class="p">]</span>
+	<span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+		<span class="n">counts</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+	<span class="c1"># Return tupled counts</span>
+	<span class="k">return</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">possible</span> <span class="k">if</span> <span class="n">counts</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="flatten_and_select"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.vector.flatten_and_select">[docs]</a><span class="k">def</span> <span class="nf">flatten_and_select</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Flatten the array v and select rows based on s.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		v (np.array)</span>
+<span class="sd">		s (list): list of v rows indexes.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)))</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+	<span class="n">v</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">s</span><span class="p">]</span>
+	<span class="k">return</span><span class="p">(</span><span class="n">v</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="rm_from_mask"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.vector.rm_from_mask">[docs]</a><span class="k">def</span> <span class="nf">rm_from_mask</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">torm</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Remove elements from a mask.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		L (np.array[int]): labelled objects.</span>
+<span class="sd">		torm (list): list of objects indexes (to remove).</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">torm</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">L</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">torm</span><span class="p">):</span>
+		<span class="c1"># Update list of objects to be discarded</span>
+		<span class="n">torm</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="o">+</span> <span class="mi">1</span>  <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">torm</span><span class="p">]</span>
+
+		<span class="c1"># Identify which objects to discard</span>
+		<span class="n">rm_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">torm</span><span class="p">)(</span><span class="n">L</span><span class="p">)</span>
+
+		<span class="c1"># Discard and re-label</span>
+		<span class="n">L</span><span class="p">[</span><span class="n">rm_mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="c1"># Select objects to be kept</span>
+		<span class="n">tokeep</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">torm</span><span class="p">]</span>
+
+		<span class="c1"># Identify which objects to discard</span>
+		<span class="n">rm_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="ow">not</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tokeep</span><span class="p">)(</span><span class="n">L</span><span class="p">)</span>
+
+		<span class="c1"># Discard and re-label</span>
+		<span class="n">L</span><span class="p">[</span><span class="n">rm_mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+	<span class="c1"># Output</span>
+	<span class="k">return</span><span class="p">(</span><span class="n">L</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="merge_nparrays"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.vector.merge_nparrays">[docs]</a><span class="k">def</span> <span class="nf">merge_nparrays</span><span class="p">(</span><span class="n">npal</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Merge a list of numpy arrays into one.</span>
+
+<span class="sd">	Note:</span>
+<span class="sd">		The numpy arrays MUST have the same dtype definition.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		npal (list[np.array]): list of numpy arrays.</span>
+
+<span class="sd">	Returns:</span>
+<span class="sd">		np.array: a merged numpy array.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="c1"># Check matching dtype definitions</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">npal</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">npal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">npal</span><span class="p">))]):</span>
+		<span class="k">return</span><span class="p">(</span><span class="n">npal</span><span class="p">)</span>
+
+	<span class="c1"># Count total rows</span>
+	<span class="n">nrows</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">npal</span><span class="p">])</span>
+
+	<span class="c1"># Initialize output</span>
+	<span class="n">merged</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,),</span>
+		<span class="n">dtype</span> <span class="o">=</span> <span class="n">npal</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+	<span class="c1"># Row pointer</span>
+	<span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+
+	<span class="c1"># Cycle through the arrays</span>
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">npal</span><span class="p">)):</span>
+		<span class="c1"># Get current array size</span>
+		<span class="n">nrows</span> <span class="o">=</span> <span class="n">npal</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+		<span class="c1"># Save current array in the merged output</span>
+		<span class="n">merged</span><span class="p">[</span><span class="n">c</span><span class="p">:(</span><span class="n">c</span> <span class="o">+</span> <span class="n">nrows</span><span class="p">)]</span> <span class="o">=</span> <span class="n">npal</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+		<span class="c1"># Increment row pointer</span>
+		<span class="n">c</span> <span class="o">+=</span> <span class="n">nrows</span>
+
+	<span class="c1"># Output</span>
+	<span class="k">return</span><span class="p">(</span><span class="n">merged</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Gabriele Girelli.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

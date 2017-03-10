@@ -1,0 +1,520 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pygpseq.tools.binarize &mdash; pygpseq 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pygpseq 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pygpseq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/howto.html">How to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/changelog.html">CHANGELOG</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">pygpseq</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pygpseq.tools.binarize</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pygpseq.tools.binarize</h1><div class="highlight"><pre>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;Image binarization module.</span>
+
+<span class="sd">This module contains code to binarize images.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">ndimage</span> <span class="k">as</span> <span class="n">ndi</span>
+<span class="kn">from</span> <span class="nn">skimage.filters</span> <span class="kn">import</span> <span class="n">threshold_otsu</span>
+<span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">label</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">const</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">image</span> <span class="k">as</span> <span class="n">imt</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">io</span> <span class="k">as</span> <span class="n">iot</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">stat</span> <span class="k">as</span> <span class="n">stt</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">vector</span> <span class="k">as</span> <span class="n">vt</span>
+
+<div class="viewcode-block" id="Binarize"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.binarize.Binarize">[docs]</a><span class="k">class</span> <span class="nc">Binarize</span><span class="p">(</span><span class="n">iot</span><span class="o">.</span><span class="n">IOinterface</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Image binarization class.</span>
+
+<span class="sd">	If the class has public attributes, they may be documented here</span>
+<span class="sd">	in an ``Attributes`` section and follow the same formatting as a</span>
+<span class="sd">	function&#39;s ``Args`` section. Alternatively, attributes may be documented</span>
+<span class="sd">	inline with the attribute&#39;s declaration (see __init__ method below).</span>
+
+<span class="sd">	Properties created with the ``@property`` decorator should be documented</span>
+<span class="sd">	in the property&#39;s getter method.</span>
+
+<span class="sd">	Attributes:</span>
+<span class="sd">		an_type (int): analysis type accordin to `pygpseq.const`.</span>
+<span class="sd">		seg_type (int): segmentation type accordin to `pygpseq.const`.</span>
+<span class="sd">		do_global_thr (bool): True to apply global threshol (Otsu).</span>
+<span class="sd">		do_adaptive_thr (bool): True to apply local (adaptive) threshold.</span>
+<span class="sd">		adaptive_neighbourhood (int): neighbourhood square side for local thr.</span>
+<span class="sd">		do_clear_borders (bool): True to remove objects touching the borders.</span>
+<span class="sd">		do_clear_Z_borders (bool): True to remove objects touching Z borders.</span>
+<span class="sd">		do_fill_holes (bool): True to fill holes (both 2D and 3D).</span>
+<span class="sd">		radius_interval (tuple[float]): object radius interval.</span>
+<span class="sd">		min_z_size (float): minimum Z (relative) size of the objects.</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">an_type</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">seg_type</span> <span class="o">=</span> <span class="mi">0</span>
+	<span class="n">do_global_thr</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">do_adaptive_thr</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">adaptive_neighbourhood</span> <span class="o">=</span> <span class="mi">101</span>
+	<span class="n">do_clear_borders</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">do_clear_Z_borders</span> <span class="o">=</span> <span class="bp">False</span>
+	<span class="n">do_fill_holes</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">radius_interval</span> <span class="o">=</span> <span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">))</span>
+	<span class="n">min_z_size</span> <span class="o">=</span> <span class="o">.</span><span class="mi">25</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Initialize binarization settings all at once with kwargs.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			**kwargs: arbitrary keyword arguments stored in the class.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Run IOinterface __init__ method</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">Binarize</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+		<span class="c1"># Store provided kwargs in the current instance.</span>
+		<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">k</span> <span class="o">==</span> <span class="s1">&#39;logpath&#39;</span><span class="p">:</span>
+				<span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Binarize.run"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.binarize.Binarize.run">[docs]</a>	<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">im</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Binarize image with current instance settings.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			im (np.array): image to be thresholded</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			tuple: binarized image, Otsu&#39;s threshold value and log string</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="n">log</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+		<span class="c1"># If no threshold is requested, return the image</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_global_thr</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_adaptive_thr</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;No threshold applied.&#39;</span>
+			<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+			<span class="k">return</span><span class="p">((</span><span class="n">im</span><span class="p">,</span> <span class="n">log</span><span class="p">))</span>
+
+		<span class="c1"># Make Z-projection ----------------------------------------------------</span>
+		<span class="k">if</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_3D</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">seg_type</span> <span class="ow">and</span> <span class="mi">2</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Generating Z-projection [&#39;</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_LABELS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">seg_type</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;]...&#39;</span>
+			<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">im</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">mk_z_projection</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seg_type</span><span class="p">)</span>
+
+		<span class="c1"># Binarize images ------------------------------------------------------</span>
+		<span class="n">mask</span> <span class="o">=</span> <span class="p">[]</span>
+
+		<span class="c1"># Perform global threshold</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_global_thr</span><span class="p">:</span>
+			<span class="n">thr</span> <span class="o">=</span> <span class="n">threshold_otsu</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Thresholding image, global thr: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">thr</span><span class="p">)</span>
+			<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">mask</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imt</span><span class="o">.</span><span class="n">binarize</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">thr</span><span class="p">))</span>
+
+		<span class="c1"># Perform adaptive threshold</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_adaptive_thr</span> <span class="ow">and</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_neighbourhood</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Applying adaptive threshold to neighbourhood: &#39;</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adaptive_neighbourhood</span><span class="p">)</span>
+			<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">mask</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imt</span><span class="o">.</span><span class="n">threshold_adaptive</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">adaptive_neighbourhood</span><span class="p">))</span>
+
+		<span class="c1"># Combine masks</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+			<span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mask</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+		<span class="c1"># Remove objects touching borders --------------------------------------</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_clear_borders</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Removing objects touching the image border...&#39;</span>
+			<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">mask</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">clear_borders</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_clear_Z_borders</span><span class="p">)</span>
+		
+		<span class="c1"># Fill holes -----------------------------------------------------------</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_fill_holes</span><span class="p">:</span>
+			<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Filling holes...&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+			<span class="n">mask</span> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">binary_fill_holes</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+			<span class="k">if</span> <span class="mi">3</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+				<span class="c1"># Single slice filling</span>
+				<span class="k">for</span> <span class="n">sliceid</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+					<span class="n">slide</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">sliceid</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+					<span class="n">mask</span><span class="p">[</span><span class="n">sliceid</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">ndi</span><span class="o">.</span><span class="n">binary_fill_holes</span><span class="p">(</span><span class="n">slide</span><span class="p">)</span>
+
+		<span class="c1"># Output ---------------------------------------------------------------</span>
+		<span class="k">return</span><span class="p">((</span><span class="n">mask</span><span class="p">,</span> <span class="n">thr</span><span class="p">,</span> <span class="n">log</span><span class="p">))</span></div>
+	
+<div class="viewcode-block" id="Binarize.filter_obj_XY_size"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.binarize.Binarize.filter_obj_XY_size">[docs]</a>	<span class="k">def</span> <span class="nf">filter_obj_XY_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Filter objects XY size.</span>
+
+<span class="sd">		Note:</span>
+<span class="sd">			Uses self.radius_interval to filter the objects in the provided</span>
+<span class="sd">			mask based on the selected segmentation type.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			mask (np.array): binary image</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			tuple: filtered binary image and log string</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Start logging</span>
+		<span class="n">log</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Filtering objects XY size...&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+		<span class="c1"># From radius to size</span>
+		<span class="n">sinter</span> <span class="o">=</span> <span class="n">stt</span><span class="o">.</span><span class="n">r_to_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">radius_interval</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">seg_type</span><span class="p">)</span>
+		<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Allowed size interval: &#39;</span>
+		<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;[&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">sinter</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="s1">&#39;, &#39;</span>
+		<span class="n">msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">sinter</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="o">+</span> <span class="s1">&#39;] [&#39;</span> <span class="o">+</span> <span class="n">imt</span><span class="o">.</span><span class="n">get_unit</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+		<span class="c1"># Identify objects XY size</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Retrieving objects XY size...&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+		<span class="n">L</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+		<span class="n">xysizes</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">get_objects_xysize</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Found &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39; objects.&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+		
+		<span class="c1"># Select objects to be discarded</span>
+		<span class="n">torm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">xysizes</span> <span class="o">&lt;</span> <span class="n">sinter</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xysizes</span> <span class="o">&gt;</span> <span class="n">sinter</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+		<span class="n">torm</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">torm</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="p">]</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Discarding &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">torm</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; objects.&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+		<span class="c1"># Remove objects outside of size interval</span>
+		<span class="n">mask</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rm_from_mask</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">torm</span><span class="p">)</span>
+		<span class="n">L</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+		<span class="c1"># Output</span>
+		<span class="k">return</span><span class="p">((</span><span class="n">mask</span><span class="p">,</span> <span class="n">log</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Binarize.filter_obj_Z_size"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.binarize.Binarize.filter_obj_Z_size">[docs]</a>	<span class="k">def</span> <span class="nf">filter_obj_Z_size</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mask</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Filter objects Z size.</span>
+
+<span class="sd">		Note:</span>
+<span class="sd">			Uses self.min_z_size to filter the objects in the provided mask.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			mask (np.array): binary image</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			tuple: filtered binary image and log string</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Start logging</span>
+		<span class="n">log</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Filtering objects XY size...&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+		<span class="c1"># If not a stack, return the mask</span>
+		<span class="k">if</span> <span class="mi">3</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+			<span class="k">return</span><span class="p">((</span><span class="n">mask</span><span class="p">,</span> <span class="n">log</span><span class="p">))</span>
+
+		<span class="c1"># Check provided conditions</span>
+		<span class="n">doFilterZsize</span> <span class="o">=</span> <span class="mi">0</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span><span class="p">))</span>
+		<span class="n">doFilterZsize</span> <span class="o">=</span> <span class="n">doFilterZsize</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">an_type</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_3D</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">doFilterZsize</span><span class="p">:</span>
+			<span class="k">return</span><span class="p">((</span><span class="n">mask</span><span class="p">,</span> <span class="n">log</span><span class="p">))</span>
+
+		<span class="c1"># From size to number of slices</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span> <span class="o">*</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span><span class="p">))</span>
+		<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Minimum &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; slices.&#39;</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+		<span class="c1"># Identify objects Z size</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Retrieving objects Z size...&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+		<span class="n">L</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+		<span class="n">zsizes</span> <span class="o">=</span> <span class="n">imt</span><span class="o">.</span><span class="n">get_objects_zsize</span><span class="p">(</span><span class="n">L</span><span class="p">)</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="s1">&#39;Found &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39; objects.&#39;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+		
+		<span class="c1"># Select objects to be discarded</span>
+		<span class="n">torm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">zsizes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_z_size</span>
+		<span class="n">torm</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">torm</span><span class="p">)</span> <span class="k">if</span> <span class="n">x</span><span class="p">]</span>
+		<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Discarding &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">torm</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; objects.&#39;</span>
+		<span class="n">log</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+		<span class="c1"># Remove objects lower than minimum size</span>
+		<span class="n">mask</span> <span class="o">=</span> <span class="n">vt</span><span class="o">.</span><span class="n">rm_from_mask</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">torm</span><span class="p">)</span>
+		<span class="n">L</span> <span class="o">=</span> <span class="n">label</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+		<span class="c1"># Output</span>
+		<span class="k">return</span><span class="p">((</span><span class="n">mask</span><span class="p">,</span> <span class="n">log</span><span class="p">))</span></div>
+
+	<span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Allow get item. &quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="k">return</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Allow set item. &quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot; Check the attribute and set it. &quot;&quot;&quot;</span>
+
+		<span class="c1"># Check the attribute</span>
+		<span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_attr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="bp">True</span> <span class="o">==</span> <span class="n">check</span><span class="p">:</span>
+			<span class="c1"># Set the attribute</span>
+			<span class="k">return</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">Binarize</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c1"># Don&#39;t set the attribute</span>
+			<span class="k">return</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Binarize.check_attr"><a class="viewcode-back" href="../../../pygpseq.tools.html#pygpseq.tools.binarize.Binarize.check_attr">[docs]</a>	<span class="k">def</span> <span class="nf">check_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Check attribute format and value.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			name (string): attribute name</span>
+<span class="sd">			value: attribute value</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			bool: whether the provided (name,value) couple passed its</span>
+<span class="sd">				name-specific test</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Default answer</span>
+		<span class="n">checked</span> <span class="o">=</span> <span class="bp">True</span>
+
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;do_global_thr&#39;</span><span class="p">,</span> <span class="s1">&#39;do_adaptive_thr&#39;</span><span class="p">,</span> <span class="s1">&#39;do_clear_borders&#39;</span><span class="p">,</span>
+			<span class="s1">&#39;do_clear_Z_borders&#39;</span><span class="p">,</span> <span class="s1">&#39;do_fill_holes&#39;</span><span class="p">]:</span>
+			<span class="c1"># Require boolean</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a Boolean.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;].&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+		<span class="k">elif</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;adaptive_neighbourhood&#39;</span><span class="p">:</span>
+			<span class="c1"># Require boolean</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be an integer.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;].&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+		<span class="k">elif</span> <span class="s1">&#39;an_type&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Check that it is one of the allowed constants</span>
+			<span class="n">an_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">AN_SUM_PROJ</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_MAX_PROJ</span><span class="p">,</span>
+				<span class="n">const</span><span class="o">.</span><span class="n">AN_3D</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_MID</span><span class="p">]</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">an_types</span><span class="p">:</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be one of the following values:</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">an_types</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;].&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+		<span class="k">elif</span> <span class="s1">&#39;seg_type&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Check that it is one of the allowed constants</span>
+			<span class="n">seg_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">SEG_SUM_PROJ</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_MAX_PROJ</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_3D</span><span class="p">]</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">seg_types</span><span class="p">:</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be one of the following values:</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">seg_types</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;].&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+		<span class="k">return</span><span class="p">(</span><span class="n">checked</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Gabriele Girelli.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,450 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pygpseq.wraps.analysis &mdash; pygpseq 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pygpseq 0.1.0 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pygpseq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/howto.html">How to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../_static/changelog.html">CHANGELOG</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">pygpseq</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pygpseq.wraps.analysis</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pygpseq.wraps.analysis</h1><div class="highlight"><pre>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">const</span>
+<span class="kn">from</span> <span class="nn">..tools</span> <span class="kn">import</span> <span class="n">path</span> <span class="k">as</span> <span class="n">pt</span>
+<span class="kn">from</span> <span class="nn">..tools</span> <span class="kn">import</span> <span class="n">io</span> <span class="k">as</span> <span class="n">iot</span>
+
+<div class="viewcode-block" id="Analyzer"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.analysis.Analyzer">[docs]</a><span class="k">class</span> <span class="nc">Analyzer</span><span class="p">(</span><span class="n">iot</span><span class="o">.</span><span class="n">IOinterface</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;GPSeq image analyzer.</span>
+
+<span class="sd">	Args:</span>
+<span class="sd">		__version__ (string): class-bound attribute.</span>
+<span class="sd">		dna_names (list[string]): dna channel names.</span>
+<span class="sd">		sig_names (list[string]): signal channel names.</span>
+<span class="sd">		adaptive_neighbourhood (int): adaptive threshold neighbourhood square</span>
+<span class="sd">			side. If even, it&#39;s increased by one. If &lt;= 1, turned off.</span>
+<span class="sd">		aspect (tuple[float]): relative/absolute px/vx size.</span>
+<span class="sd">		radius_interval (tuple[float]): nuclear radius interval.</span>
+<span class="sd">		min_z_size (float): minimum Z size of the nucleus. If &gt; 1, the ceil is</span>
+<span class="sd">			taken as the minimum number of slices. If &lt; 1, the float is taken</span>
+<span class="sd">			as the fraction of the stack.</span>
+<span class="sd">		seg_type (int): segmentation type according to pygpseq.const.</span>
+<span class="sd">		an_type (int): analysis type according to pygpseq.const.</span>
+<span class="sd">		mid_type (int): mid-section definition according to pygpseq.const.</span>
+<span class="sd">		nsf (tuple[int]): nuclear selection features according to pygpseq.const.</span>
+<span class="sd">			Uses up to three features. The first two features are used in the</span>
+<span class="sd">			summary scattersplot (i.e., order matters).</span>
+<span class="sd">		offset (tuple[int]): bounding box offset in px/vx [Z Y X].</span>
+<span class="sd">		part_n_erosion float: partial nucleus erosion distance threshold.</span>
+<span class="sd">		calc_n_surface (bool): True to calculate the nuclei mesh surface.</span>
+<span class="sd">		sigma (float): sigma for smoothing and for density calculation.</span>
+<span class="sd">		nbins (int): number of bins (precision) for profile calculation.</span>
+<span class="sd">		do_clear_Z_borders (bool): True to clear Z borders.</span>
+<span class="sd">		rescale_deconvolved (bool): True to rescale deconvolved images.</span>
+<span class="sd">		correctCA (bool): True to correct for chromatic aberrations (TODO).</span>
+<span class="sd">		normalize_distance (bool): True to use relative distance from lamina.</span>
+<span class="sd">		cdescr (dict): dictionary with better condition descriptions. The keys</span>
+<span class="sd">			are the condition subfolder names, the values the descriptions.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">__version__</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">VERSION</span>
+	<span class="n">dna_names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;dapi&#39;</span><span class="p">,)</span>
+	<span class="n">sig_names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;tmr&#39;</span><span class="p">,</span> <span class="s1">&#39;cy5&#39;</span><span class="p">)</span>
+	<span class="n">adaptive_neighbourhood</span> <span class="o">=</span> <span class="mi">101</span>
+	<span class="n">aspect</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+	<span class="n">radius_interval</span> <span class="o">=</span> <span class="p">(</span><span class="mf">10.</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">))</span>
+	<span class="n">min_z_size</span> <span class="o">=</span> <span class="o">.</span><span class="mi">25</span>
+	<span class="n">seg_type</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_SUM_PROJ</span>
+	<span class="n">an_type</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_SUM_PROJ</span>
+	<span class="n">mid_type</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">MID_SEC_DEFAULT</span>
+	<span class="n">nsf</span> <span class="o">=</span> <span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NSEL_SIZE</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">NSEL_SUMI</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">NSEL_SHAPE</span><span class="p">)</span>
+	<span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+	<span class="n">part_n_erosion</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+	<span class="n">calc_n_surface</span> <span class="o">=</span> <span class="bp">False</span>
+	<span class="n">sigma</span> <span class="o">=</span> <span class="o">.</span><span class="mi">1</span>
+	<span class="n">nbins</span> <span class="o">=</span> <span class="mi">200</span>
+	<span class="n">do_clear_Z_borders</span> <span class="o">=</span> <span class="bp">False</span>
+	<span class="n">rescale_deconvolved</span> <span class="o">=</span> <span class="bp">False</span>
+	<span class="n">correctCA</span> <span class="o">=</span> <span class="bp">False</span>
+	<span class="n">normalize_distance</span> <span class="o">=</span> <span class="bp">True</span>
+	<span class="n">cdescr</span> <span class="o">=</span> <span class="p">{}</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Run IOinterface __init__ method. &quot;&quot;&quot;</span>
+		<span class="nb">super</span><span class="p">(</span><span class="n">Analyzer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Analyzer.check_anseg_types"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.analysis.Analyzer.check_anseg_types">[docs]</a>	<span class="k">def</span> <span class="nf">check_anseg_types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Check seg_type and an_type. &quot;&quot;&quot;</span>
+
+		<span class="c1"># 2D segmentation does not allow 3D analysis</span>
+		<span class="n">no3d_cond</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">an_type</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_3D</span>
+		<span class="n">no3d_cond</span> <span class="o">=</span> <span class="n">no3d_cond</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">seg_type</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_3D</span>
+		<span class="k">if</span> <span class="n">no3d_cond</span><span class="p">:</span>
+			<span class="c1"># Revert analysis to default</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;3D analysis is not available for 2D segmentation.</span><span class="se">\n</span><span class="s1">&#39;</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Using sum z-projection analysis instead...&#39;</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">an_type</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_SUM_PROJ</span>
+
+		<span class="c1"># 2D segmentation does not allow mid-section analysis</span>
+		<span class="n">nomid_cond</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">an_type</span> <span class="o">==</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_MID</span>
+		<span class="n">nomid_cond</span> <span class="o">=</span> <span class="n">nomid_cond</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">seg_type</span> <span class="o">!=</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_3D</span>
+		<span class="k">if</span> <span class="n">nomid_cond</span><span class="p">:</span>
+			<span class="c1"># Revert analysis to default</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Mid-section analysis is not available for 2D segmentation.</span><span class="se">\n</span><span class="s1">&#39;</span>
+			<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Using sum z-projection analysis instead...&#39;</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">an_type</span> <span class="o">=</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_SUM_PROJ</span></div>
+
+	<span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Check the attribute and set it. &quot;&quot;&quot;</span>
+
+		<span class="c1"># Check the attribute</span>
+		<span class="n">check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_attr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="bp">True</span> <span class="o">==</span> <span class="n">check</span><span class="p">:</span>
+			<span class="c1"># Set the attribute</span>
+			<span class="k">return</span><span class="p">(</span><span class="nb">super</span><span class="p">(</span><span class="n">Analyzer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setattr__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c1"># Don&#39;t set the attribute</span>
+			<span class="k">return</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Analyzer.check_attr"><a class="viewcode-back" href="../../../pygpseq.wraps.html#pygpseq.wraps.analysis.Analyzer.check_attr">[docs]</a>	<span class="k">def</span> <span class="nf">check_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Check attribute format and value.</span>
+
+<span class="sd">		Args:</span>
+<span class="sd">			name (string): attribute name</span>
+<span class="sd">			value: attribute value</span>
+
+<span class="sd">		Returns:</span>
+<span class="sd">			bool: whether the provided (name,value) couple passed its</span>
+<span class="sd">				name-specific test</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+
+		<span class="c1"># Default answer</span>
+		<span class="n">checked</span> <span class="o">=</span> <span class="bp">True</span>
+
+		<span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;dna_names&#39;</span><span class="p">,</span> <span class="s1">&#39;sig_names&#39;</span><span class="p">]:</span>
+			<span class="c1"># Require tuple</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(())</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="c1"># Require non-empty tuple</span>
+			<span class="k">elif</span> <span class="mi">0</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="c1"># Require tuple of strings</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">types</span><span class="p">)</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">types</span><span class="p">:</span>
+					<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a non-empty tuple of strings.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value. [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;aspect&#39;</span><span class="p">,</span> <span class="s1">&#39;radius_interval&#39;</span><span class="p">]:</span>
+			<span class="c1"># Require tuple</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(())</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="c1"># Require non-empty tuple</span>
+			<span class="k">elif</span> <span class="mi">0</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="c1"># Require tuple of floats</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">types</span><span class="p">)</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">types</span><span class="p">:</span>
+					<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a non-empty tuple of floats.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value. [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;min_z_size&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Allow float or integer</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="nb">type</span><span class="p">(</span><span class="mf">0.</span><span class="p">)]:</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a float lower than 1 or&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39; an integer greater than 1.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value. [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;seg_type&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Check that it is one of the allowed constants</span>
+			<span class="n">seg_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">SEG_SUM_PROJ</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_MAX_PROJ</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">SEG_3D</span><span class="p">]</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">seg_types</span><span class="p">:</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be one of the following values:</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">seg_types</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value. [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;an_type&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Check that it is one of the allowed constants</span>
+			<span class="n">an_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">const</span><span class="o">.</span><span class="n">AN_SUM_PROJ</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_MAX_PROJ</span><span class="p">,</span>
+				<span class="n">const</span><span class="o">.</span><span class="n">AN_3D</span><span class="p">,</span> <span class="n">const</span><span class="o">.</span><span class="n">AN_MID</span><span class="p">]</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">an_types</span><span class="p">:</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be one of the following values:</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">an_types</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value. [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;nsf&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Require tuple</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(())</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="c1"># Check that it is one of the allowed constants</span>
+			<span class="k">elif</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">v</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NSEL_FIELDS</span><span class="p">))</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]):</span>
+					<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a tuple&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39; of the following values:</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">NSEL_FIELDS</span><span class="p">)))</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nsf</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;].&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;offset&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Require tuple</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(())</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="c1"># Require non-empty tuple</span>
+			<span class="k">elif</span> <span class="mi">0</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="c1"># Require tuple of integers</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">types</span><span class="p">)</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">types</span><span class="p">:</span>
+					<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a non-empty tuple of integers.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value. [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;sigma&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Require float</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="c1"># Require positive float</span>
+			<span class="k">elif</span> <span class="mi">0</span> <span class="o">&gt;</span> <span class="n">value</span><span class="p">:</span>
+					<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a positive float.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value. [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;rm_z_tips&#39;</span><span class="p">,</span> <span class="s1">&#39;rescale_deconvolved&#39;</span><span class="p">,</span> <span class="s1">&#39;correctCA&#39;</span><span class="p">]:</span>
+			<span class="c1"># Require boolean</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a Boolean.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value. [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">name</span><span class="p">])</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="s1">&#39;cdescr&#39;</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+			<span class="c1"># Require a dictionary</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">({})</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+				<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="c1"># Require a dictionary with string values</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+				<span class="n">types</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">types</span><span class="p">)</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">types</span><span class="p">:</span>
+					<span class="n">checked</span> <span class="o">=</span> <span class="bp">False</span>
+
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">checked</span><span class="p">:</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&quot;&#39;</span> <span class="o">+</span> <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;&quot; must be a dictionary with string values.</span><span class="se">\n</span><span class="s1">&#39;</span>
+				<span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;Keeping previous value. [&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cdescr</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">printout</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+		<span class="c1"># Output</span>
+		<span class="k">return</span><span class="p">(</span><span class="n">checked</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Gabriele Girelli.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

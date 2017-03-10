@@ -1,0 +1,1228 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pygpseq.wraps package &mdash; pygpseq 0.1.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pygpseq 0.1.0 documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pygpseq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <p class="caption"><span class="caption-text">Table of Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="_static/intro.html">Intro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_static/howto.html">How to</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_static/issues.html">Known issues</a></li>
+<li class="toctree-l1"><a class="reference internal" href="_static/changelog.html">CHANGELOG</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">pygpseq</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>pygpseq.wraps package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/pygpseq.wraps.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pygpseq-wraps-package">
+<h1>pygpseq.wraps package<a class="headerlink" href="#pygpseq-wraps-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pygpseq.wraps.analysis">
+<span id="pygpseq-wraps-analysis-module"></span><h2>pygpseq.wraps.analysis module<a class="headerlink" href="#module-pygpseq.wraps.analysis" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygpseq.wraps.analysis.Analyzer">
+<em class="property">class </em><code class="descclassname">pygpseq.wraps.analysis.</code><code class="descname">Analyzer</code><a class="reference internal" href="_modules/pygpseq/wraps/analysis.html#Analyzer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pygpseq.tools.html#pygpseq.tools.io.IOinterface" title="pygpseq.tools.io.IOinterface"><code class="xref py py-class docutils literal"><span class="pre">pygpseq.tools.io.IOinterface</span></code></a></p>
+<p>GPSeq image analyzer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>__version__</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; class-bound attribute.</li>
+<li><strong>dna_names</strong> (<em>list[string]</em>) &#8211; dna channel names.</li>
+<li><strong>sig_names</strong> (<em>list[string]</em>) &#8211; signal channel names.</li>
+<li><strong>adaptive_neighbourhood</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; adaptive threshold neighbourhood square
+side. If even, it&#8217;s increased by one. If &lt;= 1, turned off.</li>
+<li><strong>aspect</strong> (<em>tuple[float]</em>) &#8211; relative/absolute px/vx size.</li>
+<li><strong>radius_interval</strong> (<em>tuple[float]</em>) &#8211; nuclear radius interval.</li>
+<li><strong>min_z_size</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; minimum Z size of the nucleus. If &gt; 1, the ceil is
+taken as the minimum number of slices. If &lt; 1, the float is taken
+as the fraction of the stack.</li>
+<li><strong>seg_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; segmentation type according to pygpseq.const.</li>
+<li><strong>an_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; analysis type according to pygpseq.const.</li>
+<li><strong>mid_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; mid-section definition according to pygpseq.const.</li>
+<li><strong>nsf</strong> (<em>tuple[int]</em>) &#8211; nuclear selection features according to pygpseq.const.
+Uses up to three features. The first two features are used in the
+summary scattersplot (i.e., order matters).</li>
+<li><strong>offset</strong> (<em>tuple[int]</em>) &#8211; bounding box offset in px/vx [Z Y X].</li>
+<li><strong>float</strong> (<a class="reference internal" href="#pygpseq.wraps.analysis.Analyzer.part_n_erosion" title="pygpseq.wraps.analysis.Analyzer.part_n_erosion"><em>part_n_erosion</em></a>) &#8211; partial nucleus erosion distance threshold.</li>
+<li><strong>calc_n_surface</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to calculate the nuclei mesh surface.</li>
+<li><strong>sigma</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; sigma for smoothing and for density calculation.</li>
+<li><strong>nbins</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of bins (precision) for profile calculation.</li>
+<li><strong>do_clear_Z_borders</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to clear Z borders.</li>
+<li><strong>rescale_deconvolved</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to rescale deconvolved images.</li>
+<li><strong>correctCA</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to correct for chromatic aberrations (TODO).</li>
+<li><strong>normalize_distance</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True to use relative distance from lamina.</li>
+<li><strong>cdescr</strong> (<a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; dictionary with better condition descriptions. The keys
+are the condition subfolder names, the values the descriptions.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.adaptive_neighbourhood">
+<code class="descname">adaptive_neighbourhood</code><em class="property"> = 101</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.adaptive_neighbourhood" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.an_type">
+<code class="descname">an_type</code><em class="property"> = 0</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.an_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.aspect">
+<code class="descname">aspect</code><em class="property"> = (1.0, 1.0, 1.0)</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.aspect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.calc_n_surface">
+<code class="descname">calc_n_surface</code><em class="property"> = False</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.calc_n_surface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.cdescr">
+<code class="descname">cdescr</code><em class="property"> = {}</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.cdescr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.analysis.Analyzer.check_anseg_types">
+<code class="descname">check_anseg_types</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/analysis.html#Analyzer.check_anseg_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.check_anseg_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check seg_type and an_type.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.analysis.Analyzer.check_attr">
+<code class="descname">check_attr</code><span class="sig-paren">(</span><em>name</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/analysis.html#Analyzer.check_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.check_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check attribute format and value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; attribute name</li>
+<li><strong>value</strong> &#8211; attribute value</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>whether the provided (name,value) couple passed its</dt>
+<dd><p class="first last">name-specific test</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)">bool</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.correctCA">
+<code class="descname">correctCA</code><em class="property"> = False</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.correctCA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.dna_names">
+<code class="descname">dna_names</code><em class="property"> = ('dapi',)</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.dna_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.do_clear_Z_borders">
+<code class="descname">do_clear_Z_borders</code><em class="property"> = False</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.do_clear_Z_borders" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.mid_type">
+<code class="descname">mid_type</code><em class="property"> = 1</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.mid_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.min_z_size">
+<code class="descname">min_z_size</code><em class="property"> = 0.25</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.min_z_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.nbins">
+<code class="descname">nbins</code><em class="property"> = 200</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.nbins" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.normalize_distance">
+<code class="descname">normalize_distance</code><em class="property"> = True</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.normalize_distance" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.nsf">
+<code class="descname">nsf</code><em class="property"> = (0, 3, 2)</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.nsf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.offset">
+<code class="descname">offset</code><em class="property"> = (0, 5, 5)</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.offset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.part_n_erosion">
+<code class="descname">part_n_erosion</code><em class="property"> = 0.5</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.part_n_erosion" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.radius_interval">
+<code class="descname">radius_interval</code><em class="property"> = (10.0, inf)</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.radius_interval" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.rescale_deconvolved">
+<code class="descname">rescale_deconvolved</code><em class="property"> = False</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.rescale_deconvolved" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.seg_type">
+<code class="descname">seg_type</code><em class="property"> = 0</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.seg_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.sig_names">
+<code class="descname">sig_names</code><em class="property"> = ('tmr', 'cy5')</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.sig_names" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.analysis.Analyzer.sigma">
+<code class="descname">sigma</code><em class="property"> = 0.1</em><a class="headerlink" href="#pygpseq.wraps.analysis.Analyzer.sigma" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.wraps.condition">
+<span id="pygpseq-wraps-condition-module"></span><h2>pygpseq.wraps.condition module<a class="headerlink" href="#module-pygpseq.wraps.condition" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygpseq.wraps.condition.Condition">
+<em class="property">class </em><code class="descclassname">pygpseq.wraps.condition.</code><code class="descname">Condition</code><span class="sig-paren">(</span><em>path</em>, <em>main=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pygpseq.tools.html#pygpseq.tools.io.IOinterface" title="pygpseq.tools.io.IOinterface"><code class="xref py py-class docutils literal"><span class="pre">pygpseq.tools.io.IOinterface</span></code></a></p>
+<p>GPSeq condition.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>__version__</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; package string.</li>
+<li><strong>path</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; condition folder path.</li>
+<li><strong>name</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; condition name.</li>
+<li><strong>ext</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; condition series extension.</li>
+<li><strong>reg</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; condition series regexp.</li>
+<li><strong>series</strong> (<em>list[series]</em>) &#8211; condition series.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.adjust_options">
+<code class="descname">adjust_options</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.adjust_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.adjust_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust options to be passed to the Series class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>**kwargs</strong> &#8211; </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>adds the following kawrgs:</dt>
+<dd>cond_name (string): condition wrapper name.
+out_dir (string): output directory.</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)">dict</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.analyze_nuclei">
+<code class="descname">analyze_nuclei</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.analyze_nuclei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.analyze_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export current condition nuclei.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sigma</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; sigma for smoothing and covariance calculation (opt).</li>
+<li><strong>**kwargs</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">profiles, summaries and single-pixel tables.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#tuple" title="(in Python v2.7)">tuple</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.check_single_pixels">
+<code class="descname">check_single_pixels</code><span class="sig-paren">(</span><em>indata</em>, <em>profiles</em>, <em>partial=None</em>, <em>supcomm=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.check_single_pixels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.check_single_pixels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce single pixel behaviour study plot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>indata</strong> (<em>np.array</em>) &#8211; single-pixel table, const.DTYPE_NUCLEAR_DATA.</li>
+<li><strong>profiles</strong> (<a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)"><em>dict</em></a>) &#8211; smoothened and raw profiles (I ~ d).</li>
+<li><strong>partial</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True if working on partial volume.</li>
+<li><strong>supcomm</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; a comment to be add to the plot main title.</li>
+<li><strong>**kwargs</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.export_nuclei">
+<code class="descname">export_nuclei</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.export_nuclei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.export_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export current condition nuclei.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.condition.Condition.ext">
+<code class="descname">ext</code><em class="property"> = '.tif'</em><a class="headerlink" href="#pygpseq.wraps.condition.Condition.ext" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.find_nuclei">
+<code class="descname">find_nuclei</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.find_nuclei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.find_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Segment current condition.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>**kwargs</strong> &#8211; all Main attributes.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">in-place.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/constants.html#None" title="(in Python v2.7)">None</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.get_nuclei">
+<code class="descname">get_nuclei</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.get_nuclei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.get_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of the nuclei in the condition.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.make_profiles">
+<code class="descname">make_profiles</code><span class="sig-paren">(</span><em>pdata</em>, <em>n_nuclei</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.make_profiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.make_profiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepare profiles for plotting.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pdata</strong> (<em>np.array</em>) &#8211; single-pixel data table, const.DTYPE_NUCLEAR_DATA.</li>
+<li><strong>n_nuclei</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; number of nuclei.</li>
+<li><strong>**kwargs</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">profiles.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.multi_threshold_nuclei">
+<code class="descname">multi_threshold_nuclei</code><span class="sig-paren">(</span><em>cond_name</em>, <em>seg_type</em>, <em>data</em>, <em>sigma</em>, <em>nsf</em>, <em>font_size</em>, <em>out_dir</em>, <em>wspace=None</em>, <em>hspace=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.multi_threshold_nuclei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.multi_threshold_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot density with FWHM range and select rows in that range.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Features used for the selection based on nsf.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>seg_type</strong> (<a class="reference internal" href="pygpseq.html#module-pygpseq.const" title="pygpseq.const"><em>pygpseq.const</em></a>) &#8211; segmentation type according
+to pygpseq.const.</li>
+<li><strong>data</strong> (<em>numpy.array</em>) &#8211; nuclear data.</li>
+<li><strong>sigma</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; sigma for smoothing and covariance calculation.</li>
+<li><strong>xsteps</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; density distribution curve precision (opt).</li>
+<li><strong>nsf</strong> (<em>list[int]</em>) &#8211; list of features to use for nuclear selection
+according to pygpseq.const.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of selected nuclei indexes.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)">list</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.condition.Condition.name">
+<code class="descname">name</code><em class="property"> = ''</em><a class="headerlink" href="#pygpseq.wraps.condition.Condition.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.condition.Condition.path">
+<code class="descname">path</code><em class="property"> = '.'</em><a class="headerlink" href="#pygpseq.wraps.condition.Condition.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.propagate_attr">
+<code class="descname">propagate_attr</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.propagate_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.propagate_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Propagate attribute current value to every series.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.condition.Condition.reg">
+<code class="descname">reg</code><em class="property"> = '^(?P&lt;channel_name&gt;[^/]*)\\.(?P&lt;channel_str&gt;channel[0-9]+)\\.(?P&lt;series_str&gt;series[0-9]+)(?P&lt;ext&gt;\\.tif)$'</em><a class="headerlink" href="#pygpseq.wraps.condition.Condition.reg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.condition.Condition.series">
+<code class="descname">series</code><em class="property"> = []</em><a class="headerlink" href="#pygpseq.wraps.condition.Condition.series" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.condition.Condition.single_threshold_nuclei">
+<code class="descname">single_threshold_nuclei</code><span class="sig-paren">(</span><em>data</em>, <em>sigma</em>, <em>xlab=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#Condition.single_threshold_nuclei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.Condition.single_threshold_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Select a single-feature nuclear threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>data</strong> (<em>numpy.array</em>) &#8211; single column nuclear data.</li>
+<li><strong>xlab</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; x-label (opt).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">data to generate the density threshold plot.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)">dict</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.wraps.condition.find_series_nuclei">
+<code class="descclassname">pygpseq.wraps.condition.</code><code class="descname">find_series_nuclei</code><span class="sig-paren">(</span><em>self</em>, <em>i</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#find_series_nuclei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.find_series_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for parallelized nuclear segmentation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>i</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; series index.</li>
+<li><strong>**kwargs</strong> &#8211; ncores.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">updated i-th series instance.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">pygpseq.wraps.Series</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pygpseq.wraps.condition.get_series_nuclear_data">
+<code class="descclassname">pygpseq.wraps.condition.</code><code class="descname">get_series_nuclear_data</code><span class="sig-paren">(</span><em>self</em>, <em>summary</em>, <em>sidx</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/condition.html#get_series_nuclear_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.condition.get_series_nuclear_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function for parallelized single-pixel nuclear data retrieval.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>summary</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; list of summaries.</li>
+<li><strong>sidx</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; series index.</li>
+<li><strong>**kwargs</strong> &#8211; ncores.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">series nuclear data.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.wraps.nucleus">
+<span id="pygpseq-wraps-nucleus-module"></span><h2>pygpseq.wraps.nucleus module<a class="headerlink" href="#module-pygpseq.wraps.nucleus" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygpseq.wraps.nucleus.Nucleus">
+<em class="property">class </em><code class="descclassname">pygpseq.wraps.nucleus.</code><code class="descname">Nucleus</code><span class="sig-paren">(</span><em>logpath</em>, <em>n</em>, <em>series_id</em>, <em>mask</em>, <em>i</em>, <em>thr</em>, <em>offset</em>, <em>aspect</em>, <em>dna_bg</em>, <em>sig_bg</em>, <em>calc_n_surface=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/nucleus.html#Nucleus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pygpseq.tools.html#pygpseq.tools.io.IOinterface" title="pygpseq.tools.io.IOinterface"><code class="xref py py-class docutils literal"><span class="pre">pygpseq.tools.io.IOinterface</span></code></a></p>
+<p>GPSeq nucleus.</p>
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.__version__">
+<code class="descname">__version__</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.__version__" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>string</em> &#8211; package version.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.s">
+<code class="descname">s</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.s" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; series id (1-indexed).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.n">
+<code class="descname">n</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.n" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; nucleus id (1-indexed).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.box">
+<code class="descname">box</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.box" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple(float</em> &#8211; nucleus bounding box corner coordinates.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.aspect">
+<code class="descname">aspect</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.aspect" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>tuple[float]</em> &#8211; relative/absolute px/vx size.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.dna_bg">
+<code class="descname">dna_bg</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.dna_bg" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; dna channel estimated background.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.sig_bg">
+<code class="descname">sig_bg</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.sig_bg" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; signal channel estimated background.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.flat_size">
+<code class="descname">flat_size</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.flat_size" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; nucleus size in Z projection.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.size">
+<code class="descname">size</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.size" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; number of px/vx in the nucleus.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.unit">
+<code class="descname">unit</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.unit" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>string</em> &#8211; px or vx.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.surf">
+<code class="descname">surf</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.surf" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; nucleus mesh surface.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.sumI">
+<code class="descname">sumI</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.sumI" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; sum of the intensity of every px/vx in the nucleus.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.meanI">
+<code class="descname">meanI</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.meanI" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; mean of the intensity of every px/vx in the nucleus.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.shape">
+<code class="descname">shape</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; nucleus shape descriptor.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.nucleus.Nucleus.thr">
+<code class="descname">thr</code><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.thr" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; global threshold used to identify the nucleus.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">aspect</code><em class="property"> = (1, 1, 1)</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">box</code><em class="property"> = ()</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.nucleus.Nucleus.check_box_offset">
+<code class="descname">check_box_offset</code><span class="sig-paren">(</span><em>shape</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/nucleus.html#Nucleus.check_box_offset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.check_box_offset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check bounding box offset.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If no offset is specified, it defaults to 0. If only one offset is
+specified, it will be used for every dimension. If the number of
+offsets specified does not match the number of dimensions, onlyt the
+first will be used for every dimension.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>shape</strong> (<em>tuple[int]</em>) &#8211; image shape.</li>
+<li><strong>offset</strong> (<em>tuple[int]</em>) &#8211; bounding box offset in px/vx [Z Y X].</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">corrected box offset.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple[int]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">dna_bg</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.nucleus.Nucleus.export">
+<code class="descname">export</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/nucleus.html#Nucleus.export"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.export" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export nuclear data.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">flat_size</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.nucleus.Nucleus.get_2d_bounding_box">
+<code class="descname">get_2d_bounding_box</code><span class="sig-paren">(</span><em>mask</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/nucleus.html#Nucleus.get_2d_bounding_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.get_2d_bounding_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the bounding box (2d) of the object in mask.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">An offset can be specified for each dimension. If no offset is
+specified, it defaults to 0. If only one offset is specified, it
+will be used for every dimension. If the number of offsets specified
+does not match the number of dimensions, onlyt the first will be
+used for every dimension.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mask</strong> (<em>np.array</em>) &#8211; thresholded image.</li>
+<li><strong>offset</strong> (<em>tuple[int]</em>) &#8211; bounding box offset in px/vx [Z Y X].</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bounding square corner coordinates.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list[int]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.nucleus.Nucleus.get_3d_bounding_box">
+<code class="descname">get_3d_bounding_box</code><span class="sig-paren">(</span><em>mask</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/nucleus.html#Nucleus.get_3d_bounding_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.get_3d_bounding_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the bounding box (3d) of the object in mask.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">An offset can be specified for each dimension. If no offset is
+specified, it defaults to 0. If only one offset is specified, it
+will be used for every dimension. If the number of offsets specified
+does not match the number of dimensions, onlyt the first will be
+used for every dimension.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mask</strong> (<em>np.array</em>) &#8211; thresholded image.</li>
+<li><strong>offset</strong> (<em>tuple[int]</em>) &#8211; bounding box offset in px/vx [Z Y X].</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bounding box corner coordinates.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list[int]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.nucleus.Nucleus.get_bounding_box">
+<code class="descname">get_bounding_box</code><span class="sig-paren">(</span><em>mask</em>, <em>offset=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/nucleus.html#Nucleus.get_bounding_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.get_bounding_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the bounding box (2d or 3d) of the object in mask.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">An offset can be specified for each dimension. If no offset is
+specified, it defaults to 0. If only one offset is specified, it
+will be used for every dimension. If the number of offsets
+specified does not match the number of dimensions, onlyt the first
+will be used for every dimension.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mask</strong> (<em>np.array</em>) &#8211; thresholded image.</li>
+<li><strong>offset</strong> (<em>tuple[int]</em>) &#8211; bounding box offset in px/vx [Z Y X].</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bounding box corner coordinates.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list[int]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.nucleus.Nucleus.get_data">
+<code class="descname">get_data</code><span class="sig-paren">(</span><em>dna_ch</em>, <em>sig_ch</em>, <em>an_type</em>, <em>aspect</em>, <em>debugging</em>, <em>part_n_erosion</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/nucleus.html#Nucleus.get_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.get_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get nuclear data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dna_ch</strong> (<em>np.array</em>) &#8211; image (dimensionality based on an_type).</li>
+<li><strong>sig_ch</strong> (<em>np.array</em>) &#8211; image (dimensionality based on an_type).</li>
+<li><strong>an_type</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; analysis type according to pygpseq.const.</li>
+<li><strong>aspect</strong> (<em>tuple[float]</em>) &#8211; pixel/voxel dimension proportion.</li>
+<li><strong>debugging</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; True for debugging mode.</li>
+<li><strong>part_n_erosion</strong> (<a class="reference external" href="https://docs.python.org/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; partial nucleus erosion distance threshold.</li>
+<li><strong>**kwargs</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">nuclear data and log string.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#tuple" title="(in Python v2.7)">tuple</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.nucleus.Nucleus.get_summary">
+<code class="descname">get_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/nucleus.html#Nucleus.get_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.nucleus.Nucleus.get_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get nuclear summary.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">meanI</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">n</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">s</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">shape</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">sig_bg</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">size</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">sumI</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">surf</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">thr</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">unit</code><em class="property"> = ''</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pygpseq.wraps.series">
+<span id="pygpseq-wraps-series-module"></span><h2>pygpseq.wraps.series module<a class="headerlink" href="#module-pygpseq.wraps.series" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pygpseq.wraps.series.Series">
+<em class="property">class </em><code class="descclassname">pygpseq.wraps.series.</code><code class="descname">Series</code><span class="sig-paren">(</span><em>ds</em>, <em>condition=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="pygpseq.tools.html#pygpseq.tools.io.IOinterface" title="pygpseq.tools.io.IOinterface"><code class="xref py py-class docutils literal"><span class="pre">pygpseq.tools.io.IOinterface</span></code></a></p>
+<p>GPSeq series.</p>
+<dl class="attribute">
+<dt id="pygpseq.wraps.series.Series.__version__">
+<code class="descname">__version__</code><a class="headerlink" href="#pygpseq.wraps.series.Series.__version__" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>string</em> &#8211; package version.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.series.Series.n">
+<code class="descname">n</code><a class="headerlink" href="#pygpseq.wraps.series.Series.n" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> &#8211; series id (1-indexed).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.series.Series.name">
+<code class="descname">name</code><a class="headerlink" href="#pygpseq.wraps.series.Series.name" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>string</em> &#8211; series name.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.series.Series.nuclei">
+<code class="descname">nuclei</code><a class="headerlink" href="#pygpseq.wraps.series.Series.nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list[pygpseq.wraps.Nuclei]</em> &#8211; nuclei list.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.series.Series.basedir">
+<code class="descname">basedir</code><a class="headerlink" href="#pygpseq.wraps.series.Series.basedir" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>string</em> &#8211; series folder path.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.series.Series.dna_bg">
+<code class="descname">dna_bg</code><a class="headerlink" href="#pygpseq.wraps.series.Series.dna_bg" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; estimated dna channel background.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.series.Series.sig_bg">
+<code class="descname">sig_bg</code><a class="headerlink" href="#pygpseq.wraps.series.Series.sig_bg" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> &#8211; estimated signal channel background.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.series.Series.flist">
+<code class="descname">flist</code><a class="headerlink" href="#pygpseq.wraps.series.Series.flist" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>list</em> &#8211; series file info.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.adjust_options">
+<code class="descname">adjust_options</code><span class="sig-paren">(</span><em>read_only_dna=None</em>, <em>log=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.adjust_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.adjust_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjust options to be passed to the Nucleus class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dna_names</strong> (<em>tuple[string]</em>) &#8211; dna channel names.</li>
+<li><strong>sig_names</strong> (<em>tuple[string]</em>) &#8211; signal channel names.</li>
+<li><strong>an_type</strong> (<em>pyGPSeq.const</em>) &#8211; analysis type.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>adds the following kwargs:</dt>
+<dd><p class="first last">series_name (string): series wrap name.
+basedir (string): series wrap base directory.
+dna_ch (numpy.array): image (dimensionality based on an_type).
+sig_ch (numpy.array): image (dimensionality based on an_type).</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/stdtypes.html#dict" title="(in Python v2.7)">dict</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">basedir</code><em class="property"> = '.'</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">dna_bg</code><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.export_nuclei">
+<code class="descname">export_nuclei</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.export_nuclei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.export_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export current series nuclei.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pygpseq.wraps.series.Series.filist">
+<code class="descname">filist</code><em class="property"> = []</em><a class="headerlink" href="#pygpseq.wraps.series.Series.filist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.find_channel">
+<code class="descname">find_channel</code><span class="sig-paren">(</span><em>channel_names</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.find_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.find_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the first channel to correspond to channel_names.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.find_channel_id">
+<code class="descname">find_channel_id</code><span class="sig-paren">(</span><em>channel_name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.find_channel_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.find_channel_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the id of the channel file with the specified name.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.find_nuclei">
+<code class="descname">find_nuclei</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.find_nuclei"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.find_nuclei" title="Permalink to this definition">¶</a></dt>
+<dd><p>Segment current series.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>**kwargs</strong> &#8211; dna_names (tuple[string]): dna channel names.
+cond_name (string): condition wrapper name.
+seg_type (pyGPSeq.const): segmentation type.
+rm_z_tips (bool): remove nuclei touching the tips of the stack.
+radius_interval (tuple[float]): allowed nuclear radius interval.
+offset (tuple[int]): dimensions box/square offset.
+aspect (tuple[float]): pixel/voxel dimension proportion.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">series current instance and log string.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/library/functions.html#tuple" title="(in Python v2.7)">tuple</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.get_c">
+<code class="descname">get_c</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.get_c"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.get_c" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return number of channels in the series.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.get_channel">
+<code class="descname">get_channel</code><span class="sig-paren">(</span><em>ch_name</em>, <em>log=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.get_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.get_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the series specified channel.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>ch_name</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; channel name.</li>
+<li><strong>log</strong> (<a class="reference internal" href="pygpseq.tools.html#module-pygpseq.tools.string" title="pygpseq.tools.string"><em>string</em></a>) &#8211; log string.</li>
+<li><strong>**kwargs</strong> &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">channel image and log string.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/library/functions.html#tuple" title="(in Python v2.7)">tuple</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.get_channel_names">
+<code class="descname">get_channel_names</code><span class="sig-paren">(</span><em>channel_field=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.get_channel_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.get_channel_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the names of the channels in the series.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.get_nuclei_data">
+<code class="descname">get_nuclei_data</code><span class="sig-paren">(</span><em>nuclei_ids</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.get_nuclei_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.get_nuclei_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve a single nucleus from the current series.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">n</code><em class="property"> = 0</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">name</code><em class="property"> = ''</em></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">nuclei</code><em class="property"> = []</em></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pygpseq.wraps.series.Series.propagate_attr">
+<code class="descname">propagate_attr</code><span class="sig-paren">(</span><em>key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/pygpseq/wraps/series.html#Series.propagate_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pygpseq.wraps.series.Series.propagate_attr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Propagate attribute current value to every nucleus.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">sig_bg</code><em class="property"> = None</em></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-pygpseq.wraps"></span></div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Gabriele Girelli.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
