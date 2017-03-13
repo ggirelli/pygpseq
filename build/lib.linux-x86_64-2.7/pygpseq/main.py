@@ -126,7 +126,7 @@ class Main(Analyzer):
 				os.makedirs(d)
 
 		# Make profile output folder
-		for d in [const.OUTDIR_PDF, const.OUTDIR_PNG,
+		for d in [const.OUTDIR_PDF, const.OUTDIR_PNG, const.OUTDIR_CSV,
 			const.OUTDIR_PNG_REPORT, const.OUTDIR_MASK]:
 			if not os.path.exists(self.outdir + d):
 				os.makedirs(self.outdir + d)
@@ -246,13 +246,13 @@ class Main(Analyzer):
 				try:
 					# Load
 					f = open(fname, 'rb')
-					self, profiles, sumd = self.load(f)
+					self, profiles, profeat, sumd = self.load(f)
 					f.close()
 
 					# Dump
 					f = open(fname, 'wb')
-					cp.dump((self, profiles, sumd), f)
-					f.close() 
+					cp.dump((self, profiles, profeat, sumd), f)
+					f.close()
 				except:
 					self.printout('Unable to load dumped instance...', 0)
 					self.printout('Unskipping analysis...', 0)
@@ -263,12 +263,12 @@ class Main(Analyzer):
 		
 		if not self.is_skipped(3):
 			# Run analysis if not skipped
-			profiles, sumd, md = self.run_analysis(**kwargs)
+			profiles, profeat, sumd, md = self.run_analysis(**kwargs)
 
 			# Dump
 			fname = self.outdir + 'gpi.an' + kwargs['suffix'] + '.cpickle'
 			f = open(fname, 'wb')
-			cp.dump((self, profiles, sumd), f)
+			cp.dump((self, profiles, profeat, sumd), f)
 			f.close()
 
 			# Generate general boxplots if not skipped
@@ -278,7 +278,7 @@ class Main(Analyzer):
 		# FINAL PLOTS ----------------------------------------------------------
 		# Produce final plots if not skipped
 		if not self.is_skipped(4):
-			self.mk_general_plots(profiles, **kwargs)
+			self.mk_general_plots(profiles, sumd, **kwargs)
 		else:
 			self.printout('Skipping final plots...', 0)
 
@@ -289,7 +289,7 @@ class Main(Analyzer):
 		# Generate final report if not skipped
 		if not self.is_skipped(5):
 			self.printout('Generating final report...', 0)
-			self.mk_report(start_time, end_time)
+			self.mk_report(start_time, end_time, profeat)
 		else:
 			self.printout('Skipping final report...', 0)
 
@@ -349,14 +349,70 @@ class Main(Analyzer):
 		sumd = [d[1] for d in data if not type(None) == type(d)]
 		md = [d[2] for d in data if not type(None) == type(d)]
 
-		return((profiles, sumd, md))
+		# Calculate profile-specific features
+		self.printout('* Calculating profile features *', 0)
+		profeat = []
+		for ip in range(len(profiles)):
+			self.printout('Working on "' + self.conds[ip].name + '"', 1)
+			profile = profiles[ip]
+
+			# Will contain current profile features
+			cpf = {}
+
+			# For profile type
+			for k1 in ['dna', 'sig', 'ratio']:
+				self.printout('"' + k1 + '" profile...', 2)
+				# Intercepts
+				cis = {}
+
+				# Area
+				cia = {}
+
+				# For statistic measure
+				for k2 in ['mean', 'median', 'mode']:
+					cprof = profile[k1]
+
+					# Get the intercepts ---------------------------------------
+					cis[k2] = []
+
+					cis[k2].append(stt.get_intercepts(
+						cprof[k2],
+						cprof['x']
+					))
+					if len(cis[k2][0]) == len(cprof[k2]):
+						cis[k2][0] = []
+
+					cis[k2].append(stt.get_intercepts(
+						np.diff(cprof[k2]),
+						cprof['x'][0:(len(cprof['x']) - 1)]
+					))
+					if len(cis[k2][1]) == (len(cprof[k2]) - 1):
+						cis[k2][1] = []
+
+					cis[k2].append(stt.get_intercepts(
+						np.diff(np.diff(cprof[k2])),
+						cprof['x'][0:(len(cprof['x']) - 2)]
+					))
+					if len(cis[k2][2]) == (len(cprof[k2]) - 2):
+						cis[k2][2] = []
+
+					# Get the area
+					cia[k2] = sum(cprof[k2])
+
+				# Save current stat features
+				cpf[k1] = [cis, cia]
+
+			# Save current profile features
+			profeat.append(cpf)
+
+		return((profiles, profeat, sumd, md))
 
 	def mk_general_boxplots(self, profiles, sumd, md, **kwargs):
 		"""Generate general boxplots. """
 		
 		# Common destinations
-		out_pdf = self.outdir + 'out_pdf/'
-		out_png = self.outdir + 'out_png/'
+		out_pdf = self.outdir + const.OUTDIR_PDF
+		out_png = self.outdir + const.OUTDIR_PNG
 		
 		# Multi-condition single-nucleus boxplots
 		self.printout('Preparing general single-nuclei boxplot...', 0)
@@ -433,16 +489,27 @@ class Main(Analyzer):
 		])
 
 		# Export as CSV
-		fname = self.outdir + 'single_pixel_wmw' + kwargs['suffix'] + '.csv'
+		fname = self.outdir + const.OUTDIR_CSV
+		fname += 'single_pixel_wmw' + kwargs['suffix'] + '.csv'
 		if self.plotting: pd.DataFrame(pvals).to_csv(fname)
 
-	def mk_general_plots(self, profiles, **kwargs):
-		"""Generate final plots """
+	def mk_general_plots(self, profiles, sumd, **kwargs):
+		"""Generate final plots.
+
+		Args:
+			self (pygpseq.main): current class instance.
+			profiles (list): list of profile data dictionaries.
+
+		Returns:
+			Produces multiple plots and CSV files.
+			profeat (list): profile features.
+		"""
 
 		# Common destinations
-		out_pdf = self.outdir + 'out_pdf/'
-		out_png = self.outdir + 'out_png/'
+		out_pdf = self.outdir + const.OUTDIR_PDF
+		out_png = self.outdir + const.OUTDIR_PNG
 
+		# Multi condition profile plot
 		for yfield in ['mean', 'median', 'mode']:
 			msg = 'Preparing multi-condition profiles plot [' + yfield + ']...'
 			self.printout(msg, 0)
@@ -466,8 +533,16 @@ class Main(Analyzer):
 		# Export profiles to CSV
 		self.printout('Exporting profiles to CSV...', 0)
 		mprof = iot.merge_profiles(profiles)
-		fname = self.outdir + 'profiles' + kwargs['suffix'] + '.csv'
+		fname = self.outdir + const.OUTDIR_CSV
+		fname += 'profiles' + kwargs['suffix'] + '.csv'
 		if self.plotting: pd.DataFrame(mprof).to_csv(fname)
+
+		# Export nuclear summaries to CSV
+		self.printout('Exporting summaries to CSV...', 0)
+		msum = iot.merge_summaries(sumd)
+		fname = self.outdir + const.OUTDIR_CSV
+		fname += 'summaries' + kwargs['suffix'] + '.csv'
+		if self.plotting: pd.DataFrame(msum).to_csv(fname)
 
 		# Compare profiles
 		self.printout('Comparing profiles with WMW U test...', 0)
@@ -477,7 +552,8 @@ class Main(Analyzer):
 			if not col in ['condition', 'x', 'n']:
 				pvals.append(stt.wilcox_sets(mprof, 'condition', col))
 		pvals = vt.merge_nparrays(pvals)
-		fname = self.outdir + 'profiles_wmw' + kwargs['suffix'] + '.csv'
+		fname = self.outdir + const.OUTDIR_CSV
+		fname += 'profiles_wmw' + kwargs['suffix'] + '.csv'
 		if self.plotting: pd.DataFrame(pvals).to_csv(fname)
 
 		# Partial volume profile
@@ -510,7 +586,8 @@ class Main(Analyzer):
 			# Export profiles to CSV
 			self.printout('Exporting partial profiles to CSV...', 0)
 			mpartprof = iot.merge_profiles(part_profiles)
-			fname = self.outdir + 'profiles.part' + kwargs['suffix'] + '.csv'
+			fname = self.outdir + const.OUTDIR_CSV
+			fname += 'profiles.part' + kwargs['suffix'] + '.csv'
 			if self.plotting: pd.DataFrame(mpartprof).to_csv(fname)
 
 			# Compare profiles
@@ -521,16 +598,24 @@ class Main(Analyzer):
 				if not col in ['condition', 'x', 'n']:
 					pvals.append(stt.wilcox_sets(mpartprof, 'condition', col))
 			pvals = vt.merge_nparrays(pvals)
-			fname = self.outdir + 'profiles_wmw.part'
-			fname += kwargs['suffix'] + '.csv'
+			fname = self.outdir + const.OUTDIR_CSV
+			fname += 'profiles_wmw.part' + kwargs['suffix'] + '.csv'
 			if self.plotting: pd.DataFrame(pvals).to_csv(fname)
 
-	def mk_report(self, start_time, end_time, path = None):
+			# Plot background levels
+			self.printout('Generating background levels plot...', 0)
+
+		# Background plot
+		self.printout('Plotting background levels...', 0)
+		plot.bgplot(self.conds, self.outdir + const.OUTDIR_PNG_REPORT, **kwargs)
+	
+	def mk_report(self, start_time, end_time, profeat, path = None):
 		"""Produce PDF report.
 
 		Args:
 			start_time (int): start time UNIX timestamp.
 			end_time (int): end time UNIX timestamp.
+			profeat (dict): profile features.
 			path (string): report file path (opt).
 
 		Returns:
@@ -553,6 +638,7 @@ class Main(Analyzer):
 
 		# Prepare variables to fill the template
 		tempv = {
+			'profeat' : profeat,
 			'starttime' : start_time,
 			'endtime' : end_time,
 			'basedir' : self.basedir,

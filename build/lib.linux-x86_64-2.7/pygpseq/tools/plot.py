@@ -738,7 +738,7 @@ def multi_condition_single_boxplot(profiles, data, data_field,
 		**kwargs: optional keyword arguments (suffix).
 	
 	Returns:
-		None: the produced plot is directly exported in PNG}
+		None: the produced plot is directly exported in PNG
 	"""
 
 	# Plot
@@ -750,6 +750,136 @@ def multi_condition_single_boxplot(profiles, data, data_field,
 
 	# Save plot
 	fname = out_png + 'boxplot.' + data_field
+	if 'suffix' in kwargs.keys():
+		fname += kwargs['suffix']
+	fname += '.png'
+	export(fname, 'png')
+	plt.close(fig)
+
+def bgplot(conds, out_png, **kwargs):
+	"""Generate background intensity boxplot.
+
+	Args:
+		conds (list): list of pygpseq.Condition objects.
+		out_png (string): path to png output folder.
+		**kwargs: optional keyword arguments (suffix).
+	
+	Returns:
+		None: the produced plot is directly exported in PNG
+	"""
+
+	# Cycle through the FoVs and retrieve the background level -----------------
+
+	# Empty list that will contain the backgrounds
+	bgs = []
+
+	# For every condition
+	for ci in range(len(conds)):
+		# Current condition
+		cc = conds[ci]
+
+		# For every series in the current condition
+		for si in range(len(cc.series)):
+			# Current series
+			cs = cc.series[si]
+
+			# Append
+			bgs.append((ci, si, cs.dna_bg, cs.sig_bg))
+		
+	# Convert to np.array
+	bgs = np.array(bgs,
+		dtype = [('c', 'u4'), ('s', 'u4'), ('dnabg', 'u8'), ('sigbg', 'u8')])
+
+	# Plot ---------------------------------------------------------------------
+
+	# Store the median-median background  for the different conditions
+	dm = []
+
+	# Iterate on the conditions
+	for cidx in range(len(conds)):
+
+		# Count FoVs in the current condition
+		N = sum(bgs['c'] == cidx)
+		ind = np.arange(N)
+		width = 0.35
+
+		# Prepare plot
+		fig, ax = plt.subplots()
+		dna_bg = bgs['dnabg'][bgs['c'] == cidx]
+		rects1 = ax.bar(ind, dna_bg, width, color = 'b')
+		sig_bg = bgs['sigbg'][bgs['c'] == cidx]
+		rects2 = ax.bar(ind + width, sig_bg, width, color = 'g')
+
+		# Add medians
+		plt.axhline(y = np.median(dna_bg),
+			xmin = 0, xmax = N, color = 'b')
+		plt.axhline(y = np.median(sig_bg),
+			xmin = 0, xmax = N, color = 'g')
+
+		# Store medians
+		dm.append((cidx, np.median(dna_bg), np.median(sig_bg)))
+
+		# Labels and legend
+		ax.set_ylabel('Intensity [a.u.]')
+		title = 'Background levels per FoV in condition "'
+		if conds[cidx].name in kwargs['cdescr'].keys():
+			title += kwargs['cdescr'][conds[cidx].name] + '"'
+		else:
+			title += conds[cidx].name + '"'
+		ax.set_title(title)
+		ax.set_xlabel('Field of view')
+		ax.set_xticks(ind + width)
+		ax.set_xticklabels([str(i + 1) for i in range(N)])
+		ax.legend((rects1[0], rects2[0]), ('DNA', 'Signal'), loc = 'best')
+
+		# Save plot
+		fname = out_png + conds[cidx].name + '.backgrounds'
+		if 'suffix' in kwargs.keys():
+			fname += kwargs['suffix']
+		fname += '.png'
+		export(fname, 'png')
+		plt.close(fig)
+
+	# Plot the summary
+	dm = np.array(dm, dtype = [('c', 'u4'), ('dnabg', 'u8'), ('sigbg', 'u8')])
+
+	# Count FoVs in the current condition
+	N = len(conds)
+	ind = np.arange(N)
+	width = 0.35
+
+	# Prepare plot
+	fig, ax = plt.subplots()
+	dna_bg = dm['dnabg']
+	rects1 = ax.bar(ind, dna_bg, width, color = 'b')
+	sig_bg = dm['sigbg']
+	rects2 = ax.bar(ind + width, sig_bg, width, color = 'g')
+
+	# Add medians
+	plt.axhline(y = np.median(dna_bg),
+		xmin = 0, xmax = N, color = 'b')
+	plt.axhline(y = np.median(sig_bg),
+		xmin = 0, xmax = N, color = 'g')
+
+	# Labels and legend
+	ax.set_ylabel('Intensity [a.u.]')
+	title = 'Background levels per condition'
+	ax.set_title(title)
+	ax.set_xlabel('Condition')
+	ax.set_xticks(ind + width)
+	xticks = []
+	for cidx in range(len(conds)):
+		cn = conds[cidx].name
+		if cn in kwargs['cdescr'].keys():
+			xticks.append(kwargs['cdescr'][cn])
+		else:
+			xticks.append(cn)
+	ax.set_xticklabels(xticks, rotation = 90)
+	ax.legend((rects1[0], rects2[0]), ('DNA', 'Signal'), loc = 'best')
+
+	# Save plot
+	plt.tight_layout()
+	fname = out_png + 'backgrounds'
 	if 'suffix' in kwargs.keys():
 		fname += kwargs['suffix']
 	fname += '.png'

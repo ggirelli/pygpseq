@@ -12,7 +12,7 @@ class _const:
 		self.__dict__[name] = value
 
 # Package version
-_const.VERSION = '0.1.1'
+_const.VERSION = '0.1.2'
 _const.PACK_NAME = 'pygpseq'
 
 # Series regexp fields
@@ -60,6 +60,9 @@ _const.DTYPE_NUCLEAR_SUMMARY = [('s', 'u4'), ('n', 'u4'),
 	('surf', 'f8'), ('sumI', 'f8'), ('meanI', 'f8'), ('shape', 'f8')]
 _const.DTYPE_NUCLEAR_DATA = [('s', 'u4'), ('n', 'u4'), ('dna', 'u8'),
 	('sig', 'u8'), ('d', 'f8'), ('dnorm', 'f8'), ('part', 'b')]
+_const.DTYPE_NDATA_EXPORT = [('c', 'u4'), ('s', 'u4'), ('n', 'u4'),
+	('flat_size', 'u8'), ('size', 'u8'), ('surf', 'f8'), ('sumI', 'f8'),
+	('meanI', 'f8'), ('shape', 'f8')]
 _const.DTYPE_PROFILE_EXPORT = [
 	('condition', 'S100'), ('x', 'f'),
 	('dna_mean', 'f'), ('sig_mean', 'f'), ('ratio_mean', 'f'),
@@ -88,9 +91,10 @@ _const.NSEL_LABELS = ('auto', 'Surface [a.u.]', 'auto',
 # Output folders (MUST have trailing slash)
 _const.OUTDIR_PDF = 'out_pdf/'
 _const.OUTDIR_PNG = 'out_png/'
+_const.OUTDIR_CSV = 'out_csv/'
+_const.OUTDIR_MASK = 'out_masks/'
 _const.OUTDIR_PNG_REPORT = _const.OUTDIR_PNG + 'report/'
 _const.OUTDIR_TIF = 'out_tif/'
-_const.OUTDIR_MASK = 'out_masks/'
 _const.OUTDIR_DEBUG = 'debugging/'
 
 # Plot constants

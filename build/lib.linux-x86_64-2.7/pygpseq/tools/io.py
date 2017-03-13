@@ -12,7 +12,7 @@ from .. import const
 from . import path as pt, string as st
 
 class IOinterface(object):
-	"""Interface with input-output methods
+	"""Interface with input-output methods.
 
 	Attributes:
 		logpath (string): path to log file.
@@ -173,32 +173,40 @@ def merge_profiles(profiles):
 		subcsv = np.zeros((nsteps,), dtype = const.DTYPE_PROFILE_EXPORT)
 		subcsv['condition'] = [profile['condition'] for i in range(nsteps)]
 		subcsv['x'] = profile['ratio']['x']
-		subcsv['dna_mean'] = profile['dna']['mean']
-		subcsv['dna_median'] = profile['dna']['median']
-		subcsv['dna_mode'] = profile['dna']['mode']
-		subcsv['dna_std'] = profile['dna']['std']
-		subcsv['sig_mean'] = profile['sig']['mean']
-		subcsv['sig_median'] = profile['sig']['median']
-		subcsv['sig_mode'] = profile['sig']['mode']
-		subcsv['sig_std'] = profile['sig']['std']
-		subcsv['ratio_mean'] = profile['ratio']['mean']
-		subcsv['ratio_median'] = profile['ratio']['median']
-		subcsv['ratio_mode'] = profile['ratio']['mode']
-		subcsv['ratio_std'] = profile['ratio']['std']
-		subcsv['dna_mean_raw'] = profile['dna']['mean_raw']
-		subcsv['dna_median_raw'] = profile['dna']['median_raw']
-		subcsv['dna_mode_raw'] = profile['dna']['mode_raw']
-		subcsv['dna_std_raw'] = profile['dna']['std_raw']
-		subcsv['sig_mean_raw'] = profile['sig']['mean_raw']
-		subcsv['sig_median_raw'] = profile['sig']['median_raw']
-		subcsv['sig_mode_raw'] = profile['sig']['mode_raw']
-		subcsv['sig_std_raw'] = profile['sig']['std_raw']
-		subcsv['ratio_mean_raw'] = profile['ratio']['mean_raw']
-		subcsv['ratio_median_raw'] = profile['ratio']['median_raw']
-		subcsv['ratio_mode_raw'] = profile['ratio']['mode_raw']
-		subcsv['ratio_std_raw'] = profile['ratio']['std_raw']
+
+		for k1 in ['dna', 'sig', 'ratio']:
+			for k2 in ['mean', 'median', 'mode', 'std']:
+				subcsv[k1 + '_' + k2] = profile[k1][k2]
+				subcsv[k1 + '_' + k2 + '_raw'] = profile[k1][k2 + '_raw']
+
 		subcsv['n'] = [profile['n'] for i in range(nsteps)]
 		out[c:(c+nsteps),] = subcsv
 		c += nsteps
+
+	return(out)
+
+def merge_summaries(sums):
+	"""Formats the nuclear summaries into a single table.
+
+	Args:
+		sums (list): list of nuclear summaries, np.array.
+
+	Returns:
+		np.array: merged summaries.
+	"""
+
+	nrows = sum([st.shape[0] for st in sums])
+	ncols = len(sums[0].dtype)
+
+	out = np.zeros((nrows,), dtype = const.DTYPE_NDATA_EXPORT)
+
+	c = 0
+	crow = 0
+	for summary in sums:
+		out[out.dtype.names[0]][crow:(crow + summary.shape[0])] = c + 1
+		for name in summary.dtype.names:
+			out[name][crow:(crow + summary.shape[0])] = summary[name]
+		c += 1
+		crow += summary.shape[0]
 
 	return(out)

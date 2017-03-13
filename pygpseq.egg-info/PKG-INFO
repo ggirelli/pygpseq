@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: pygpseq
-Version: 0.1.1
+Version: 0.1.2
 Summary: A GPSeq image analysis package
 Home-page: https://github.com/ggirelli/BiCroGG
 Author: Gabriele Girelli
@@ -14,6 +14,12 @@ Description: pyGPSeq
         Sample script are available showing the code for single runs and batch runs.
         
         Read the documentation in ``docs/_build/html`` for more details.
+        
+        Build package
+        ---
+        
+        Build docs
+        ---
         
 Keywords: microscopy image analysis bioimaging biology cell DNA
 Platform: UNKNOWN

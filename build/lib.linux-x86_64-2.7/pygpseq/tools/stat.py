@@ -43,7 +43,7 @@ def get_fwhm(xs, ys):
 	if 1 == len(x1):
 		thr = x1[0]
 	else:
-		thr = 0
+		thr = np.max(abs(np.diff(x1)))
 
 	# Select values close to the HM (based on threshold and absolut difference)
 	selected = [i for i in range(len(x1)) if x1[i] <= thr]
@@ -60,7 +60,10 @@ def get_fwhm(xs, ys):
 	x2 = abs(ys[range(xmaxi + 1, len(ys))] - max(ys) / 2)
 
 	# Get threshold based on average distance of consecutive points
-	thr = np.max(abs(np.diff(x2)))
+	if 1 == len(x2):
+		thr = x2[0]
+	else:
+		thr = np.max(abs(np.diff(x2)))
 
 	# Select values close to the HM (based on threshold and absolut difference)
 	selected = [i for i in range(len(x2)) if x2[i] <= thr]
@@ -457,3 +460,68 @@ def wilcox_sets(df, groupkey, setkey):
 
 	# Output
 	return(p_vals)
+
+def get_intercepts(ys, xs = None):
+	"""Given a series of y coordinates, identify the x-axis intercept.
+
+	Args:
+		ys (numeric): y coordinates series.
+		xs (numeric): x coordinates series (optional).
+
+	Returns:
+		int: index of x-axis intercepting y (if xs == None).
+		numeric: x coordinates interpolated point of intersection with x-axis.
+	"""
+
+	# Return no intercept if no data was provided
+	if 0 == len(ys):
+		return([])
+
+	# Will contain the intercepts (pairs of) indexes
+	out = []
+
+	# Reformat coordinate series
+	ys = np.array(ys)
+
+	# Count ys
+	nys = ys.shape[0]
+
+	# Checking matching ys/xs size
+	if not type(None) == type(xs):
+		xs = np.array(xs)
+		if ys.shape[0] !=  xs.shape[0]:
+			print(ys.shape[0])
+			print(xs.shape[0])
+			print('Discarded provided X coordinates.')
+			xs = None
+
+	# Perfect intersections ----------------------------------------------------
+
+	# Identify zero-holding cells
+	bys = ys == 0
+	if 0 != bys.sum():
+		# Save zero-holding cells index
+		out.extend([i for i in range(nys) if bys[i]])
+
+	# Interpolate intersections ------------------------------------------------
+
+	# Identify positive/negative ys (convert to boolean)
+	bys = np.zeros(ys.shape)
+	bys[ys == 0] = np.nan
+	bys[ys > 0] = 1
+	bys[ys < 0] = -1
+
+	# Identify intercepts by summing previous boolean cell value
+	bys = np.array([bys[i] + bys[i+1] for i in range(bys.shape[0] - 1)])
+	bysi = [i for i in range(len(bys)) if (bys == 0)[i]]
+	
+	if type(None) == type(xs):
+		# Interpolate index of intercepts
+		out.extend([i + .5 for i in bysi])
+	else:
+		# Interpolate x of intercepts
+		out = [xs[i] for i in out]
+		out.extend([(xs[i] + xs[i+1]) / 2.0 for i in bysi])
+
+	# Output
+	return(out)
