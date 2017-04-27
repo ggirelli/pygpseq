@@ -70,16 +70,56 @@ Before proceeding with the single nucleus analysis, the objects (i.e., nuclei) i
 3. Single-nucleus analysis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This step of the pipeline iterates over the conditions detected in the beginning. For every condition, the pixels of every nucleus are retrieved, specifically, the following pixel information are obtained: series and nucleus id number, DNA channel intensity (minus background), signal channel intensity  (minus background), distance from nuclear lamina and relative distance from nuclear lamina.
+This step of the pipeline iterates over the conditions detected in the beginning. For every condition, the nuclei are selected based on the distribution of user-selected features (based on the FWHM of the highest peak) and the pixels of every selected nucleus are retrieved.
+
+The features that can be selected for the nuclear selection are:
+
+* Size: area if 2D and volume if 3D.
+* Surface: available only for 3D segmentation.
+* Shape: circularity if 2D, volume if 3D.
+* Intensity sum: integral of DNA stain intensity.
+* Intensity mean: average DNA stain intensity.
+* Flattened size: area in the Z projection.
+
+Specifically, the following pixel information are obtained: series and nucleus id number, DNA channel intensity (minus background), signal channel intensity  (minus background), distance from nuclear lamina and relative distance from nuclear lamina.
 
 4. General boxplots
 ~~~~~~~~~~~~~~~~~~~
 
+General boxplot are generated to recap different distributions for each condition. The following boxplots are generated:
+
+* Cell size: area if 2D, volume if 3D.
+* Cell shape: circularity if 2D, sphericity if 3D.
+* Cell average DNA stain intensity.
+* Cell sum (integral) of DNA stain intensity.
+* Single-pixel DNA stain intensity.
+* Single-pixel GPSeq signal intensity.
+
 5. Final plots
 ~~~~~~~~~~~~~~
 
+Then, the following additional plots are generated:
+
+* A *pixel study* containing the distribution of the single-pixel values is generated for the two channels and their ratio. The study contains 8 plots, from top-to-bottom, left-to-right:
+    - Pixel intensity distribution (boxplot) per binned relative distance from nuclear lamina.
+    - Mean pixel intensity (both raw and smoothened) against relative distance from nuclear lamina.
+    - Median pixel intensity (both raw and smoothened) against relative distance from nuclear lamina.
+    - Mode pixel intensity (both raw and smoothened) against relative distance from nuclear lamina.
+    - Number of pixels per relative distance from nuclear lamina.
+    - Chalk-on-Blackboard plot. Which is a heatmap showing the binned distribution of channel intensity against a binned relative distance from nuclear lamina. Also, the smoothened mean, median and mode curves are reported.
+    - Standard deviation of pixel intensity (both raw and smoothened) against relative distance from nuclear lamina.
+* A *profiles* plot containing six plots, from left-to-right, top-to-bottom:
+    - The DNA staining mean, median and mode smoothened curves.
+    - The DNA staining mean, median and mode smoothened curves first derivative.
+    - The GPSeq signal mean, median and mode smoothened curves.
+    - The GPSeq signal mean, median and mode smoothened curves first derivative.
+    - The channel ratio mean, median and mode smoothened curves.
+    - The channel ratio mean, median and mode smoothened curves first derivative.
+
 6. Final report
 ~~~~~~~~~~~~~~~
+
+A single pdf file report is generated containing the input parameters and most of the generated plots.
 
 References
 ----------

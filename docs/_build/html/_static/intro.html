@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="pygpseq 0.1.0 documentation" href="../index.html"/>
         <link rel="next" title="How to" href="howto.html"/>
         <link rel="prev" title="Welcome to pygpseq’s documentation!" href="../index.html"/> 
@@ -83,7 +86,7 @@
             
                 <p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">Introduction</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#pipeline-steps">Pipeline steps</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#initiation">1. Initiation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#segmentation">2. Segmentation</a></li>
@@ -159,15 +162,15 @@
 <div class="section" id="initiation">
 <h3>1. Initiation<a class="headerlink" href="#initiation" title="Permalink to this headline">¶</a></h3>
 <p>The pipeline starts by looking into the specified <code class="docutils literal"><span class="pre">`basedir`</span></code> (or base directory) for the GPSeq data. The data is expected to be divided in multiple sub-directories, each of which contains images of samples treated with different conditions. Thus, every sub-directory in <cite>basdir</cite> is considered to be a <strong>condition directory</strong>.</p>
-<div class="highlight-python"><div class="highlight"><pre>- basedir
-  + condition #1
-    * series1.channel1.tif
-    * series1.channel2.tif
-    * series2.channel1.tif
-    * series2.channel2.tif
-  + condition #2
-    * ...
-  + ...
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">basedir</span>
+  <span class="o">+</span> <span class="n">condition</span> <span class="c1">#1</span>
+    <span class="o">*</span> <span class="n">series1</span><span class="o">.</span><span class="n">channel1</span><span class="o">.</span><span class="n">tif</span>
+    <span class="o">*</span> <span class="n">series1</span><span class="o">.</span><span class="n">channel2</span><span class="o">.</span><span class="n">tif</span>
+    <span class="o">*</span> <span class="n">series2</span><span class="o">.</span><span class="n">channel1</span><span class="o">.</span><span class="n">tif</span>
+    <span class="o">*</span> <span class="n">series2</span><span class="o">.</span><span class="n">channel2</span><span class="o">.</span><span class="n">tif</span>
+  <span class="o">+</span> <span class="n">condition</span> <span class="c1">#2</span>
+    <span class="o">*</span> <span class="o">...</span>
+  <span class="o">+</span> <span class="o">...</span>
 </pre></div>
 </div>
 <p>The extension of the images can be specified in the <code class="docutils literal"><span class="pre">`ext`</span></code> attribute of the class <code class="docutils literal"><span class="pre">`Main`</span></code>, the default is <code class="docutils literal"><span class="pre">`.tif`</span></code>.</p>
@@ -205,16 +208,66 @@
 </div>
 <div class="section" id="single-nucleus-analysis">
 <h3>3. Single-nucleus analysis<a class="headerlink" href="#single-nucleus-analysis" title="Permalink to this headline">¶</a></h3>
-<p>This step of the pipeline iterates over the conditions detected in the beginning. For every condition, the pixels of every nucleus are retrieved, specifically, the following pixel information are obtained: series and nucleus id number, DNA channel intensity (minus background), signal channel intensity  (minus background), distance from nuclear lamina and relative distance from nuclear lamina.</p>
+<p>This step of the pipeline iterates over the conditions detected in the beginning. For every condition, the nuclei are selected based on the distribution of user-selected features (based on the FWHM of the highest peak) and the pixels of every selected nucleus are retrieved.</p>
+<p>The features that can be selected for the nuclear selection are:</p>
+<ul class="simple">
+<li>Size: area if 2D and volume if 3D.</li>
+<li>Surface: available only for 3D segmentation.</li>
+<li>Shape: circularity if 2D, volume if 3D.</li>
+<li>Intensity sum: integral of DNA stain intensity.</li>
+<li>Intensity mean: average DNA stain intensity.</li>
+<li>Flattened size: area in the Z projection.</li>
+</ul>
+<p>Specifically, the following pixel information are obtained: series and nucleus id number, DNA channel intensity (minus background), signal channel intensity  (minus background), distance from nuclear lamina and relative distance from nuclear lamina.</p>
 </div>
 <div class="section" id="general-boxplots">
 <h3>4. General boxplots<a class="headerlink" href="#general-boxplots" title="Permalink to this headline">¶</a></h3>
+<p>General boxplot are generated to recap different distributions for each condition. The following boxplots are generated:</p>
+<ul class="simple">
+<li>Cell size: area if 2D, volume if 3D.</li>
+<li>Cell shape: circularity if 2D, sphericity if 3D.</li>
+<li>Cell average DNA stain intensity.</li>
+<li>Cell sum (integral) of DNA stain intensity.</li>
+<li>Single-pixel DNA stain intensity.</li>
+<li>Single-pixel GPSeq signal intensity.</li>
+</ul>
 </div>
 <div class="section" id="final-plots">
 <h3>5. Final plots<a class="headerlink" href="#final-plots" title="Permalink to this headline">¶</a></h3>
+<p>Then, the following additional plots are generated:</p>
+<ul>
+<li><dl class="first docutils">
+<dt>A <em>pixel study</em> containing the distribution of the single-pixel values is generated for the two channels and their ratio. The study contains 8 plots, from top-to-bottom, left-to-right:</dt>
+<dd><ul class="first last simple">
+<li>Pixel intensity distribution (boxplot) per binned relative distance from nuclear lamina.</li>
+<li>Mean pixel intensity (both raw and smoothened) against relative distance from nuclear lamina.</li>
+<li>Median pixel intensity (both raw and smoothened) against relative distance from nuclear lamina.</li>
+<li>Mode pixel intensity (both raw and smoothened) against relative distance from nuclear lamina.</li>
+<li>Number of pixels per relative distance from nuclear lamina.</li>
+<li>Chalk-on-Blackboard plot. Which is a heatmap showing the binned distribution of channel intensity against a binned relative distance from nuclear lamina. Also, the smoothened mean, median and mode curves are reported.</li>
+<li>Standard deviation of pixel intensity (both raw and smoothened) against relative distance from nuclear lamina.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>A <em>profiles</em> plot containing six plots, from left-to-right, top-to-bottom:</dt>
+<dd><ul class="first last simple">
+<li>The DNA staining mean, median and mode smoothened curves.</li>
+<li>The DNA staining mean, median and mode smoothened curves first derivative.</li>
+<li>The GPSeq signal mean, median and mode smoothened curves.</li>
+<li>The GPSeq signal mean, median and mode smoothened curves first derivative.</li>
+<li>The channel ratio mean, median and mode smoothened curves.</li>
+<li>The channel ratio mean, median and mode smoothened curves first derivative.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
 </div>
 <div class="section" id="final-report">
 <h3>6. Final report<a class="headerlink" href="#final-report" title="Permalink to this headline">¶</a></h3>
+<p>A single pdf file report is generated containing the input parameters and most of the generated plots.</p>
 </div>
 </div>
 <div class="section" id="references">

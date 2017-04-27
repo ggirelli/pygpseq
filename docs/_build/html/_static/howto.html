@@ -30,9 +30,12 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="pygpseq 0.1.0 documentation" href="../index.html"/>
         <link rel="next" title="Known issues" href="issues.html"/>
-        <link rel="prev" title="Intro" href="intro.html"/> 
+        <link rel="prev" title="Introduction" href="intro.html"/> 
 
   
   <script src="js/modernizr.min.js"></script>
@@ -83,8 +86,8 @@
             
                 <p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Intro</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">How to</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How to</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#set-up-your-data-for-pygpseq">Set up your data for pyGPSeq</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#run-pygpseq">Run pyGPSeq</a></li>
 </ul>
@@ -156,7 +159,99 @@
 </div>
 <div class="section" id="run-pygpseq">
 <h2>Run pyGPSeq<a class="headerlink" href="#run-pygpseq" title="Permalink to this headline">¶</a></h2>
-<p><strong>pyGPSeq</strong> can be run on a single dataset or on multiple datasets (batch) at once. In the latter case, a queue is created and only one dataset at a time is analyzed.</p>
+<p><strong>pyGPSeq</strong> can be run on a single dataset or on multiple datasets (batch) at once. In the latter case, a queue is created and only one dataset at a time is analyzed. The following is an example of a script used to run the pipeline, where most of the available parameters are reported with a description.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># Import library</span>
+<span class="kn">import</span> <span class="nn">pygpseq</span> <span class="kn">as</span> <span class="nn">gp</span>
+
+<span class="c1"># Create pyGPSeq analyzer instance</span>
+<span class="c1"># ncores specifies the number of threads to be used for parallelization!!! (!IMPORTANT!)</span>
+<span class="n">gpi</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">Main</span><span class="p">(</span><span class="n">ncores</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Steps to be skipped</span>
+<span class="c1"># 1       : skip instantiation (need gpi.inst.cpickle, otherwise unskips)</span>
+<span class="c1"># 2       : skip segmentation (need gpi.seg.cpickle, otherwise unskips)</span>
+<span class="c1"># 3       : skip analysis (need gpi.an.cpickle, otherwise unskips)</span>
+<span class="c1"># 3.5 : skip single-nuclei boxplot (end of step 3)</span>
+<span class="c1"># 4       : final plots</span>
+<span class="c1"># 5   : final report</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">skip</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">]</span>
+
+<span class="c1"># Name of the signal channels, a final comma is needed if only a channel is available</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">sig_names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;cy5&#39;</span><span class="p">,</span> <span class="s1">&#39;tmr&#39;</span><span class="p">)</span>
+
+<span class="c1"># Name of the DNA staining channels, a final comma is needed if only a channel is available</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">dna_names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;dapi&#39;</span><span class="p">,)</span>
+
+<span class="c1"># Data directory</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">basedir</span> <span class="o">=</span> <span class="s1">&#39;/home/gire/Desktop/BiCro-Data/Imaging/iGG043_050_deco&#39;</span>
+
+<span class="c1"># Output directory</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">outdir</span> <span class="o">=</span> <span class="s1">&#39;/home/gire/Desktop/BiCro-Analysis/Imaging/iGG043_050_deco&#39;</span>
+
+<span class="c1"># Segmentation type for nuclear identification</span>
+<span class="c1"># SEG_SUM_PROJ  : through sum Z projection</span>
+<span class="c1"># SEG_MAX_PROJ  : through max Z projection</span>
+<span class="c1"># SEG_3D                : 3D segmentation</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">seg_type</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">SEG_3D</span>
+
+<span class="c1"># Single-nucleus analysis type</span>
+<span class="c1"># AN_SUM_PROJ   : on nucleus sum Z projection</span>
+<span class="c1"># AN_MAX_PROJ   : on nucleus max Z projection</span>
+<span class="c1"># AN_3D                 : on whole and partial nuclear volume</span>
+<span class="c1"># AN_MID                : only on nucleus mid-section (highest sum of DNA staining intensity)</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">an_type</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">AN_MID</span>
+
+<span class="c1"># Voxel aspect proportions (or sizes, ZYX)</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">aspect</span> <span class="o">=</span> <span class="p">(</span><span class="mf">300.</span><span class="p">,</span> <span class="mf">216.6</span><span class="p">,</span> <span class="mf">216.6</span><span class="p">)</span>
+
+<span class="c1"># Minimum percentage of stack to be occupied by a cell</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">min_z_size</span> <span class="o">=</span> <span class="o">.</span><span class="mi">25</span>
+
+<span class="c1"># Nuclear selection</span>
+<span class="c1"># NSEL_SIZE                     : nuclear size (either volume or area)</span>
+<span class="c1"># NSEL_SURF                     : nuclear surface (only if AN_3D)</span>
+<span class="c1"># NSEL_SHAPE            : nuclear shape (either sphericity or circularity)</span>
+<span class="c1"># NSEL_SUMI                     : nuclear DNA intensity sum</span>
+<span class="c1"># NSEL_MEANI            : nuclear DNA intensity average</span>
+<span class="c1"># NSEL_FLAT_SIZE        : nuclear Z-projected area</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">nsf</span> <span class="o">=</span> <span class="p">(</span><span class="n">gp</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">NSEL_FLAT_SIZE</span><span class="p">,</span> <span class="n">gp</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">NSEL_SUMI</span><span class="p">)</span>
+
+<span class="c1"># Regular expression to identify image files</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">reg</span> <span class="o">=</span> <span class="s1">&#39;^(?P&lt;&#39;</span> <span class="o">+</span> <span class="n">gp</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">REG_CHANNEL_NAME</span> <span class="o">+</span> <span class="s1">&#39;&gt;[^/]*)&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">reg</span> <span class="o">+=</span> <span class="s1">&#39;\.(?P&lt;&#39;</span> <span class="o">+</span> <span class="n">gp</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">REG_CHANNEL_ID</span> <span class="o">+</span> <span class="s1">&#39;&gt;channel[0-9]+)&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">reg</span> <span class="o">+=</span> <span class="s1">&#39;\.(?P&lt;&#39;</span> <span class="o">+</span> <span class="n">gp</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">REG_SERIES_ID</span> <span class="o">+</span> <span class="s1">&#39;&gt;series[0-9]+)&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">reg</span> <span class="o">+=</span> <span class="s1">&#39;(?P&lt;&#39;</span> <span class="o">+</span> <span class="n">gp</span><span class="o">.</span><span class="n">const</span><span class="o">.</span><span class="n">REG_EXT</span> <span class="o">+</span> <span class="s1">&#39;&gt;(_cmle)?\.tif)$&#39;</span>
+
+<span class="c1"># Where to save the run log</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">logpath</span> <span class="o">=</span> <span class="s1">&#39;/home/gire/Desktop/BiCro-Analysis/Imaging/iGG043_050_deco/log&#39;</span>
+<span class="c1">#gpi.logpath += gpi.gen_log_name()</span>
+
+<span class="c1"># Perform deconvolved image rescaling?</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">rescale_deconvolved</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="c1"># Normalize distance?</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">normalize_distance</span> <span class="o">=</span> <span class="bp">True</span>
+
+<span class="c1"># Better condition naming (convert folder name to condition description)</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">cdescr</span><span class="p">[</span><span class="s1">&#39;iGG043_20170411_001&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;DAPI 1 ug/ml&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">cdescr</span><span class="p">[</span><span class="s1">&#39;iGG044_20170411_001&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;DAPI 200 ng/ml&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">cdescr</span><span class="p">[</span><span class="s1">&#39;iGG045_20170412_001&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;DAPI 50 ng/ml&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">cdescr</span><span class="p">[</span><span class="s1">&#39;iGG046_20170412_001&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;DAPI 20 ng/ml&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">cdescr</span><span class="p">[</span><span class="s1">&#39;iGG047_20170412_001&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Hoechst 1 ug/ml&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">cdescr</span><span class="p">[</span><span class="s1">&#39;iGG048_20170412_001&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Hoechst 200 ng/ml&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">cdescr</span><span class="p">[</span><span class="s1">&#39;iGG049_20170412_001&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Hoechst 50 ng/ml&#39;</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">cdescr</span><span class="p">[</span><span class="s1">&#39;iGG050_20170412_001&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Hoechst 20 ng/ml&#39;</span>
+
+<span class="c1"># Notes</span>
+<span class="n">gpi</span><span class="o">.</span><span class="n">notes</span> <span class="o">=</span> <span class="s1">&#39;DNA staining test on HeLa P20/21.&#39;</span>
+
+<span class="c1"># Start the analysis</span>
+<span class="n">gpi</span> <span class="o">=</span> <span class="n">gpi</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -170,7 +265,7 @@
         <a href="issues.html" class="btn btn-neutral float-right" title="Known issues" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="intro.html" class="btn btn-neutral" title="Intro" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="intro.html" class="btn btn-neutral" title="Introduction" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

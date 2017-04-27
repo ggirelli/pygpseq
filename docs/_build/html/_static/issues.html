@@ -30,6 +30,9 @@
   
 
   
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
     <link rel="top" title="pygpseq 0.1.0 documentation" href="../index.html"/>
         <link rel="next" title="CHANGELOG" href="changelog.html"/>
         <link rel="prev" title="How to" href="howto.html"/> 
@@ -83,9 +86,9 @@
             
                 <p class="caption"><span class="caption-text">Table of Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Intro</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="howto.html">How to</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Known issues</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Known issues</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#font-cache-is-built-at-every-run">1. Font-cache is built at every run.</a></li>
 </ul>
 </li>
@@ -139,8 +142,9 @@
 <div class="section" id="font-cache-is-built-at-every-run">
 <h2>1. Font-cache is built at every run.<a class="headerlink" href="#font-cache-is-built-at-every-run" title="Permalink to this headline">¶</a></h2>
 <p>If everytime that pyGPSeq is imported, or everytime you run <code class="docutils literal"><span class="pre">pygpseq.Main.run()</span></code> you get the following (or similar) warning:</p>
-<p><code class="docutils literal"><span class="pre">/usr/local/lib/python2.7/dist-packages/matplotlib/font_manager.py:273:</span></code>
-<code class="docutils literal"><span class="pre">UserWarning:</span> <span class="pre">Matplotlib</span> <span class="pre">is</span> <span class="pre">building</span> <span class="pre">the</span> <span class="pre">font</span> <span class="pre">cache</span> <span class="pre">using</span> <span class="pre">fc-list.</span> <span class="pre">This</span> <span class="pre">may</span> <span class="pre">take</span> <span class="pre">a</span> <span class="pre">moment.</span></code></p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>/usr/local/lib/python2.7/dist-packages/matplotlib/font_manager.py:273: UserWarning: Matplotlib is building the font cache using fc-list. This may take a moment.
+</pre></div>
+</div>
 <p>Then, try removing the <code class="docutils literal"><span class="pre">~/.cache/matplotlib/</span></code> folder. This should fix the issue.</p>
 </div>
 </div>
