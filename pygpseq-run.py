@@ -27,150 +27,180 @@ parser = argparse.ArgumentParser(
 	description = """Run pygpseq-based analysis."""
 )
 
-'''
-
-Mandatory
-- basedir
-- outdir
-- aspect 300,216.6,216.6
-
-Default
-- dna_names dapi
-- sig_names cy5,tmr
-- seg_type 1|2|3
-- an_type 1|2|3|4
-- min_z_size .25
-- nuclear_selection 1|2|3|4|5|6
-- logpath
-- rescale_deconvolved
-- normalize_distance
-
-Optional
-- ncores 1
-- skip 1,2,3,4
-- description_file
-- notes
-
-Advanced
-- regexp
-
-'''
-
-# Add params
+# Positional parameters
 parser.add_argument('inDir', type = str, nargs = 1,
 	help = """Path to input directory, containing single-condition directories
 	with TIF files.""")
+parser.add_argument('outDir', type = str, nargs = 1,
+	help = """Path to output directory, must be different from the input
+	directory.""")
 
-parser.add_argument('chrlen', metavar = 'chrlen', type = str, nargs = 1,
-	help = 'Path to file with chromosome lengths (chr, length)' +
-	' or chromosome length.')
-parser.add_argument('chr', metavar = 'chr', type = str, nargs = 1,
-	help = 'The chromosome to bin. E.g., chr1')
+# Optional parameters
+parser.add_argument('--skip', type = str, nargs = 1,
+	help = """Space-separated phases to be skipped.
+	Use -- after the last one.""",
+	choices = ['inst', 'seg', 'an', 'box', 'plot', 'report'])
+parser.add_argument('-l', '--logpath', type = str, nargs = 1,
+	help = """Path to log file. By default: outDir/log""", metavar = 'log')
+parser.add_argument('-a', '--aspect', type = float, nargs = 3,
+	help = """Physical size of Z, Y and X voxel sides.
+	Default: 300.0 216.6 216.6""",
+	metavar = ('Z', 'Y', 'X'), default = [300., 216.6, 216.6])
+parser.add_argument('-d', '--dna-channels', type = str, nargs = '*',
+	help = """Space-separated names of DNA staining channels.
+	Use -- after the last one.""",
+	default = ['dapi'], metavar = 'dna_name')
+parser.add_argument('-s', '--sig-channels', type = str, nargs = '*',
+	help = """Space-separated names of GPSeq signal channels.
+	Use -- after the last one.""",
+	default = ['cy5', 'tmr'], metavar = 'sig_name')
+parser.add_argument('-z', '--min-z', type = float, nargs = 1,
+	help = """If lower than 1, minimum fraction of stack, if higher than 1,
+	minimum number of slicesto be occupied by a nucleus""",
+	default = [.25], metavar = 'min_z')
+parser.add_argument('--seg-type', type = str, nargs = 1,
+	help = """Segmentation type. Default: 3d""",
+	choices = ['sum_proj', 'max_proj', '3d'], default = ['3d'])
+parser.add_argument('--an-type', type = str, nargs = 1,
+	help = """Analysis type. Default: mid""",
+	choices = ['sum_proj', 'an_proj', '3d', 'mid'],
+	default = ['mid'])
+parser.add_argument('--mid-type', type = str, nargs = 1,
+	help = """Method for mid-section selection.""",
+	choices = ['central', 'largest', 'maxIsum'],
+	default = ['largest'])
+parser.add_argument('--nuclear-sel', type = str, nargs = '*',
+	help = """Space-separated features for nuclear selection.
+	Use -- after the last one. Default: flat_size sumI""",
+	choices = ['size', 'surf', 'shape', 'sumI', 'meanI', 'flat_size'],
+	default = ['flat_size', 'sumI'])
+parser.add_argument('--description', type = str, nargs = '*',
+	help = """Space separated condition:description couples.
+	'condition' are the name of condition folders.
+	'description' are descriptive labels used in plots instead of folder names.
+	Use -- after the last one.""")
+parser.add_argument('-t', '--threads', metavar = 'ncores', type = int,
+	nargs = 1, default = [1],
+	help = """Number of threads to be used for parallelization. Increasing the
+	number of threads might increase the required amount of RAM.""")
+parser.add_argument('--note', type = str, nargs = 1,
+	help = """Dataset/Analysis description.""")
+parser.add_argument('--regexp', type = str, nargs = 1,
+	help = """Advanced. Regular expression to identify tif images.""",
+	default = ["""^(?P<channel_name>[^/]*)\.(?P<channel_id>channel[0-9]+)
+		\.(?P<series_id>series[0-9]+)(?P<ext>(_cmle)?\.tif)$"""])
 
-# Add flags
-parser.add_argument('--binsize', metavar = 'bsi', type = int, nargs = 1,
-	default = [1e6],
-	help = 'Bin size. Default: 1e6')
-parser.add_argument('--binstep', metavar = 'bst', type = int, nargs = 1,
-	default = [1e6],
-	help = 'Bin step. Non-overlapping bins if equal to bin size. Default: 1e5')
+# Flag parameters
+parser.add_argument('-r', '--rescale-deconvolved', action = 'store_const',
+	help = """Perform rescaling of deconvolved images. Requires Huygens
+	Professional v4.5 log file for an image to be rescaled.""",
+	const = True, default = False)
+parser.add_argument('-n', '--normalize-distance', action = 'store_const',
+	help = """Perform distance normalization. Necessary to compare nuclei
+	with different radius.""",
+	const = True, default = False)
 
 # Parse arguments
 args = parser.parse_args()
-
-# Retrieve arguments
-chrfile = args.chrlen[0]
-schr = args.chr[0]
-size = int(args.binsize[0])
-step = int(args.binstep[0])
-
+print args
 
 # RUN ==========================================================================
 
-# End --------------------------------------------------------------------------
-
-################################################################################
-
-# Import library
-
 # Create pyGPSeq analyzer instance
-gpi = gp.Main(ncores = 10)
+gpi = gp.Main(ncores = args.threads[0])
 
 # Steps to be skipped
-# 1	  : skip instantiation (need gpi.inst.cpickle, otherwise unskips)
-# 2	  : skip segmentation (need gpi.seg.cpickle, otherwise unskips)
-# 3	  : skip analysis (need gpi.an.cpickle, otherwise unskips)
-# 3.5 : skip single-nuclei boxplot (end of step 3)
-# 4	  : final plots
-# 5   : final report
-gpi.skip = [1,2,3,4]
+dskip = {
+	'inst' : 1,
+	'seg' : 2,
+	'an' : 3,
+	'box' : 3.5,
+	'plot' : 4,
+	'report' : 5
+}
+if not None is args.skip:
+	gpi.skip = [dskip[e] for e in args.skip]
 
-gpi.sig_names = ('dapi', 'cy5', 'tmr')
-gpi.dna_names = ('dapi',)
+# Channel names
+gpi.sig_names = tuple(args.sig_channels)
+gpi.dna_names = tuple(args.dna_channels)
 
 # Data directory
-gpi.basedir = '/home/gire/Desktop/BiCro-Data/Imaging/iGG043_050_deco'
+gpi.basedir = args.inDir[0]
 
 # Output directory
-gpi.outdir = '/home/gire/Desktop/BiCro-Analysis/Imaging/iGG043_050_deco'
+gpi.outdir = args.outDir[0]
 
 # Segmentation type for nuclear identification
-# SEG_SUM_PROJ	: through sum Z projection
-# SEG_MAX_PROJ	: through max Z projection
-# SEG_3D		: 3D segmentation
-gpi.seg_type = gp.const.SEG_3D
+dseg = {
+	'sum_proj' : 0,
+	'max_proj' : 1,
+	'3d' : 2
+}
+gpi.seg_type = dseg[args.seg_type[0]]
 
 # Single-nucleus analysis type
-# AN_SUM_PROJ	: on nucleus sum Z projection
-# AN_MAX_PROJ	: on nucleus max Z projection
-# AN_3D			: on whole and partial nuclear volume
-# AN_MID		: only on nucleus mid-section (highest sum of DNA staining intensity)
-gpi.an_type = gp.const.AN_MID
+dan = {
+	'sum_proj' : 0,
+	'max_proj' : 1,
+	'3d' : 2,
+	'mid' : 3
+}
+gpi.an_type = dan[args.an_type[0]]
+
+# Middle-section selection method
+dmid = {
+'central' : 0,
+'largest' : 1,
+'maxIsum' : 2
+}
+gpi.mid_type = dmid[args.mid_type[0]]
 
 # Voxel aspect proportions (or sizes, ZYX)
-gpi.aspect = (300., 216.6, 216.6)
+gpi.aspect = tuple(args.aspect)
 
 # Minimum percentage of stack to be occupied by a cell
-gpi.min_z_size = .25
+gpi.min_z_size = args.min_z[0]
 
 # Nuclear selection
-# NSEL_SIZE			: nuclear size (either volume or area)
-# NSEL_SURF			: nuclear surface (only if AN_3D)
-# NSEL_SHAPE		: nuclear shape (either sphericity or circularity)
-# NSEL_SUMI			: nuclear DNA intensity sum
-# NSEL_MEANI		: nuclear DNA intensity average
-# NSEL_FLAT_SIZE	: nuclear Z-projected area
-gpi.nsf = (gp.const.NSEL_FLAT_SIZE, gp.const.NSEL_SUMI)
+dnsel = {
+	'size' : 0,
+	'surf' : 1,
+	'shape' : 2,
+	'sumI' : 3,
+	'meanI' : 4,
+	'flat_size' : 5
+}
+gpi.nsf = tuple([dnsel[e] for e in args.nuclear_sel])
 
 # Regular expression to identify image files
-gpi.reg = '^(?P<' + gp.const.REG_CHANNEL_NAME + '>[^/]*)'
-gpi.reg += '\.(?P<' + gp.const.REG_CHANNEL_ID + '>channel[0-9]+)'
-gpi.reg += '\.(?P<' + gp.const.REG_SERIES_ID + '>series[0-9]+)'
-gpi.reg += '(?P<' + gp.const.REG_EXT + '>(_cmle)?\.tif)$'
+gpi.reg = args.regexp[0]
 
 # Where to save the run log
-gpi.logpath = '/home/gire/Desktop/BiCro-Analysis/Imaging/iGG043_050_deco/log'
-#gpi.logpath += gpi.gen_log_name()
+if None is args.logpath:
+	gpi.logpath = args.inDir[0] + '/' + gpi.gen_log_name()
+else:
+	gpi.logpath = args.logpath[0]
 
 # Perform deconvolved image rescaling?
-gpi.rescale_deconvolved = True
+gpi.rescale_deconvolved = args.rescale_deconvolved
 
 # Normalize distance?
-gpi.normalize_distance = True
+gpi.normalize_distance = args.normalize_distance
 
 # Better condition naming
-gpi.cdescr['iGG043_20170411_001'] = 'DAPI 1 ug/ml'
-gpi.cdescr['iGG044_20170411_001'] = 'DAPI 200 ng/ml'
-gpi.cdescr['iGG045_20170412_001'] = 'DAPI 50 ng/ml'
-gpi.cdescr['iGG046_20170412_001'] = 'DAPI 20 ng/ml'
-gpi.cdescr['iGG047_20170412_001'] = 'Hoechst 1 ug/ml'
-gpi.cdescr['iGG048_20170412_001'] = 'Hoechst 200 ng/ml'
-gpi.cdescr['iGG049_20170412_001'] = 'Hoechst 50 ng/ml'
-gpi.cdescr['iGG050_20170412_001'] = 'Hoechst 20 ng/ml'
+if not None is args.description:
+	for descr in args.description:
+		c, d = descr.split(':')
+		gpi.cdescr[c] = d
 
 # Notes
-gpi.notes = 'DNA staining test on HeLa P20/21.'
+if not None is args.note:
+	gpi.notes = args.note[0]
 
 # Start the analysis
 gpi = gpi.run()
 
+# End --------------------------------------------------------------------------
+
+################################################################################
