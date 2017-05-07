@@ -14,10 +14,13 @@ Set up your data for pyGPSeq
 Run pyGPSeq
 ~~~~~~~~~~~
 
-**pyGPSeq** can be run on a single dataset or on multiple datasets (batch) at once. In the latter case, a queue is created and only one dataset at a time is analyzed. The following is an example of a script used to run the pipeline, where most of the available parameters are reported with a description.
+**pyGPSeq** can be run on a single dataset or on multiple datasets (batch) at once. In the latter case, a queue is created and only one dataset at a time is analyzed.
 
-```
+The following is an example of a script used to run the pipeline, where most of the available parameters are reported with a description.
 
+Another option would be to use the ``
+
+.. code-block:: python
 	#!/usr/bin/python
 	# -*- coding: utf-8 -*-
 
@@ -108,4 +111,3 @@ Run pyGPSeq
 
 	# Start the analysis
 	gpi = gpi.run()
-```
