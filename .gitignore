@@ -1,0 +1,6 @@
+pygpseq/*.pyc
+pygpseq/__pycache__/*
+pygpseq/tools/*.pyc
+pygpseq/tools/__pycache__/*    
+pygpseq/wraps/*.pyc
+pygpseq/wraps/__pycache__/*
