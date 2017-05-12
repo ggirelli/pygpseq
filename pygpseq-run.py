@@ -100,9 +100,32 @@ parser.add_argument('-n', '--normalize-distance', action = 'store_const',
 	help = """Perform distance normalization. Necessary to compare nuclei
 	with different radius.""",
 	const = True, default = False)
+parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
+	help = """Debugging mode.""",
+	const = True, default = False)
 
 # Parse arguments
 args = parser.parse_args()
+
+# FUNCTION =====================================================================
+
+def ask(q):
+	"""Asks for confirmation. Aborts otherwise.
+
+	Args:
+		q (string): question.
+	"""
+
+	answer = ''
+	while not answer.lower() in ['y', 'n']:
+		print("%s %s" % (q, "(y/n)"))
+		answer = raw_input()
+
+		if 'n' == answer.lower():
+			sys.exit("Aborted.\n")
+		elif not 'y' == answer.lower():
+			print("Please, answer 'y' or 'n'.\n")
+
 
 # RUN ==========================================================================
 
@@ -193,11 +216,54 @@ if not None is args.description:
 	for descr in args.description:
 		c, d = descr.split(':')
 		gpi.cdescr[c] = d
+readable_cdescr = [str(k) + ' => ' + str(v) for (k,v) in gpi.cdescr.items()]
+if 0 == len(readable_cdescr):
+	readable_cdescr = ["*NONE*"]
 
 # Notes
 if not None is args.note:
 	gpi.notes = args.note[0]
 
+# Debugging mode
+gpi.debugging = args.DEBUG_MODE
+
+# Show current settings
+os.system('clear')
+print("""
+---------- SETTING:  VALUE ----------
+
+   Input directory:  """+gpi.basedir+"""
+  Output directory:  """+gpi.outdir+"""
+          Log file:  """+gpi.logpath+"""
+  
+     Skipped steps:  """+str(gpi.skip)+"""
+  
+      DNA channels:  """+str(gpi.dna_names)+"""
+   Signal channels:  """+str(gpi.sig_names)+"""
+
+      Segmentation:  """+args.seg_type[0]+"""
+          Analysis:  """+args.an_type[0]+"""
+    Middle section:  """+args.mid_type[0]+"""
+
+Voxel aspect (ZYX):  """+str(gpi.aspect)+"""
+ Minimum Z portion:  """+str(gpi.min_z_size)+"""
+
+  Condition descr.:  """+"\n                     ".join(readable_cdescr)+"""
+
+           Threads:  """+str(gpi.ncores)+"""
+              Note:  """+gpi.notes+"""
+
+            Regexp: """+gpi.reg+"""
+
+   Rescale deconv.:  """+str(gpi.rescale_deconvolved)+"""
+   Normalize dist.:  """+str(gpi.normalize_distance)+"""
+         Debug mod:  """+str(gpi.debugging)+"""
+
+""")
+
+# Ask for confirmation
+ask('Confirm settings and proceed.')
+sys.exit()
 # Start the analysis
 gpi = gpi.run()
 
