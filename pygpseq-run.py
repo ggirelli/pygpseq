@@ -36,7 +36,7 @@ parser.add_argument('outDir', type = str, nargs = 1,
 	directory.""")
 
 # Optional parameters
-parser.add_argument('--skip', type = str, nargs = 1,
+parser.add_argument('--skip', type = str, nargs = '*',
 	help = """Space-separated phases to be skipped.
 	Use -- after the last one.""",
 	choices = ['inst', 'seg', 'an', 'box', 'plot', 'report'])
@@ -46,24 +46,24 @@ parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 	help = """Physical size of Z, Y and X voxel sides.
 	Default: 300.0 216.6 216.6""",
 	metavar = ('Z', 'Y', 'X'), default = [300., 216.6, 216.6])
-parser.add_argument('-d', '--dna-channels', type = str, nargs = '*',
+parser.add_argument('-d', '--dna-channels', type = str, nargs = '+',
 	help = """Space-separated names of DNA staining channels.
 	Use -- after the last one.""",
 	default = ['dapi'], metavar = 'dna_name')
-parser.add_argument('-s', '--sig-channels', type = str, nargs = '*',
+parser.add_argument('-s', '--sig-channels', type = str, nargs = '+',
 	help = """Space-separated names of GPSeq signal channels.
 	Use -- after the last one.""",
 	default = ['cy5', 'tmr'], metavar = 'sig_name')
 parser.add_argument('-z', '--min-z', type = float, nargs = 1,
 	help = """If lower than 1, minimum fraction of stack, if higher than 1,
-	minimum number of slicesto be occupied by a nucleus""",
+	minimum number of slices to be occupied by a nucleus""",
 	default = [.25], metavar = 'min_z')
 parser.add_argument('--seg-type', type = str, nargs = 1,
 	help = """Segmentation type. Default: 3d""",
 	choices = ['sum_proj', 'max_proj', '3d'], default = ['3d'])
 parser.add_argument('--an-type', type = str, nargs = 1,
 	help = """Analysis type. Default: mid""",
-	choices = ['sum_proj', 'an_proj', '3d', 'mid'],
+	choices = ['sum_proj', 'max_proj', '3d', 'mid'],
 	default = ['mid'])
 parser.add_argument('--mid-type', type = str, nargs = 1,
 	help = """Method for mid-section selection.""",
@@ -84,7 +84,7 @@ parser.add_argument('-t', '--threads', metavar = 'ncores', type = int,
 	help = """Number of threads to be used for parallelization. Increasing the
 	number of threads might increase the required amount of RAM.""")
 parser.add_argument('--note', type = str, nargs = 1,
-	help = """Dataset/Analysis description.""")
+	help = """Dataset/Analysis description. Use double quotes.""")
 regexp = "^(?P<channel_name>[^/]*)\.(?P<channel_id>channel[0-9]+)"
 regexp += "\.(?P<series_id>series[0-9]+)(?P<ext>(_cmle)?\.tif)$"
 parser.add_argument('--regexp', type = str, nargs = 1,
@@ -236,7 +236,7 @@ print("""
   Output directory:  """+gpi.outdir+"""
           Log file:  """+gpi.logpath+"""
   
-     Skipped steps:  """+str(gpi.skip)+"""
+     Skipped steps:  """+str(args.skip)+"""
   
       DNA channels:  """+str(gpi.dna_names)+"""
    Signal channels:  """+str(gpi.sig_names)+"""
