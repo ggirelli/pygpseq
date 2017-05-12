@@ -263,7 +263,7 @@ Voxel aspect (ZYX):  """+str(gpi.aspect)+"""
 
 # Ask for confirmation
 ask('Confirm settings and proceed.')
-sys.exit()
+
 # Start the analysis
 gpi = gpi.run()
 
