@@ -85,10 +85,11 @@ parser.add_argument('-t', '--threads', metavar = 'ncores', type = int,
 	number of threads might increase the required amount of RAM.""")
 parser.add_argument('--note', type = str, nargs = 1,
 	help = """Dataset/Analysis description.""")
+regexp = "^(?P<channel_name>[^/]*)\.(?P<channel_id>channel[0-9]+)"
+regexp += "\.(?P<series_id>series[0-9]+)(?P<ext>(_cmle)?\.tif)$"
 parser.add_argument('--regexp', type = str, nargs = 1,
 	help = """Advanced. Regular expression to identify tif images.""",
-	default = ["""^(?P<channel_name>[^/]*)\.(?P<channel_id>channel[0-9]+)
-		\.(?P<series_id>series[0-9]+)(?P<ext>(_cmle)?\.tif)$"""])
+	default = [regexp])
 
 # Flag parameters
 parser.add_argument('-r', '--rescale-deconvolved', action = 'store_const',
@@ -102,7 +103,6 @@ parser.add_argument('-n', '--normalize-distance', action = 'store_const',
 
 # Parse arguments
 args = parser.parse_args()
-print args
 
 # RUN ==========================================================================
 
@@ -178,7 +178,7 @@ gpi.reg = args.regexp[0]
 
 # Where to save the run log
 if None is args.logpath:
-	gpi.logpath = args.inDir[0] + '/' + gpi.gen_log_name()
+	gpi.logpath = args.outDir[0] + '/' + gpi.gen_log_name()
 else:
 	gpi.logpath = args.logpath[0]
 
