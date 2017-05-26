@@ -56,7 +56,7 @@ parser.add_argument('-s', '--sig-channels', type = str, nargs = '+',
 	default = ['cy5', 'tmr'], metavar = 'sig_name')
 parser.add_argument('-z', '--min-z', type = float, nargs = 1,
 	help = """If lower than 1, minimum fraction of stack, if higher than 1,
-	minimum number of slices to be occupied by a nucleus""",
+	minimum number of slices to be occupied by a nucleus. Default: .25""",
 	default = [.25], metavar = 'min_z')
 parser.add_argument('--seg-type', type = str, nargs = 1,
 	help = """Segmentation type. Default: 3d""",
@@ -66,7 +66,7 @@ parser.add_argument('--an-type', type = str, nargs = 1,
 	choices = ['sum_proj', 'max_proj', '3d', 'mid'],
 	default = ['mid'])
 parser.add_argument('--mid-type', type = str, nargs = 1,
-	help = """Method for mid-section selection.""",
+	help = """Method for mid-section selection. Default: largest""",
 	choices = ['central', 'largest', 'maxIsum'],
 	default = ['largest'])
 parser.add_argument('--nuclear-sel', type = str, nargs = '*',
@@ -79,7 +79,7 @@ parser.add_argument('--description', type = str, nargs = '*',
 	'condition' are the name of condition folders.
 	'description' are descriptive labels used in plots instead of folder names.
 	Use -- after the last one.""")
-parser.add_argument('-t', '--threads', metavar = 'ncores', type = int,
+parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
 	nargs = 1, default = [1],
 	help = """Number of threads to be used for parallelization. Increasing the
 	number of threads might increase the required amount of RAM.""")
