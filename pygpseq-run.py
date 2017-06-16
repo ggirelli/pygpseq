@@ -194,7 +194,11 @@ dnsel = {
 	'meanI' : 4,
 	'flat_size' : 5
 }
+arsel = ['size', 'surf', 'shape', 'sumI', 'meanI', 'flat_size']
 gpi.nsf = tuple([dnsel[e] for e in args.nuclear_sel])
+readable_nsf = "*NONE*"
+if 0 != len(gpi.nsf):
+	readable_nsf = " ".join([str(arsel[i]) for i in gpi.nsf])
 
 # Regular expression to identify image files
 gpi.reg = args.regexp[0]
@@ -249,6 +253,8 @@ Voxel aspect (ZYX):  """+str(gpi.aspect)+"""
  Minimum Z portion:  """+str(gpi.min_z_size)+"""
 
   Condition descr.:  """+"\n                     ".join(readable_cdescr)+"""
+
+ Nuclear selection:  """+readable_nsf+"""
 
            Threads:  """+str(gpi.ncores)+"""
               Note:  """+gpi.notes+"""
