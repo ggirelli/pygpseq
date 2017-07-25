@@ -316,9 +316,15 @@ class Main(Analyzer):
 
 		# Select condition folders
 		self.conds = pt.select_folders(self.basedir, self.ext)
-		msg = 'Found ' + str(len(self.conds)) + ' condition folder(s)...'
-		self.printout(msg, 0)
-		self.printout('', 0)
+
+		# If no conditions, stop and trigger error
+		if 0 == len(self.conds):
+			msg = "No condition folders found."
+			self.printout(msg, -2)
+		else:
+			msg = 'Found ' + str(len(self.conds)) + ' condition folder(s)...'
+			self.printout(msg, 0)
+			self.printout('', 0)
 
 		# Instantiate conditions
 		self.conds = [Condition(c, main = self) for c in self.conds]
