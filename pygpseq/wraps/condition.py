@@ -63,7 +63,14 @@ class Condition(iot.IOinterface):
 		# Select condition's series
 		self.series = pt.select_files(self.path, self.ext)
 		self.series = pt.select_series(self.series, self.reg).items()
-		self.printout('Found ' + str(len(self.series)) + ' series...', 1)
+
+		# If no series, stop and trigger error
+		if 0 == len(self.series):
+			msg = "No series found in condition %s." % (self.name,)
+			self.printout(msg, -2)
+		else:
+			msg = "Found %d series..." % (len(self.series),)
+			self.printout(msg, 1)
 
 		# Instantiate series
 		self.series = [list(ds) for ds in self.series]

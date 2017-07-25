@@ -15,6 +15,8 @@ In-development
 * Profile areas are reported.
 * Single-nucleus data summaries are exported in CSV format.
 * Background levels are now reported as barplots.
+* Automatic stop if no conditions are found.
+* Automatic stop if no series are found in a condition.
 
 0.1.1
 -----
