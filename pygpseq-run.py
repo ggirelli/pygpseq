@@ -220,7 +220,9 @@ if not None is args.description:
 	for descr in args.description:
 		c, d = descr.split(':')
 		gpi.cdescr[c] = d
-readable_cdescr = [str(k) + ' => ' + str(v) for (k,v) in gpi.cdescr.items()]
+cdescr_k = gpi.cdescr.keys()
+cdescr_k.sort()
+readable_cdescr = [str(k) + ' => ' + str(gpi.cdescr[k]) for k in cdescr_k]
 if 0 == len(readable_cdescr):
 	readable_cdescr = ["*NONE*"]
 
