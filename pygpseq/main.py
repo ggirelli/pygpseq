@@ -480,24 +480,24 @@ class Main(Analyzer):
 
 		# Compare per pixel distributions --------------------------------------
 		
-		# Add condition column to nuclear data
-		for i in range(len(md)):
-			md[i] = append_fields(md[i],
-				names = 'condition',
-				data = np.tile(profiles[i]['condition'], md[i].shape[0]),
-				dtypes = 'S100')
-		md = pd.DataFrame(vt.merge_nparrays(md))
+		# # Add condition column to nuclear data
+		# for i in range(len(md)):
+		# 	md[i] = append_fields(md[i],
+		# 		names = 'condition',
+		# 		data = np.tile(profiles[i]['condition'], md[i].shape[0]),
+		# 		dtypes = 'S100')
+		# md = pd.DataFrame(vt.merge_nparrays(md))
 
-		# Run WMW U test
-		pvals = vt.merge_nparrays([
-			stt.wilcox_sets(md, 'condition', 'dna'),
-			stt.wilcox_sets(md, 'condition', 'sig')
-		])
+		# # Run WMW U test
+		# pvals = vt.merge_nparrays([
+		# 	stt.wilcox_sets(md, 'condition', 'dna'),
+		# 	stt.wilcox_sets(md, 'condition', 'sig')
+		# ])
 
-		# Export as CSV
-		fname = self.outdir + const.OUTDIR_CSV
-		fname += 'single_pixel_wmw' + kwargs['suffix'] + '.csv'
-		if self.plotting: pd.DataFrame(pvals).to_csv(fname)
+		# # Export as CSV
+		# fname = self.outdir + const.OUTDIR_CSV
+		# fname += 'single_pixel_wmw' + kwargs['suffix'] + '.csv'
+		# if self.plotting: pd.DataFrame(pvals).to_csv(fname)
 
 	def mk_general_plots(self, profiles, sumd, **kwargs):
 		"""Generate final plots.
