@@ -550,17 +550,17 @@ class Main(Analyzer):
 		fname += 'summaries' + kwargs['suffix'] + '.csv'
 		if self.plotting: pd.DataFrame(msum).to_csv(fname)
 
-		# Compare profiles
-		self.printout('Comparing profiles with WMW U test...', 0)
-		pvals = []
-		mprof = pd.DataFrame(mprof)
-		for col in mprof.columns:
-			if not col in ['condition', 'x', 'n']:
-				pvals.append(stt.wilcox_sets(mprof, 'condition', col))
-		pvals = vt.merge_nparrays(pvals)
-		fname = self.outdir + const.OUTDIR_CSV
-		fname += 'profiles_wmw' + kwargs['suffix'] + '.csv'
-		if self.plotting: pd.DataFrame(pvals).to_csv(fname)
+		# # Compare profiles
+		# self.printout('Comparing profiles with WMW U test...', 0)
+		# pvals = []
+		# mprof = pd.DataFrame(mprof)
+		# for col in mprof.columns:
+		# 	if not col in ['condition', 'x', 'n']:
+		# 		pvals.append(stt.wilcox_sets(mprof, 'condition', col))
+		# pvals = vt.merge_nparrays(pvals)
+		# fname = self.outdir + const.OUTDIR_CSV
+		# fname += 'profiles_wmw' + kwargs['suffix'] + '.csv'
+		# if self.plotting: pd.DataFrame(pvals).to_csv(fname)
 
 		# Partial volume profile
 		if const.AN_3D == self.an_type:
