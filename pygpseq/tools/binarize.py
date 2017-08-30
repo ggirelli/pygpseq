@@ -198,7 +198,7 @@ class Binarize(iot.IOinterface):
 
 		# Start logging
 		log = ''
-		log += self.printout('Filtering objects XY size...', 2)
+		log += self.printout('Filtering objects Z size...', 2)
 
 		# If not a stack, return the mask
 		if 3 > len(mask.shape):
