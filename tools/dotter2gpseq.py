@@ -65,8 +65,8 @@ parser.add_argument('output', type = str, nargs = 1,
 # Optional parameters
 parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 	help = """Physical size of Z, Y and X voxel sides.
-	Default: 300.0 216.6 216.6""",
-	metavar = ('Z', 'Y', 'X'), default = [300., 216.6, 216.6])
+	Default: 300.0 130.0 130.0""",
+	metavar = ('Z', 'Y', 'X'), default = [300., 130., 130.])
 
 # Add flags
 parser.add_argument('-s',
@@ -84,17 +84,6 @@ aspect = args.aspect
 (az, ay, ax) = aspect
 outpath = args.output[0]
 doSel = args.sel
-
-# dot_table_name = "/home/gire/Desktop/BiCro/Code/src/170830_GPSeq_DOTTER/iJC748_002_dots_coordinates.2fov.tsv"
-# imdir = "/media/gire/Data/BiCro-Data/Imaging/iJC748_20170628_002_deco/"
-# aspect = [300., 216.6, 216.6]
-# (az, ay, ax) = aspect
-# outpath = "test_out.tsv"
-# doSel = True
-
-# # Params
-# seg_type = gp.const.SEG_3D
-# an_type = gp.const.AN_3D
 
 # FUNCTIONS ====================================================================
 
