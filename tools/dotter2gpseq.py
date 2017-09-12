@@ -88,6 +88,10 @@ outpath = args.output[0]
 doSel = args.sel
 delim = args.delim[0]
 
+# Params
+seg_type = gp.const.SEG_3D
+an_type = gp.const.AN_3D
+
 # FUNCTIONS ====================================================================
 
 def in_box(coords, box):
@@ -139,7 +143,7 @@ logger = iot.IOinterface()
 
 # Cycle through
 for ii in range(len(imfov.keys())):
-	(idx, impath) = imfov.items()[ii]
+	(idx, impath) = list(imfov.items())[ii]
 	print("  · '%s'..." % (impath,))
 	subt_idx = np.where(t['File'] == idx)[0]
 
