@@ -67,7 +67,7 @@ parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 	help = """Physical size of Z, Y and X voxel sides.
 	Default: 300.0 130.0 130.0""",
 	metavar = ('Z', 'Y', 'X'), default = [300., 130., 130.])
-parser.add_argument('-d', '--delim', type = float, nargs = 3,
+parser.add_argument('-d', '--delim', type = float, nargs = 1,
 	help = """Input table delimiter. Default: ','""", default = [','])
 
 # Add flags
@@ -86,7 +86,7 @@ aspect = args.aspect
 (az, ay, ax) = aspect
 outpath = args.output[0]
 doSel = args.sel
-delim = args.delim
+delim = args.delim[0]
 
 # FUNCTIONS ====================================================================
 
