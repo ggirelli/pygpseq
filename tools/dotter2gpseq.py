@@ -67,6 +67,8 @@ parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 	help = """Physical size of Z, Y and X voxel sides.
 	Default: 300.0 130.0 130.0""",
 	metavar = ('Z', 'Y', 'X'), default = [300., 130., 130.])
+parser.add_argument('-d', '--delim', type = float, nargs = 3,
+	help = """Input table delimiter. Default: ','""", default = [','])
 
 # Add flags
 parser.add_argument('-s',
@@ -84,6 +86,7 @@ aspect = args.aspect
 (az, ay, ax) = aspect
 outpath = args.output[0]
 doSel = args.sel
+delim = args.delim
 
 # FUNCTIONS ====================================================================
 
@@ -106,7 +109,7 @@ def in_nucleus(n, s, coords):
 # RUN ==========================================================================
 
 # Read table
-t = pd.read_csv(dot_table_name, '\t')
+t = pd.read_csv(dot_table_name, delim)
 t['cell_ID'] = np.zeros(len(t.index))
 t['lamin_dist'] = np.zeros(len(t.index))
 t['lamin_dist_norm'] = np.zeros(len(t.index))
