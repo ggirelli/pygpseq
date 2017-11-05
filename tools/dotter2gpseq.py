@@ -5,12 +5,13 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 1.1.1
+# Version: 1.2.0
 # Date: 20170718
 # Project: GPSeq
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v1.2.0 - 20171105: dilation, allele labeling, parallelization.
 #  v1.1.1 - 20171020: fixed parameter description.
 #  v1.1.0 - 20170830: added G1 cells selection.
 #  v1.0.0 - 20170718: first implementation.
@@ -26,10 +27,12 @@
 # DEPENDENCIES =================================================================
 
 import argparse
+from joblib import Parallel, delayed
 import math
 import matplotlib
 matplotlib.use('ps')
 import matplotlib.pyplot as plt
+import multiprocessing
 import numpy as np
 import os
 import pandas as pd
@@ -79,6 +82,9 @@ parser.add_argument('-d', '--delim', type = str, nargs = 1,
 parser.add_argument('--dilate', type = int, nargs = 1,
 	help = """Number of pixels for nuclear mask dilation. Default: 0""",
 	default = [0])
+parser.add_argument('-t', '--threads', type = int, nargs = 1,
+	help = """Number of threads for parallelization. Default: 1""",
+	default = [1])
 
 # Add flags
 parser.add_argument('-s',
@@ -104,6 +110,7 @@ doSel = args.sel
 delim = args.delim[0]
 noplot = args.noplot
 dilate_factor = args.dilate[0]
+ncores = args.threads[0]
 
 # Params
 seg_type = gp.const.SEG_3D
@@ -116,6 +123,10 @@ if not outdir[-1] == "/":
 	outdir += "/"
 if not imdir[-1] in ['/\\']:
 	imdir += "/"
+maxncores = multiprocessing.cpu_count()
+if maxncores < ncores:
+	print("Lowered number of threads to maximum available: %d" % (maxncores))
+	ncores = maxncores
 
 # FUNCTIONS ====================================================================
 
@@ -239,6 +250,172 @@ def add_allele(data):
     # Output -------------------------------------------------------------------
     return(data.drop('universalID', 1))
 
+def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
+	maskdir, dilate_factor, aspect, t):
+	# Logger for logpath
+	logger = iot.IOinterface()
+
+	(idx, impath) = list(imfov.items())[ii]
+	print("  · '%s'..." % (impath,))
+	msg = "  · '%s'...\n" % (impath,)
+	subt_idx = np.where(t['File'] == idx)[0]
+
+	# Read image
+	msg = "   - Reading ...\n"
+	im = io.imread(os.path.join(imdir, impath))[0]
+
+	# Re-slice
+	msg += "    > Re-slicing ...\n"
+	im = imt.autoselect_time_frame(im)
+	im = imt.slice_k_d_img(im, 3)
+
+	# Get DNA scaling factor and rescale
+	sf = imt.get_rescaling_factor([impath], basedir = imdir)
+	im = (im / sf).astype('float')
+	msg += "    > Re-scaling with factor %f...\n" % (sf,)
+
+	# Pick first timeframe
+	if 3 == len(im.shape) and 1 == im.shape[0]:
+		im = im[0]
+
+	# Binarize image -----------------------------------------------------------
+	msg += "   - Binarizing...\n"
+	binarization = gp.tools.binarize.Binarize(
+		an_type=an_type,
+		seg_type=seg_type,
+		verbose = False
+	)
+	(imbin, thr, log) = binarization.run(im)
+	msg += log
+
+	# Find nuclei --------------------------------------------------------------
+	msg += "   - Retrieving nuclei...\n"
+
+	# Estimate background
+	dna_bg = imt.estimate_background(im, imbin, seg_type)
+	msg += "    > Estimated background: %.2f a.u.\n" % (dna_bg,)
+
+	# Filter object size
+	imbin, tmp = binarization.filter_obj_XY_size(imbin)
+	imbin, tmp = binarization.filter_obj_Z_size(imbin)
+
+	# Save default mask
+	msg += "   - Saving default binary mask...\n"
+	outname = "%smask.%s.default.png" % (maskdir, impath)
+	save_mask_png(outname, imbin, impath, "Default mask.")
+
+	# Export dilated mask
+	if not noplot and 0 != dilate_factor:
+		msg += "   - Saving dilated mask...\n"
+		imbin_dil = dilation(imbin, cube(dilate_factor))
+		title = "Dilated mask, %d factor." % (dilate_factor,)
+		outname = "%smask.%s.dilated%d.png" % (maskdir, impath, dilate_factor)
+		save_mask_png(outname, imbin_dil, impath, title)
+
+	# Identify nuclei
+	L = label(imbin)
+	seq = range(1, L.max() + 1)
+
+	# Save mask ----------------------------------------------------------------
+	msg += "   - Saving nuclear ID mask...\n"
+	title = 'Nuclei in "%s" [%d objects]' % (impath, im.max())
+	outpath = "%smask.%s.nuclei.png" % (maskdir, impath)
+	save_mask_png(outpath, L, impath, title)
+
+	# Store nuclei -------------------------------------------------------------
+	kwargs = {
+		'series_id' : ii, 'thr' : thr,
+		'dna_bg' : dna_bg, 'sig_bg' : 0,
+		'aspect' : aspect, 'offset' : (1, 1, 1),
+		'logpath' : logger.logpath, 'i' : im
+	}
+
+	curnuclei = []
+	if 0 != dilate_factor:
+		dilated_nmasks = {}
+		msg += "   - Saving %d nuclei with dilation [%d]..." % (
+			L.max(), dilate_factor)
+		for n in seq:
+			dilated_nmasks[n] = dilation(L == n, cube(dilate_factor))
+			curnuclei.append(Nucleus(n = n, mask = dilated_nmasks[n], **kwargs))
+			msg += "    > Applying nuclear box [%d]...\n" % (n,)
+			dilated_nmasks[n] = imt.apply_box(
+				dilated_nmasks[n], curnuclei[n - 1].box)
+	else:
+		msg += "   - Saving %d nuclei...\n" % (L.max(),)
+		for n in seq:
+			curnuclei.append(Nucleus(n = n, mask = L == n, **kwargs))
+	nuclei.extend(curnuclei)
+
+	# Assign dots to cells -----------------------------------------------------
+	msg += "   - Analysis...\n"
+
+	# Extract cell ID
+	msg += "    > Assigning dots to cells...\n"
+	subt = t.loc[subt_idx, :]
+	if 0 == dilate_factor:
+		# Add empty top/bottom slides
+		imbin_tops = np.zeros((imbin.shape[0]+2, imbin.shape[1], imbin.shape[2]))
+		imbin_tops[1:(imbin.shape[0]+1),:,:] = imbin
+
+		L = label(imbin_tops)[1:(imbin.shape[0]+1),:,:]
+		subt.loc[:, 'cell_ID'] = L[subt['z'], subt['x'], subt['y']]
+	else:
+		for idx in subt.index:
+			coords = (
+				subt.loc[idx, 'z'],
+				subt.loc[idx, 'x'],
+				subt.loc[idx, 'y']
+			)
+			for nid in range(1, len(curnuclei) + 1):
+				if in_3d_box(curnuclei[nid - 1].box, coords):
+					subt.loc[idx, 'cell_ID'] = nid
+					break
+
+	# Distances ----------------------------------------------------------------
+
+	# Calculate distance from lamina
+	msg += "    > Calculating lamina distance...\n"
+
+	# Calculate distance and store it ------------------------------------------
+	msg += "    > Calculating distances...\n"
+	cell_max_lamin_dist = {0 : 1}
+	if 0 == dilate_factor:
+		D = distance_transform_edt(imbin_tops, aspect)[1:(imbin.shape[0]+1),:,:]
+		subt.loc[:, 'lamin_dist'] = D[subt['z'], subt['x'], subt['y']]
+
+		# Retrieve max lamin dist per cell
+		for cid in range(subt['cell_ID'].max() + 1):
+			cell_max_lamin_dist[cid] = np.max(D[np.where(L == cid)])
+	else:
+		for cid in range(1, int(subt['cell_ID'].max()) + 1):
+			msg += "    >>> Working on cell #%d...\n" % (cid,)
+			D = distance_transform_edt(dilated_nmasks[cid], aspect)
+			cell_cond = cid == subt['cell_ID']
+			bbox = curnuclei[cid - 1].box
+			subt.loc[cell_cond, 'lamin_dist'] = D[
+				subt.loc[cell_cond, 'z'] - bbox[0][0],
+				subt.loc[cell_cond, 'x'] - bbox[1][0],
+				subt.loc[cell_cond, 'y'] - bbox[2][0]]
+
+			# Retrieve max lamin dist per cell
+			cell_max_lamin_dist[cid] = D.max()
+
+	# Normalize lamin_dist
+	fnorm = [cell_max_lamin_dist[cid]
+		for cid in subt['cell_ID'].tolist()]
+	subt.loc[:, 'lamin_dist_norm'] = subt['lamin_dist'] / fnorm
+
+	# Normalized centr_dist
+	subt.loc[:, 'centr_dist_norm'] = 1 - subt['lamin_dist_norm']
+
+	# Calculate centr_dist
+	subt.loc[:, 'centr_dist'] = subt['centr_dist_norm'] * fnorm
+
+	# Output
+	print(msg)
+	return((curnuclei, subt, subt_idx))
+
 # RUN ==========================================================================
 
 # Create output folder
@@ -285,166 +462,17 @@ for i in set(t['File']):
 # Nuclei container
 nuclei = []
 
-# Logger for logpath
-logger = iot.IOinterface()
-
 # Cycle through
-for ii in range(len(imfov.keys())):
-	(idx, impath) = list(imfov.items())[ii]
-	print("  · '%s'..." % (impath,))
-	subt_idx = np.where(t['File'] == idx)[0]
-
-	# Read image
-	print("   - Reading ...")
-	im = io.imread(os.path.join(imdir, impath))[0]
-
-	# Re-slice
-	print("    > Re-slicing ...")
-	im = imt.autoselect_time_frame(im)
-	im = imt.slice_k_d_img(im, 3)
-
-	# Get DNA scaling factor and rescale
-	sf = imt.get_rescaling_factor([impath], basedir = imdir)
-	im = (im / sf).astype('float')
-	print("    > Re-scaling with factor %f..." % (sf,))
-
-	# Pick first timeframe
-	if 3 == len(im.shape) and 1 == im.shape[0]:
-		im = im[0]
-
-	# Binarize image -----------------------------------------------------------
-	print("   - Binarizing...")
-	binarization = gp.tools.binarize.Binarize(
-		an_type=an_type,
-		seg_type=seg_type
-	)
-	(imbin, thr, log) = binarization.run(im)
-
-	# Find nuclei --------------------------------------------------------------
-	print("   - Retrieving nuclei...")
-
-	# Estimate background
-	dna_bg = imt.estimate_background(im, imbin, seg_type)
-	print("    > Estimated background: %.2f a.u." % (dna_bg,))
-
-	# Filter object size
-	imbin, tmp = binarization.filter_obj_XY_size(imbin)
-	imbin, tmp = binarization.filter_obj_Z_size(imbin)
-
-	# Save default mask
-	print("   - Saving default binary mask...")
-	outname = "%smask.%s.default.png" % (maskdir, impath)
-	save_mask_png(outname, imbin, impath, "Default mask.")
-
-	# Export dilated mask
-	if not noplot and 0 != dilate_factor:
-		print("   - Saving dilated mask...")
-		imbin_dil = dilation(imbin, cube(dilate_factor))
-		title = "Dilated mask, %d factor." % (dilate_factor,)
-		outname = "%smask.%s.dilated%d.png" % (maskdir, impath, dilate_factor)
-		save_mask_png(outname, imbin_dil, impath, title)
-
-	# Identify nuclei
-	L = label(imbin)
-	seq = range(1, L.max() + 1)
-
-	# Save mask ----------------------------------------------------------------
-	print("   - Saving nuclear ID mask...")
-	title = 'Nuclei in "%s" [%d objects]' % (impath, im.max())
-	outpath = "%smask.%s.nuclei.png" % (maskdir, impath)
-	save_mask_png(outpath, L, impath, title)
-
-	# Store nuclei -------------------------------------------------------------
-	kwargs = {
-		'series_id' : ii, 'thr' : thr,
-		'dna_bg' : dna_bg, 'sig_bg' : 0,
-		'aspect' : aspect, 'offset' : (1, 1, 1),
-		'logpath' : logger.logpath, 'i' : im
-	}
-
-	curnuclei = []
-	if 0 != dilate_factor:
-		dilated_nmasks = {}
-		print("   - Saving %d nuclei with dilation [%d]..."
-			% (L.max(), dilate_factor))
-		for n in seq:
-			dilated_nmasks[n] = dilation(L == n, cube(dilate_factor))
-			curnuclei.append(Nucleus(n = n, mask = dilated_nmasks[n], **kwargs))
-			print("    > Applying nuclear box [%d]..." % (n,))
-			dilated_nmasks[n] = imt.apply_box(
-				dilated_nmasks[n], curnuclei[n - 1].box)
-	else:
-		print("   - Saving %d nuclei..." % (L.max(),))
-		for n in seq:
-			curnuclei.append(Nucleus(n = n, mask = L == n, **kwargs))
+kwargs = {
+	'imfov' : imfov, 'imdir' : imdir,
+	'an_type' : an_type, 'seg_type' : seg_type, 'maskdir' : maskdir,
+	'dilate_factor' : dilate_factor, 'aspect' : aspect, 't' : t
+}
+anData = Parallel(n_jobs = ncores)(
+	delayed(analyze_field_of_view)(ii, **kwargs)
+	for ii in range(len(imfov.keys())))
+for (curnuclei, subt, subt_idx) in anData:
 	nuclei.extend(curnuclei)
-
-	# Assign dots to cells -----------------------------------------------------
-	print("   - Analysis...")
-
-	# Extract cell ID
-	print("    > Assigning dots to cells...")
-	subt = t.loc[subt_idx, :]
-	if 0 == dilate_factor:
-		# Add empty top/bottom slides
-		imbin_tops = np.zeros((imbin.shape[0]+2, imbin.shape[1], imbin.shape[2]))
-		imbin_tops[1:(imbin.shape[0]+1),:,:] = imbin
-
-		L = label(imbin_tops)[1:(imbin.shape[0]+1),:,:]
-		subt.loc[:, 'cell_ID'] = L[subt['z'], subt['x'], subt['y']]
-	else:
-		for idx in subt.index:
-			coords = (
-				subt.loc[idx, 'z'],
-				subt.loc[idx, 'x'],
-				subt.loc[idx, 'y']
-			)
-			for nid in range(1, len(curnuclei) + 1):
-				if in_3d_box(curnuclei[nid - 1].box, coords):
-					subt.loc[idx, 'cell_ID'] = nid
-					break
-
-	# Distances ----------------------------------------------------------------
-
-	# Calculate distance from lamina
-	print("    > Calculating lamina distance...")
-
-	# Calculate distance and store it ------------------------------------------
-	print("    > Calculating distances...")
-	cell_max_lamin_dist = {0 : 1}
-	if 0 == dilate_factor:
-		D = distance_transform_edt(imbin_tops, aspect)[1:(imbin.shape[0]+1),:,:]
-		subt.loc[:, 'lamin_dist'] = D[subt['z'], subt['x'], subt['y']]
-
-		# Retrieve max lamin dist per cell
-		for cid in range(subt['cell_ID'].max() + 1):
-			cell_max_lamin_dist[cid] = np.max(D[np.where(L == cid)])
-	else:
-		for cid in range(1, int(subt['cell_ID'].max()) + 1):
-			print("    >>> Working on cell #%d..." % (cid,))
-			D = distance_transform_edt(dilated_nmasks[cid], aspect)
-			cell_cond = cid == subt['cell_ID']
-			bbox = curnuclei[cid - 1].box
-			subt.loc[cell_cond, 'lamin_dist'] = D[
-				subt.loc[cell_cond, 'z'] - bbox[0][0],
-				subt.loc[cell_cond, 'x'] - bbox[1][0],
-				subt.loc[cell_cond, 'y'] - bbox[2][0]]
-
-			# Retrieve max lamin dist per cell
-			cell_max_lamin_dist[cid] = D.max()
-
-	# Normalize lamin_dist
-	fnorm = [cell_max_lamin_dist[cid]
-		for cid in subt['cell_ID'].tolist()]
-	subt.loc[:, 'lamin_dist_norm'] = subt['lamin_dist'] / fnorm
-
-	# Normalized centr_dist
-	subt.loc[:, 'centr_dist_norm'] = 1 - subt['lamin_dist_norm']
-
-	# Calculate centr_dist
-	subt.loc[:, 'centr_dist'] = subt['centr_dist_norm'] * fnorm
-
-	# Store in original table
 	t.loc[subt_idx, :] = subt
 
 # Identify G1 cells ------------------------------------------------------------
