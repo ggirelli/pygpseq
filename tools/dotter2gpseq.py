@@ -271,7 +271,7 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 
     (idx, impath) = list(imfov.items())[ii]
     print("  Started '%s' job..." % (impath,))
-    msg = "  · '%s'...\n" % (impath,)
+    msg = "> Job '%s'...\n" % (impath,)
     subt_idx = np.where(t['File'] == idx)[0]
 
     # Read image
