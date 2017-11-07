@@ -347,7 +347,7 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
     curnuclei = []
     if 0 != dilate_factor:
         dilated_nmasks = {}
-        msg += "   - Saving %d nuclei with dilation [%d]..." % (
+        msg += "   - Saving %d nuclei with dilation [%d]...\n" % (
             L.max(), dilate_factor)
         for n in seq:
             dilated_nmasks[n] = dilation(L == n, cube(dilate_factor))
