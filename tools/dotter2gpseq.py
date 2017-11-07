@@ -427,6 +427,7 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
     subt.loc[:, 'centr_dist'] = subt['centr_dist_norm'] * fnorm
 
     # Output
+    msg += "< Finished job."
     print(msg)
     return((curnuclei, subt, subt_idx))
 
