@@ -250,7 +250,8 @@ def add_allele(data):
         uID = np.unique(IDmap[cond, 0]).tolist()
         for ID in uID:
             dotPair = data.loc[data['universalID'] == ID, :]
-            if dotPair['lamin_dist_norm'][0] == dotPair['lamin_dist_norm'][1]:
+            ldn = dotPair['lamin_dist_norm'].tolist()
+            if ldn[0] == ldn[1]:
                 # Same centrality
                 data.loc[dotPair.index[0], 'Allele'] = 1 # Central
                 data.loc[dotPair.index[1], 'Allele'] = 2 # Peripheral
