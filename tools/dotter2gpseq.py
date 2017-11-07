@@ -235,17 +235,25 @@ def add_allele(data):
     data['Allele'] = np.nan
 
     # -1 if more than 2 dots
-    data.loc[validIdx[IDmap[:,1].astype('i') > 2], 'Allele'] = -1
+    cond = IDmap[:,1].astype('i') > 2
+    if 0 != sum(cond):
+    	data.loc[validIdx[cond], 'Allele'] = -1
 
     #  0 if less than 2 dots
-    data.loc[validIdx[IDmap[:,1].astype('i') == 1], 'Allele'] = 0
+    cond = IDmap[:,1].astype('i') == 1
+    if 0 != sum(cond):
+    	data.loc[validIdx[cond], 'Allele'] = 0
 
     # Iterate over 2-dots cases
-    uID = np.unique(IDmap[IDmap[:,1].astype('i') == 2, 0]).tolist()
-    for ID in uID:
-        dotPair = data.loc[data['universalID'] == ID, :]
-        data.loc[dotPair['lamin_dist_norm'].argmin(), 'Allele'] = 2 # Peripheral
-        data.loc[dotPair['lamin_dist_norm'].argmax(), 'Allele'] = 1 # Central
+    cond = IDmap[:,1].astype('i') == 2
+    if 0 != sum(cond):
+	    uID = np.unique(IDmap[cond, 0]).tolist()
+	    for ID in uID:
+	        dotPair = data.loc[data['universalID'] == ID, :]
+	        # Peripheral
+	        data.loc[dotPair['lamin_dist_norm'].argmin(), 'Allele'] = 2
+	        # Central
+	        data.loc[dotPair['lamin_dist_norm'].argmax(), 'Allele'] = 1
 
     # Output -------------------------------------------------------------------
     return(data.drop('universalID', 1))
@@ -557,6 +565,9 @@ if doSel:
 				t.ix[ti, 'G1'] = 1
 				break
 
+outname = "%s/wCentr.out.noAllele.dilate%d.%s" % (outdir, dilate_factor, dot_file_name)
+t.to_csv(outname, sep = '\t', index = False)
+
 # Add allele information -------------------------------------------------------
 print("  - Adding allele information...")
 t = add_allele(t)
@@ -568,3 +579,4 @@ t.to_csv(outname, sep = '\t', index = False)
 # END ==========================================================================
 
 ################################################################################
+
