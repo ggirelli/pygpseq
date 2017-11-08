@@ -225,9 +225,10 @@ def add_allele(data):
     # Count dots per universalID
     uID,  uCount = np.unique(data.loc[validIdx, 'universalID'],
         return_index = False, return_counts = True)
-    IDmap = np.array(zip(data.loc[validIdx, 'universalID'],
+    IDmap = zip(data.loc[validIdx, 'universalID'],
         [dict(zip(uID, uCount))[ID]
-        for ID in data.loc[validIdx, 'universalID']]))
+        for ID in data.loc[validIdx, 'universalID']])
+    IDmap = np.array(list(IDmap))
 
     # Fill Allele column -------------------------------------------------------
     
