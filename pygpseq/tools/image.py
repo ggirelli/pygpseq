@@ -7,7 +7,7 @@ import os
 import numpy as np
 from scipy.ndimage.morphology import distance_transform_edt
 from skimage import filters
-from skimage.measure import label, marching_cubes, mesh_surface_area
+from skimage.measure import label, marching_cubes_lewiner, mesh_surface_area
 from skimage.morphology import closing, convex_hull_image, cube
 from skimage.morphology import square
 from skimage.segmentation import clear_border
@@ -117,7 +117,7 @@ def threshold_adaptive(i, block_size):
 	# Apply threshold per slice
 	if 3 == len(i.shape):
 		for slice_id in range(i.shape[0]):
-			lmask[slice_id, :, :] = filters.threshold_adaptive(
+			lmask[slice_id, :, :] = filters.threshold_local(
 				i[slice_id, :, :], block_size)
 		lmask = closing(lmask, cube(3))
 	else:
@@ -221,8 +221,8 @@ def describe_shape(mask, spacing = None):
 		mask = np.vstack((np.zeros(shape), mask, np.zeros(shape)))
 
 		# Calculate sphericity
-		s = marching_cubes(mask, 0.0, spacing)
-		s = mesh_surface_area(s[0], s[1])
+		verts, faces, ns, vs = marching_cubes_lewiner(mask, 0.0, spacing)
+		s = mesh_surface_area(verts, faces)
 		return((np.pi * (6.0 * mask.sum())**2)**(1/3.0) / s)
 	else:
 		return(0)
@@ -259,8 +259,8 @@ def calc_surface(mask, spacing = None):
 	mask = np.vstack((np.zeros(shape), mask, np.zeros(shape)))
 
 	# Calculate sphericity
-	s = marching_cubes(mask, 0.0, spacing)
-	return(mesh_surface_area(s[0], s[1]))
+	verts, faces, ns, vs = marching_cubes_lewiner(mask, 0.0, spacing)
+	return(mesh_surface_area(verts, faces))
 
 def slice_k_d_img(img, k):
 	"""Select one k-d image from a n-d image.
