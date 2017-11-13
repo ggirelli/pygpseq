@@ -36,6 +36,7 @@ import multiprocessing
 import numpy as np
 import os
 import pandas as pd
+import pickle
 from scipy.ndimage.morphology import distance_transform_edt
 import skimage.io as io
 from skimage.measure import label
@@ -129,6 +130,20 @@ if maxncores < ncores:
     ncores = maxncores
 
 # FUNCTIONS ====================================================================
+
+def in_mask(coords, imbin):
+    '''Check if a pixel in a mask is foreground.'''
+    
+    # Check the pixel is inside the image boundaries
+    inbound = imbin.shape[0] >= coords[0]
+    inbound = inbound and imbin.shape[1] >= coords[1]
+    inbound = inbound and imbin.shape[2] >= coords[2]
+    inbound = inbound and all(coords >= 0)
+    if not inbound:
+        return(False)
+
+    # Check the pixel is foreground
+    return(1 == imbin[coords[0], coords[1], coords[2]])
 
 def in_box(coords, box):
     ''''''
@@ -347,15 +362,22 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 
     curnuclei = []
     if 0 != dilate_factor:
-        dilated_nmasks = {}
         msg += "   - Saving %d nuclei with dilation [%d]...\n" % (
             L.max(), dilate_factor)
         for n in seq:
-            dilated_nmasks[n] = dilation(L == n, cube(dilate_factor))
-            curnuclei.append(Nucleus(n = n, mask = dilated_nmasks[n], **kwargs))
+            # Dilate mask
+            dilated_nmasks = dilation(L == n, cube(dilate_factor))
+            nucleus = Nucleus(n = n, mask = dilated_nmasks, **kwargs)
+
+            # Apply box
             msg += "    > Applying nuclear box [%d]...\n" % (n,)
-            dilated_nmasks[n] = imt.apply_box(
-                dilated_nmasks[n], curnuclei[n - 1].box)
+            dilated_nmasks = imt.apply_box(
+                dilated_nmasks, nucleus.box)
+
+            # Save nucleus
+            nucleus.dilate_factor = dilate_factor
+            nucleus.dilated_mask = dilated_nmasks
+            curnuclei.append(nucleus)
     else:
         msg += "   - Saving %d nuclei...\n" % (L.max(),)
         for n in seq:
@@ -370,7 +392,8 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
     subt = t.loc[subt_idx, :]
     if 0 == dilate_factor:
         # Add empty top/bottom slides
-        imbin_tops = np.zeros((imbin.shape[0]+2, imbin.shape[1], imbin.shape[2]))
+        imbin_tops = np.zeros((imbin.shape[0]+2,
+            imbin.shape[1], imbin.shape[2]))
         imbin_tops[1:(imbin.shape[0]+1),:,:] = imbin
 
         L = label(imbin_tops)[1:(imbin.shape[0]+1),:,:]
@@ -383,7 +406,9 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
                 subt.loc[idx, 'y']
             )
             for nid in range(1, len(curnuclei) + 1):
-                if in_3d_box(curnuclei[nid - 1].box, coords):
+                n = curnuclei[nid - 1]
+                coords = coords - np.array([c[0] for c in n.box])
+                if in_mask(coords, n.dilated_mask):
                     subt.loc[idx, 'cell_ID'] = nid
                     break
 
@@ -405,8 +430,9 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
     else:
         for cid in range(1, int(subt['cell_ID'].max()) + 1):
             msg += "    >>> Working on cell #%d...\n" % (cid,)
-            D = distance_transform_edt(dilated_nmasks[cid], aspect)
             cell_cond = cid == subt['cell_ID']
+
+            D = distance_transform_edt(curnuclei[cid].dilated_mask, aspect)
             bbox = curnuclei[cid - 1].box
             subt.loc[cell_cond, 'lamin_dist'] = D[
                 subt.loc[cell_cond, 'z'] - bbox[0][0],
@@ -516,6 +542,7 @@ if doSel:
 
     # Filter features
     sel_data = {}
+    ranges = {}
     plot_counter = 1
     for nsfi in nsf:
         # Identify Nuclear Selection Feature
@@ -532,6 +559,7 @@ if doSel:
         # Identify range
         args = [d['density']['x'], d['density']['y']]
         d['fwhm_range'] = stt.get_fwhm(*args)
+        ranges[nsf_name] = d['fwhm_range']
 
         # Plot
         sel_data[nsf_field] = d
@@ -548,7 +576,7 @@ if doSel:
         nsf_data['sel'] = [f(i, nsf_data['fwhm_range'])
             for i in nsf_data['data']]
         sel_data[nsf_field] = nsf_data
-    
+
     # Select those in every FWHM range
     print("   > Applying selection criteria")
     nsfields = [gp.const.NSEL_FIELDS[nsfi] for nsfi in nsf]
@@ -558,22 +586,38 @@ if doSel:
     sub_data = np.array(summary[selected])
 
     # Identify selected nuclei objects
-    sel_nucl = []
-    for n in nuclei:
-        if n.n in sub_data['n'][np.where(n.s == sub_data['s'])[0]]:
-            sel_nucl.append(n)
+    sel_nuclei_labels = ["_%d.%d_" % (n, s)
+        for (n, s) in sub_data[['s', 'n']]]
+    sel_nucl = [n for n in nuclei
+        if "_%d.%d_" % (n.s, n.n) in sel_nuclei_labels]
 
     # Check which dots are in which nucleus and update flag
     print("   > Matching DOTTER cells with GPSeq cells...")
     t['G1'] = np.zeros((t.shape[0],))
+    used_nuclei = []
     for ti in t.index:
-        for ni in range(len(sel_nucl)):
-            n = sel_nucl[ni]
-            if in_nucleus(n, int(t.ix[ti, 0]-1), tuple(t.ix[ti, [5, 3, 4]])):
+        for n in sel_nucl:
+            if not n.s == int(t.ix[ti, 0]-1):
+                continue
+            if in_box(tuple(t.ix[ti, [5, 3, 4]]),n.box):
                 t.ix[ti, 'G1'] = 1
-                break
 
-outname = "%s/wCentr.out.noAllele.dilate%d.%s" % (outdir, dilate_factor, dot_file_name)
+    # Export feature ranges
+    s = ""
+    for (k, v) in ranges.items():
+        s += "%s\t%f\t%f\n" % (k, v[0], v[1])
+    f = open("%s/feature_ranges.txt" % (outdir,), "w+")
+    f.write(s)
+    f.close()
+
+# Export nuclei object vector
+f = open("%s/nuclei.pickle" % (outdir,), "wb+")
+pickle.dump(nuclei, f)
+f.close()
+
+# Export table before allele labeling
+outname = "%s/wCentr.out.noAllele.dilate%d.%s" % (
+    outdir, dilate_factor, dot_file_name)
 t.to_csv(outname, sep = '\t', index = False)
 
 # Add allele information -------------------------------------------------------
@@ -581,7 +625,8 @@ print("  - Adding allele information...")
 t = add_allele(t)
 
 # Write output -----------------------------------------------------------------
-outname = "%s/wCentr.out.dilate%d.%s" % (outdir, dilate_factor, dot_file_name)
+outname = "%s/wCentr.out.dilate%d.%s" % (
+    outdir, dilate_factor, dot_file_name)
 t.to_csv(outname, sep = '\t', index = False)
 
 # END ==========================================================================
