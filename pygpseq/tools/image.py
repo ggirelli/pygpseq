@@ -117,7 +117,7 @@ def threshold_adaptive(i, block_size):
 	# Apply threshold per slice
 	if 3 == len(i.shape):
 		for slice_id in range(i.shape[0]):
-			lmask[slice_id, :, :] = filters.threshold_local(
+			lmask[slice_id, :, :] = filters.threshold_adaptive(
 				i[slice_id, :, :], block_size)
 		lmask = closing(lmask, cube(3))
 	else:
