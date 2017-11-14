@@ -444,6 +444,10 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
     # Calculate centr_dist
     subt.loc[:, 'centr_dist'] = subt['centr_dist_norm'] * fnorm
 
+    # Remove masks from curnuclei
+    for k in curnuclei.keys():
+        del curnuclei[k].mask
+
     # Output
     msg += "< Finished job."
     print(msg)
