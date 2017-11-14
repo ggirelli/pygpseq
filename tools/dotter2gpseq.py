@@ -5,12 +5,13 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 1.2.0
+# Version: 2.0.0
 # Date: 20170718
 # Project: GPSeq
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v2.0.0 - 20171114: fixed cell assignment and G1 selection.
 #  v1.2.0 - 20171105: dilation, allele labeling, parallelization.
 #  v1.1.1 - 20171020: fixed parameter description.
 #  v1.1.0 - 20170830: added G1 cells selection.
