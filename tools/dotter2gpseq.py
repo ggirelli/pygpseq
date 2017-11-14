@@ -138,7 +138,7 @@ def in_mask(coords, imbin):
     inbound = imbin.shape[0] >= coords[0]
     inbound = inbound and imbin.shape[1] >= coords[1]
     inbound = inbound and imbin.shape[2] >= coords[2]
-    inbound = inbound and all(coords >= 0)
+    inbound = inbound and all(np.array(coords) >= 0)
     if not inbound:
         return(False)
 
@@ -360,29 +360,24 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
         'logpath' : logger.logpath, 'i' : im
     }
 
-    curnuclei = []
+    curnuclei = {}
     if 0 != dilate_factor:
         msg += "   - Saving %d nuclei with dilation [%d]...\n" % (
             L.max(), dilate_factor)
         for n in seq:
             # Dilate mask
-            dilated_nmasks = dilation(L == n, cube(dilate_factor))
-            nucleus = Nucleus(n = n, mask = dilated_nmasks, **kwargs)
+            mask = dilation(L == n, cube(dilate_factor))
+            nucleus = Nucleus(n = n, mask = mask, **kwargs)
+            nucleus.mask = dilation(L == n, cube(dilate_factor))
 
             # Apply box
             msg += "    > Applying nuclear box [%d]...\n" % (n,)
-            dilated_nmasks = imt.apply_box(
-                dilated_nmasks, nucleus.box)
-
-            # Save nucleus
             nucleus.dilate_factor = dilate_factor
-            nucleus.dilated_mask = dilated_nmasks
-            curnuclei.append(nucleus)
+            curnuclei[n] = nucleus
     else:
         msg += "   - Saving %d nuclei...\n" % (L.max(),)
         for n in seq:
-            curnuclei.append(Nucleus(n = n, mask = L == n, **kwargs))
-    nuclei.extend(curnuclei)
+            curnuclei[n] = Nucleus(n = n, mask = L == n, **kwargs)
 
     # Assign dots to cells -----------------------------------------------------
     msg += "   - Analysis...\n"
@@ -400,17 +395,12 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
         subt.loc[:, 'cell_ID'] = L[subt['z'], subt['x'], subt['y']]
     else:
         for idx in subt.index:
-            coords = (
-                subt.loc[idx, 'z'],
+            coords = ( subt.loc[idx, 'z'],
                 subt.loc[idx, 'x'],
-                subt.loc[idx, 'y']
-            )
-            for nid in range(1, len(curnuclei) + 1):
-                n = curnuclei[nid - 1]
-                coords = coords - np.array([c[0] for c in n.box])
-                if in_mask(coords, n.dilated_mask):
+                subt.loc[idx, 'y'] )
+            for (nid, n) in curnuclei.items():
+                if in_mask(coords, n.mask):
                     subt.loc[idx, 'cell_ID'] = nid
-                    break
 
     # Distances ----------------------------------------------------------------
 
@@ -428,19 +418,20 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
         for cid in range(subt['cell_ID'].max() + 1):
             cell_max_lamin_dist[cid] = np.max(D[np.where(L == cid)])
     else:
-        for cid in range(1, int(subt['cell_ID'].max()) + 1):
-            msg += "    >>> Working on cell #%d...\n" % (cid,)
-            cell_cond = cid == subt['cell_ID']
+        for cid in range(int(subt['cell_ID'].max()) + 1):
+            if cid in curnuclei.keys():
+                msg += "    >>> Working on cell #%d...\n" % (cid,)
+                cell_cond = cid == subt['cell_ID']
 
-            D = distance_transform_edt(curnuclei[cid].dilated_mask, aspect)
-            bbox = curnuclei[cid - 1].box
-            subt.loc[cell_cond, 'lamin_dist'] = D[
-                subt.loc[cell_cond, 'z'] - bbox[0][0],
-                subt.loc[cell_cond, 'x'] - bbox[1][0],
-                subt.loc[cell_cond, 'y'] - bbox[2][0]]
+                D = distance_transform_edt(curnuclei[cid].mask, aspect)
+                bbox = curnuclei[cid].box
+                subt.loc[cell_cond, 'lamin_dist'] = D[
+                    subt.loc[cell_cond, 'z'],
+                    subt.loc[cell_cond, 'x'],
+                    subt.loc[cell_cond, 'y']]
 
-            # Retrieve max lamin dist per cell
-            cell_max_lamin_dist[cid] = D.max()
+                # Retrieve max lamin dist per cell
+                cell_max_lamin_dist[cid] = D.max()
 
     # Normalize lamin_dist
     fnorm = [cell_max_lamin_dist[cid]
@@ -514,7 +505,7 @@ anData = Parallel(n_jobs = ncores)(
     delayed(analyze_field_of_view)(ii, **kwargs)
     for ii in range(len(imfov.keys())))
 for (curnuclei, subt, subt_idx) in anData:
-    nuclei.extend(curnuclei)
+    nuclei.extend(curnuclei.values())
     t.loc[subt_idx, :] = subt
 
 # Identify G1 cells ------------------------------------------------------------
