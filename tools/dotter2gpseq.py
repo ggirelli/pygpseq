@@ -514,7 +514,7 @@ for (curnuclei, subt, subt_idx) in anData:
 
 # Identify G1 cells ------------------------------------------------------------
 if doSel:
-    print("  - Flagging G1 cells...")
+    print("> Flagging G1 cells...")
 
     # Retrieve nuclei summaries
     print('   > Retrieving nuclear summary...')
@@ -594,8 +594,8 @@ if doSel:
         for n in sel_nucl:
             if not n.s == int(t.ix[ti, 0]-1):
                 continue
-            if in_box(tuple(t.ix[ti, [5, 3, 4]]),n.box):
-                t.ix[ti, 'G1'] = 1
+            if n.n == t.loc[ti, 'cell_ID']:
+                t.loc[ti, 'G1'] = 1
 
     # Export feature ranges
     s = ""
@@ -604,6 +604,8 @@ if doSel:
     f = open("%s/feature_ranges.txt" % (outdir,), "w+")
     f.write(s)
     f.close()
+
+    print("> Flagged G1 cells...")
 
 # Export nuclei object vector
 f = open("%s/nuclei.pickle" % (outdir,), "wb+")
