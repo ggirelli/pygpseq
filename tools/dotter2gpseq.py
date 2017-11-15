@@ -38,6 +38,7 @@ import numpy as np
 import os
 import pandas as pd
 import pickle
+from scipy.ndimage.measurements import center_of_mass
 from scipy.ndimage.morphology import distance_transform_edt
 import skimage.io as io
 from skimage.measure import label
@@ -55,15 +56,11 @@ from pygpseq.tools import stat as stt
 
 # Add script description
 parser = argparse.ArgumentParser(description = '''
-Calculate radial position of dots in cells. Use the -s option to trigger nuclei
-recognition and G1 selection: a column will be added flagging dots belonging to
-cells expected to be in G1. The G1 selection is actually a selection of the most
-represented cell sub-population based on flatten area and integral of DNA stain
-intensity. In other words, it will selected the most represented cell cycle
-phase in your cell population (generally, G1). Please, note that nuclei
-recognition and G1 selection are time consuming steps and require a large number
-of nuclei to work properly (i.e., more than 300). Images are expected to follow
-DOTTER filename notation: "channel_series.tif".
+Calculate radial position of dots in cells. The G1 selection is actually a
+selection of the most represented cell sub-population based on flatten area and
+integral of DNA stain intensity. In other words, it will selected the most
+represented cell cycle phase in your cell population (generally, G1). Images
+are expected to follow DOTTER filename notation: "channel_series.tif".
 ''')
 
 # Add mandatory arguments
@@ -89,10 +86,6 @@ parser.add_argument('-t', '--threads', type = int, nargs = 1,
     default = [1])
 
 # Add flags
-parser.add_argument('-s',
-    action = 'store_const', dest = 'sel',
-    const = True, default = False,
-    help = 'Perform nuclei recognition and G1 selection (time consuming).')
 parser.add_argument('--noplot',
     action = 'store_const', dest = 'noplot',
     const = True, default = False,
@@ -108,7 +101,6 @@ imdir = args.imgFolder[0]
 aspect = args.aspect
 (az, ay, ax) = aspect
 outdir = args.outFolder[0]
-doSel = args.sel
 delim = args.delim[0]
 noplot = args.noplot
 dilate_factor = args.dilate[0]
@@ -136,9 +128,9 @@ def in_mask(coords, imbin):
     '''Check if a pixel in a mask is foreground.'''
     
     # Check the pixel is inside the image boundaries
-    inbound = imbin.shape[0] >= coords[0]
-    inbound = inbound and imbin.shape[1] >= coords[1]
-    inbound = inbound and imbin.shape[2] >= coords[2]
+    inbound = imbin.shape[0] > coords[0]
+    inbound = inbound and imbin.shape[1] > coords[1]
+    inbound = inbound and imbin.shape[2] > coords[2]
     inbound = inbound and all(np.array(coords) >= 0)
     if not inbound:
         return(False)
@@ -192,6 +184,246 @@ def in_3d_box(box, coords):
     cy = coords[1] >= box[1][0] and coords[1] <= box[1][1]
     cz = coords[2] >= box[2][0] and coords[2] <= box[2][1]
     return(cx and cy and cz)
+
+def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
+    aspect, offset, logpath, i):
+    # Build nuclei objects
+    # 
+    # Args:
+    #   msg (string): log message, to be continued.
+    #   L (np.ndarray): labeled mask.
+    #   dilate_factor (int): dilation factor.
+    #   series_id (int): series ID.
+    #   thr (float): global threshold value.
+    #   dna_bg (float): DNA channel background.
+    #   sig_bg (float): signal channel background.
+    #   aspect (tuple): Z,Y,X voxel sides in real units.
+    #   offset (tuple): tuple with pixel offset for bounding box.
+    #   logpath (string): path to log file.
+    #   i (np.array): image.
+    # 
+    # Returns:
+    #   (string, list): log message and list of Nucleus objects.
+    
+    # Prepare input for Nucleus class
+    kwargs = {
+        'series_id' : series_id, 'thr' : thr,
+        'dna_bg' : dna_bg, 'sig_bg' : sig_bg,
+        'aspect' : aspect, 'offset' : offset,
+        'logpath' : logpath, 'i' : i
+    }
+
+    # Default nuclear ID list and empty dictionary
+    seq = range(1, L.max() + 1)
+    curnuclei = {}
+
+    # Log operation
+    if 0 != dilate_factor:
+        msg += "   - Saving %d nuclei with dilation [%d]...\n" % (
+            L.max(), dilate_factor)
+    else:
+        msg += "   - Saving %d nuclei...\n" % (L.max(),)
+
+    # Iterate through nuclei
+    for n in seq:
+        # Make nucleus
+        if 0 != dilate_factor:
+            # With dilated mask
+            mask = dilation(L == n, cube(dilate_factor))
+            nucleus = Nucleus(n = n, mask = mask, **kwargs)
+        else:
+            nucleus = Nucleus(n = n, mask = L == n, **kwargs)
+
+        # Apply box
+        msg += "    > Applying nuclear box [%d]...\n" % (n,)
+        mask = imt.apply_box(mask, nucleus.box)
+
+        # Store nucleus
+        nucleus.mask = mask
+        nucleus.box_origin = np.array([c[0] + 1 for c in nucleus.box])
+        nucleus.box_sides = np.array([np.diff(c) for c in nucleus.box])
+        nucleus.box_mass_center = center_of_mass(mask)
+        nucleus.dilate_factor = dilate_factor
+        curnuclei[n] = nucleus
+
+    return((msg, curnuclei))
+
+def dots2cells(t, nuclei, imbin, dilate_factor):
+    # Assign dots to cells
+    # 
+    # Args:
+    #   t (pd.DataFrame): DOTTER output subset.
+    #   nuclei (list(gp.Nucleus)): identified nuclei.
+    #   imbin (np.ndarray): binarized image.
+    #   dilate_factor (int): number of dilation operations.
+    # 
+    # Returns:
+    #   pd.DataFrame: updated DOTTER output.
+    
+    for idx in t.index:
+        coords = ( t.loc[idx, 'z'], t.loc[idx, 'x'], t.loc[idx, 'y'] )
+        for (nid, n) in nuclei.items():
+            if in_mask(coords - n.box_origin, n.mask):
+                t.loc[idx, 'cell_ID'] = nid
+                continue
+
+    # Output
+    return(t)
+
+def calc_dot_distances(msg, t, nuclei, aspect):
+    # Calculate distance of dots from lamina and central area
+    # 
+    # Args:
+    #   msg (string): log message, to be continued.
+    #   t (pd.DataFrame): DOTTER output table.
+    #   nuclei (list(gp.Nucleus)): identified nuclei.
+    #   aspect (tuple): Z,Y,X voxel sides in real units.
+    # 
+    # Returns:
+    #   pd.DataFrame:.
+
+    # Calculate distances ------------------------------------------------------
+    for cid in range(int(t['cell_ID'].max()) + 1):
+        if cid in nuclei.keys():
+                msg += "    >>> Working on cell #%d...\n" % (cid,)
+                cell_cond = cid == t['cell_ID']
+
+                # Distance from lamina and center
+                laminD = distance_transform_edt(nuclei[cid].mask, aspect)
+                centrD = distance_transform_edt(laminD != laminD.max(), aspect)
+
+                t.loc[cell_cond, 'lamin_dist'] = laminD[
+                    t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
+                    t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
+                    t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
+                ]
+
+                t.loc[cell_cond, 'centr_dist'] = centrD[
+                    t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
+                    t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
+                    t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
+                ]
+
+    # Normalize distances ------------------------------------------------------
+
+    # Max distance for each dot
+    fnorm = t.loc[:, 'lamin_dist'] + t.loc[:, 'centr_dist']
+    t.loc[:, 'centr_dist_norm'] = t.loc[:, 'centr_dist'] / fnorm
+    t.loc[:, 'lamin_dist_norm'] = t.loc[:, 'lamin_dist'] / fnorm
+
+    # Output
+    return(t)
+
+def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
+    # Assign a binary flag identifying the predominant cell population
+    # based on flatten size and intensity sum
+    # 
+    # Args:
+    #   t (pd.DataFrame): DOTTER output table.
+    #   nuclei (list(gp.Nucleus)): identified nuclei.
+    #   outdir (string): path to output folder.
+    #   dilate_factor (int): number of dilation operations.
+    #   dot_file_name (string): output file name.
+    # 
+    # Returns:
+    #   pd.DataFrame:.
+    # 
+    print("> Flagging G1 cells...")
+
+    # Retrieve nuclei summaries ------------------------------------------------
+    print('   > Retrieving nuclear summary...')
+    summary = np.zeros(len(nuclei),
+        dtype = gp.const.DTYPE_NUCLEAR_SUMMARY)
+    for i in range(len(nuclei)):
+        summary[i] = nuclei[i].get_summary()
+
+    # Filter nuclei ------------------------------------------------------------
+    print('   > Filtering nuclei based on flatten size and intensity...')
+    cond_name = 'none'
+    sigma = .1
+    nsf = (gp.const.NSEL_FLAT_SIZE, gp.const.NSEL_SUMI)
+    out_dir = '.'
+
+    # Filter features
+    sel_data = {}
+    ranges = {}
+    plot_counter = 1
+    for nsfi in nsf:
+        # Identify Nuclear Selection Feature
+        nsf_field = gp.const.NSEL_FIELDS[nsfi]
+        nsf_name = gp.const.NSEL_NAMES[nsfi]
+        print('   >> Filtering %s...' % (nsf_name,))
+
+        # Start building output
+        d = {'data' : summary[nsf_field]}
+
+        # Calculate density
+        d['density'] = stt.calc_density(d['data'], sigma = sigma)
+
+        # Identify range
+        args = [d['density']['x'], d['density']['y']]
+        d['fwhm_range'] = stt.get_fwhm(*args)
+        ranges[nsf_name] = d['fwhm_range']
+
+        # Plot
+        sel_data[nsf_field] = d
+
+    # Select based on range
+    f = lambda x, r: x >= r[0] and x <= r[1]
+    for nsfi in nsf:
+        nsf_field = gp.const.NSEL_FIELDS[nsfi]
+        nsf_name = gp.const.NSEL_NAMES[nsfi]
+        print("   > Selecting range for %s ..." % (nsf_name,))
+
+        # Identify nuclei in the FWHM range
+        nsf_data = sel_data[nsf_field]
+        nsf_data['sel'] = [f(i, nsf_data['fwhm_range'])
+            for i in nsf_data['data']]
+        sel_data[nsf_field] = nsf_data
+
+    # Select those in every FWHM range
+    print("   > Applying selection criteria")
+    nsfields = [gp.const.NSEL_FIELDS[nsfi] for nsfi in nsf]
+    selected = [sel_data[f]['sel'] for f in nsfields]
+    g = lambda i: all([sel[i] for sel in selected])
+    selected = [i for i in range(len(selected[0])) if g(i)]
+    sub_data = np.array(summary[selected])
+
+    # Identify selected nuclei objects
+    sel_nuclei_labels = ["_%d.%d_" % (n, s)
+        for (n, s) in sub_data[['s', 'n']]]
+    sel_nucl = [n for n in nuclei
+        if "_%d.%d_" % (n.s, n.n) in sel_nuclei_labels]
+
+    # Check which dots are in which nucleus and update flag --------------------
+    print("   > Matching DOTTER cells with GPSeq cells...")
+    t['G1'] = np.zeros((t.shape[0],))
+    used_nuclei = []
+    for ti in t.index:
+        for n in sel_nucl:
+            if not n.s == int(t.ix[ti, 0]-1):
+                continue
+            if n.n == t.loc[ti, 'cell_ID']:
+                t.loc[ti, 'G1'] = 1
+
+    # Export -------------------------------------------------------------------
+
+    # Export feature ranges
+    s = ""
+    for (k, v) in ranges.items():
+        s += "%s\t%f\t%f\n" % (k, v[0], v[1])
+    f = open("%s/feature_ranges.txt" % (outdir,), "w+")
+    f.write(s)
+    f.close()
+
+    # Export summary
+    outname = "%s/nuclei.out.dilate%d.%s" % (
+        outdir, dilate_factor, dot_file_name)
+    np.savetxt(outname, summary, delimiter = '\t')
+
+    # Output -------------------------------------------------------------------
+    print("> Flagged G1 cells...")
+    return(t)
 
 def add_allele(data):
     # Add allele labels to DOTTER-based table with GPSeq-like centrality.
@@ -281,6 +513,17 @@ def add_allele(data):
     # Output -------------------------------------------------------------------
     return(data.drop('universalID', 1))
 
+def angle_between_points( p0, p1, p2 ):
+    # p1 is the center point; result is in degrees
+    # From http://phrogz.net/angle-between-three-points
+    p0 = np.array(p0)
+    p1 = np.array(p1)
+    p2 = np.array(p2)
+    a = np.sum((p1 - p0)**2)
+    b = np.sum((p1 - p2)**2)
+    c = np.sum((p2 - p0)**2)
+    return(math.acos( (a + b - c) / math.sqrt(4 * a * b) ) * 180 / math.pi)
+
 def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
     maskdir, dilate_factor, aspect, t):
     # Logger for logpath
@@ -354,105 +597,20 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
     save_mask_png(outpath, L, impath, title)
 
     # Store nuclei -------------------------------------------------------------
-    kwargs = {
-        'series_id' : ii, 'thr' : thr,
-        'dna_bg' : dna_bg, 'sig_bg' : 0,
-        'aspect' : aspect, 'offset' : (1, 1, 1),
-        'logpath' : logger.logpath, 'i' : im
-    }
-
-    curnuclei = {}
-    if 0 != dilate_factor:
-        msg += "   - Saving %d nuclei with dilation [%d]...\n" % (
-            L.max(), dilate_factor)
-        for n in seq:
-            # Dilate mask
-            mask = dilation(L == n, cube(dilate_factor))
-            nucleus = Nucleus(n = n, mask = mask, **kwargs)
-            nucleus.mask = dilation(L == n, cube(dilate_factor))
-
-            # Calculate nucleus centroid
-
-            # Apply box
-            msg += "    > Applying nuclear box [%d]...\n" % (n,)
-            nucleus.dilate_factor = dilate_factor
-            curnuclei[n] = nucleus
-    else:
-        msg += "   - Saving %d nuclei...\n" % (L.max(),)
-        for n in seq:
-            curnuclei[n] = Nucleus(n = n, mask = L == n, **kwargs)
+    msg, curnuclei = build_nuclei(msg, L, dilate_factor,
+        series_id = ii, thr = thr,
+        dna_bg = dna_bg, sig_bg = 0,
+        aspect = aspect, offset = (1, 1, 1),
+        logpath = logger.logpath, i = im)
 
     # Assign dots to cells -----------------------------------------------------
     msg += "   - Analysis...\n"
-
-    # Extract cell ID
     msg += "    > Assigning dots to cells...\n"
-    subt = t.loc[subt_idx, :]
-    if 0 == dilate_factor:
-        # Add empty top/bottom slides
-        imbin_tops = np.zeros((imbin.shape[0]+2,
-            imbin.shape[1], imbin.shape[2]))
-        imbin_tops[1:(imbin.shape[0]+1),:,:] = imbin
-
-        L = label(imbin_tops)[1:(imbin.shape[0]+1),:,:]
-        subt.loc[:, 'cell_ID'] = L[subt['z'], subt['x'], subt['y']]
-    else:
-        for idx in subt.index:
-            coords = ( subt.loc[idx, 'z'],
-                subt.loc[idx, 'x'],
-                subt.loc[idx, 'y'] )
-            for (nid, n) in curnuclei.items():
-                if in_mask(coords, n.mask):
-                    subt.loc[idx, 'cell_ID'] = nid
+    subt = dots2cells(t.loc[subt_idx, :], curnuclei, imbin, dilate_factor)
 
     # Distances ----------------------------------------------------------------
-
-    # Calculate distance and store it ------------------------------------------
     msg += "    > Calculating lamina distance...\n"
-    msg += "    > Calculating distances...\n"
-    cell_max_lamin_dist = {0 : 1}
-    if 0 == dilate_factor:
-        D = distance_transform_edt(imbin_tops, aspect)[1:(imbin.shape[0]+1),:,:]
-        subt.loc[:, 'lamin_dist'] = D[subt['z'], subt['x'], subt['y']]
-
-        # Retrieve max lamin dist per cell
-        for cid in range(subt['cell_ID'].max() + 1):
-            cell_max_lamin_dist[cid] = np.max(D[np.where(L == cid)])
-    else:
-        for cid in range(int(subt['cell_ID'].max()) + 1):
-            if cid in curnuclei.keys():
-                msg += "    >>> Working on cell #%d...\n" % (cid,)
-                cell_cond = cid == subt['cell_ID']
-
-                D = distance_transform_edt(curnuclei[cid].mask, aspect)
-                bbox = curnuclei[cid].box
-                subt.loc[cell_cond, 'lamin_dist'] = D[
-                    subt.loc[cell_cond, 'z'],
-                    subt.loc[cell_cond, 'x'],
-                    subt.loc[cell_cond, 'y']]
-
-                # Retrieve max lamin dist per cell
-                cell_max_lamin_dist[cid] = D.max()
-
-    # Calcuate distance from center and store it -------------------------------
-
-    # Tale dilated mask
-    # Find central region
-    # Apply box
-    # Calculate distance from central region
-
-    # Normalize distances ------------------------------------------------------
-
-    # Normalize lamin_dist
-    fnorm = [cell_max_lamin_dist[cid]
-        for cid in subt['cell_ID'].tolist()]
-    subt.loc[:, 'lamin_dist_norm'] = subt['lamin_dist'] / fnorm
-
-    # Normalized centr_dist
-    subt.loc[:, 'centr_dist_norm'] = 1 - subt['lamin_dist_norm']
-
-    # Calculate centr_dist
-    subt.loc[:, 'centr_dist'] = subt['centr_dist_norm'] * fnorm
+    subt = calc_dot_distances(msg, subt, curnuclei, aspect)
 
     # Clean and output ---------------------------------------------------------
 
@@ -488,6 +646,7 @@ t['lamin_dist_norm'] = np.zeros(len(t.index))
 t['centr_dist'] = np.zeros(len(t.index))
 t['centr_dist_norm'] = np.zeros(len(t.index))
 t['dilation'] = dilate_factor
+t['angle'] = np.zeros(len(t.index))
 
 # Identify images --------------------------------------------------------------
 
@@ -525,99 +684,9 @@ for (curnuclei, subt, subt_idx) in anData:
     t.loc[subt_idx, :] = subt
 
 # Identify G1 cells ------------------------------------------------------------
-if doSel:
-    print("> Flagging G1 cells...")
+t = flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name)
 
-    # Retrieve nuclei summaries
-    print('   > Retrieving nuclear summary...')
-    summary = np.zeros(len(nuclei),
-        dtype = gp.const.DTYPE_NUCLEAR_SUMMARY)
-    for i in range(len(nuclei)):
-        summary[i] = nuclei[i].get_summary()
-
-    # Export summary
-    outname = "%s/nuclei.out.dilate%d.%s" % (
-        outdir, dilate_factor, dot_file_name)
-    np.savetxt(outname, summary, delimiter = '\t')
-
-    # Filter nuclei
-    print('   > Filtering nuclei based on flatten size and intensity...')
-    cond_name = 'none'
-    sigma = .1
-    nsf = (gp.const.NSEL_FLAT_SIZE, gp.const.NSEL_SUMI)
-    out_dir = '.'
-
-    # Filter features
-    sel_data = {}
-    ranges = {}
-    plot_counter = 1
-    for nsfi in nsf:
-        # Identify Nuclear Selection Feature
-        nsf_field = gp.const.NSEL_FIELDS[nsfi]
-        nsf_name = gp.const.NSEL_NAMES[nsfi]
-        print('   >> Filtering %s...' % (nsf_name,))
-
-        # Start building output
-        d = {'data' : summary[nsf_field]}
-
-        # Calculate density
-        d['density'] = stt.calc_density(d['data'], sigma = sigma)
-
-        # Identify range
-        args = [d['density']['x'], d['density']['y']]
-        d['fwhm_range'] = stt.get_fwhm(*args)
-        ranges[nsf_name] = d['fwhm_range']
-
-        # Plot
-        sel_data[nsf_field] = d
-
-    # Select based on range
-    f = lambda x, r: x >= r[0] and x <= r[1]
-    for nsfi in nsf:
-        nsf_field = gp.const.NSEL_FIELDS[nsfi]
-        nsf_name = gp.const.NSEL_NAMES[nsfi]
-        print("   > Selecting range for %s ..." % (nsf_name,))
-
-        # Identify nuclei in the FWHM range
-        nsf_data = sel_data[nsf_field]
-        nsf_data['sel'] = [f(i, nsf_data['fwhm_range'])
-            for i in nsf_data['data']]
-        sel_data[nsf_field] = nsf_data
-
-    # Select those in every FWHM range
-    print("   > Applying selection criteria")
-    nsfields = [gp.const.NSEL_FIELDS[nsfi] for nsfi in nsf]
-    selected = [sel_data[f]['sel'] for f in nsfields]
-    g = lambda i: all([sel[i] for sel in selected])
-    selected = [i for i in range(len(selected[0])) if g(i)]
-    sub_data = np.array(summary[selected])
-
-    # Identify selected nuclei objects
-    sel_nuclei_labels = ["_%d.%d_" % (n, s)
-        for (n, s) in sub_data[['s', 'n']]]
-    sel_nucl = [n for n in nuclei
-        if "_%d.%d_" % (n.s, n.n) in sel_nuclei_labels]
-
-    # Check which dots are in which nucleus and update flag
-    print("   > Matching DOTTER cells with GPSeq cells...")
-    t['G1'] = np.zeros((t.shape[0],))
-    used_nuclei = []
-    for ti in t.index:
-        for n in sel_nucl:
-            if not n.s == int(t.ix[ti, 0]-1):
-                continue
-            if n.n == t.loc[ti, 'cell_ID']:
-                t.loc[ti, 'G1'] = 1
-
-    # Export feature ranges
-    s = ""
-    for (k, v) in ranges.items():
-        s += "%s\t%f\t%f\n" % (k, v[0], v[1])
-    f = open("%s/feature_ranges.txt" % (outdir,), "w+")
-    f.write(s)
-    f.close()
-
-    print("> Flagged G1 cells...")
+# Export -----------------------------------------------------------------------
 
 # Export nuclei object vector
 f = open("%s/nuclei.pickle" % (outdir,), "wb+")
@@ -635,8 +704,30 @@ t = add_allele(t)
 
 # Calculate angle on nucleus centroid between alleles --------------------------
 
-# Focus on cells with 2 alleles
-# Calculate angle
+# # Subset data
+# subt = t.loc[t['Allele'] > 0,]
+
+# # Assemble universal index
+# subt.loc[:,'universalID'] =  ["%s_%s_%s" % x for x in zip(
+#     subt['File'].values, subt['Channel'].values, subt['cell_ID'].values
+# )]
+
+# # Go through cells
+# for uid in subt['universalID']:
+#     # Retrieve allele coordinates
+#     focus = subt.loc[subt['universalID'] == uid, ('x', 'y', 'z')]
+
+#     # Identify nucleus
+#     cell_ID = subt['cell_ID'][0]
+#     series_ID = subt['File'][0]
+#     nucleus = [n for n in nuclei if n.s == series_ID and n.n == cell_ID][0]
+
+#     # Calculate angle
+#     t.loc[subt.index, 'angle'] = angle_between_points(
+#         focus.ix[0,:],
+#         nucleus.box_mass_center,
+#         focus.ix[1,:]
+#     )
 
 # Write output -----------------------------------------------------------------
 outname = "%s/wCentr.out.dilate%d.%s" % (
