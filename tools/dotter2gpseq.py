@@ -371,6 +371,8 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
             nucleus = Nucleus(n = n, mask = mask, **kwargs)
             nucleus.mask = dilation(L == n, cube(dilate_factor))
 
+            # Calculate nucleus centroid
+
             # Apply box
             msg += "    > Applying nuclear box [%d]...\n" % (n,)
             nucleus.dilate_factor = dilate_factor
@@ -405,10 +407,8 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 
     # Distances ----------------------------------------------------------------
 
-    # Calculate distance from lamina
-    msg += "    > Calculating lamina distance...\n"
-
     # Calculate distance and store it ------------------------------------------
+    msg += "    > Calculating lamina distance...\n"
     msg += "    > Calculating distances...\n"
     cell_max_lamin_dist = {0 : 1}
     if 0 == dilate_factor:
@@ -434,6 +434,15 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
                 # Retrieve max lamin dist per cell
                 cell_max_lamin_dist[cid] = D.max()
 
+    # Calcuate distance from center and store it -------------------------------
+
+    # Tale dilated mask
+    # Find central region
+    # Apply box
+    # Calculate distance from central region
+
+    # Normalize distances ------------------------------------------------------
+
     # Normalize lamin_dist
     fnorm = [cell_max_lamin_dist[cid]
         for cid in subt['cell_ID'].tolist()]
@@ -444,6 +453,8 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 
     # Calculate centr_dist
     subt.loc[:, 'centr_dist'] = subt['centr_dist_norm'] * fnorm
+
+    # Clean and output ---------------------------------------------------------
 
     # Remove masks from curnuclei
     for k in curnuclei.keys():
@@ -621,6 +632,11 @@ t.to_csv(outname, sep = '\t', index = False)
 # Add allele information -------------------------------------------------------
 print("  - Adding allele information...")
 t = add_allele(t)
+
+# Calculate angle on nucleus centroid between alleles --------------------------
+
+# Focus on cells with 2 alleles
+# Calculate angle
 
 # Write output -----------------------------------------------------------------
 outname = "%s/wCentr.out.dilate%d.%s" % (
