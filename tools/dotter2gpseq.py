@@ -5,12 +5,14 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 2.0.0
+# Version: 2.2.0
 # Date: 20170718
 # Project: GPSeq
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v2.2.0 - 20171116: added polarity calculation between alleles.
+#  v2.1.0 - 20171115: fixed distance calculation and normalization.
 #  v2.0.0 - 20171114: fixed cell assignment and G1 selection.
 #  v1.2.0 - 20171105: dilation, allele labeling, parallelization.
 #  v1.1.1 - 20171020: fixed parameter description.
@@ -704,30 +706,31 @@ t = add_allele(t)
 
 # Calculate angle on nucleus centroid between alleles --------------------------
 
-# # Subset data
-# subt = t.loc[t['Allele'] > 0,]
+# Subset data
+subt = t.loc[t['Allele'] > 0,]
 
-# # Assemble universal index
-# subt.loc[:,'universalID'] =  ["%s_%s_%s" % x for x in zip(
-#     subt['File'].values, subt['Channel'].values, subt['cell_ID'].values
-# )]
+# Assemble universal index
+subt.loc[:,'universalID'] =  ["%s_%s_%s" % x for x in zip(
+    subt['File'].values, subt['Channel'].values, subt['cell_ID'].values
+)]
 
-# # Go through cells
-# for uid in subt['universalID']:
-#     # Retrieve allele coordinates
-#     focus = subt.loc[subt['universalID'] == uid, ('x', 'y', 'z')]
+# Go through cells
+for uid in subt['universalID']:
+    # Retrieve allele coordinates
+    focus = subt.loc[subt['universalID'] == uid, ('x', 'y', 'z')]
 
-#     # Identify nucleus
-#     cell_ID = subt['cell_ID'][0]
-#     series_ID = subt['File'][0]
-#     nucleus = [n for n in nuclei if n.s == series_ID and n.n == cell_ID][0]
+    # Identify nucleus
+    cell_ID = subt['cell_ID'][0]
+    series_ID = subt['File'][0]
+    nucleus = [n for n in nuclei if n.s == series_ID and n.n == cell_ID][0]
 
-#     # Calculate angle
-#     t.loc[subt.index, 'angle'] = angle_between_points(
-#         focus.ix[0,:],
-#         nucleus.box_mass_center,
-#         focus.ix[1,:]
-#     )
+    # Calculate angle
+    idx = subt[subt['universalID'] == uid].index
+    t.loc[idx, 'angle'] = angle_between_points(
+        focus.loc[focus.index[0],:],
+        nucleus.box_mass_center,
+        focus.loc[focus.index[1],:]
+    )
 
 # Write output -----------------------------------------------------------------
 outname = "%s/wCentr.out.dilate%d.%s" % (
