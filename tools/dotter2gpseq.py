@@ -721,8 +721,8 @@ for uid in subt['universalID']:
     focus = subt.loc[subt['universalID'] == uid, ('x', 'y', 'z')]
 
     # Identify nucleus
-    cell_ID = subt['cell_ID'][0]
-    series_ID = subt['File'][0]
+    cell_ID = subt['cell_ID'].values[0]
+    series_ID = subt['File'].values[0]
     nucleus = [n for n in nuclei if n.s == series_ID and n.n == cell_ID][0]
 
     # Calculate angle
