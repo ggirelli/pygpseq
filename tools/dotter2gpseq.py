@@ -5,7 +5,7 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 2.2.0
+# Version: 2.2.1
 # Date: 20170718
 # Project: GPSeq
 # Description: Calculate radial position of dots in cells
