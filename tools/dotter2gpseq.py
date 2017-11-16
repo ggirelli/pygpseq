@@ -11,6 +11,7 @@
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v2.2.1 - 20171116: fixed series ID issue, added version column.
 #  v2.2.0 - 20171116: added polarity calculation between alleles.
 #  v2.1.0 - 20171115: fixed distance calculation and normalization.
 #  v2.0.0 - 20171114: fixed cell assignment and G1 selection.
@@ -111,6 +112,7 @@ ncores = args.threads[0]
 # Params
 seg_type = gp.const.SEG_3D
 an_type = gp.const.AN_3D
+version = "2.2.1"
 
 # Additional checks
 if not outdir[-1] == "/":
@@ -600,7 +602,7 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 
     # Store nuclei -------------------------------------------------------------
     msg, curnuclei = build_nuclei(msg, L, dilate_factor,
-        series_id = ii, thr = thr,
+        series_id = ii + 1, thr = thr,
         dna_bg = dna_bg, sig_bg = 0,
         aspect = aspect, offset = (1, 1, 1),
         logpath = logger.logpath, i = im)
@@ -649,6 +651,7 @@ t['centr_dist'] = np.zeros(len(t.index))
 t['centr_dist_norm'] = np.zeros(len(t.index))
 t['dilation'] = dilate_factor
 t['angle'] = np.zeros(len(t.index))
+t['version'] = version
 
 # Identify images --------------------------------------------------------------
 
