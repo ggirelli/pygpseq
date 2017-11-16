@@ -323,7 +323,7 @@ def get_rescaling_factor(path, **kwargs):
 		# Retrieve factor
 		needle = 'Stretched to Integer type'
 		factor = [x for x in frows if needle in x]
-		if 0 == length(factor):
+		if 0 == len(factor):
 			factor = 1
 		else:
 			factor = factor[0]
