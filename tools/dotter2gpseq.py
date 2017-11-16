@@ -705,6 +705,7 @@ print("  - Adding allele information...")
 t = add_allele(t)
 
 # Calculate angle on nucleus centroid between alleles --------------------------
+print("  - Adding allele polarity information...")
 
 # Subset data
 subt = t.loc[t['Allele'] > 0,]
