@@ -707,13 +707,13 @@ t = add_allele(t)
 # Calculate angle on nucleus centroid between alleles --------------------------
 print("  - Adding allele polarity information...")
 
-# Subset data
-subt = t.loc[t['Allele'] > 0,]
-
 # Assemble universal index
-subt.loc[:,'universalID'] =  ["%s_%s_%s" % x for x in zip(
-    subt['File'].values, subt['Channel'].values, subt['cell_ID'].values
+t.loc[:, 'universalID'] = ["%s_%s_%s" % x for x in zip(
+    t['File'].values, t['Channel'].values, t['cell_ID'].values
 )]
+
+# Subset data
+subt = t.loc[t['Allele'] > 0,:]
 
 # Go through cells
 for uid in subt['universalID']:
@@ -732,6 +732,9 @@ for uid in subt['universalID']:
         nucleus.box_mass_center,
         focus.loc[focus.index[1],:]
     )
+
+# Remove universal ID
+t = t.drop('universalID', 1)
 
 # Write output -----------------------------------------------------------------
 outname = "%s/wCentr.out.dilate%d.%s" % (
