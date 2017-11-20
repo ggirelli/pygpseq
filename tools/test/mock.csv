@@ -1,0 +1,6 @@
+File	Channel	Nuclei	x	y	z	Value	FWHM	Label	Note
+Path/001.NM	mock	1	500	150	200	1	1	1	outside
+Path/001.NM	mock	1	500	150	100	1	1	1	outside
+Path/001.NM	mock	1	150	150	200	1	1	1	in50per
+Path/001.NM	mock	1	150	150	100	1	1	1	in50per
+Path/001.NM	mock	1	203	150	203	1	1	1	in75perc
