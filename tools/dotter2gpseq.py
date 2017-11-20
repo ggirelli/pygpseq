@@ -5,12 +5,13 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 2.2.1
+# Version: 2.3.0
 # Date: 20170718
 # Project: GPSeq
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v2.3.0 - 20171120: fixed allele angle calculation and minor bug.
 #  v2.2.1 - 20171116: fixed series ID issue, added version column.
 #  v2.2.0 - 20171116: added polarity calculation between alleles.
 #  v2.1.0 - 20171115: fixed distance calculation and normalization.
@@ -19,10 +20,6 @@
 #  v1.1.1 - 20171020: fixed parameter description.
 #  v1.1.0 - 20170830: added G1 cells selection.
 #  v1.0.0 - 20170718: first implementation.
-#  
-# Todo:
-#  - Parallelize when possible.
-#  - Allow nucleus dilation or distance from lamina for out-of-nucleus dots.
 # 
 # ------------------------------------------------------------------------------
 
@@ -112,7 +109,7 @@ ncores = args.threads[0]
 # Params
 seg_type = gp.const.SEG_3D
 an_type = gp.const.AN_3D
-version = "2.2.1"
+version = "2.3.0"
 
 # Additional checks
 if not outdir[-1] == "/":
@@ -236,7 +233,8 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
             mask = dilation(L == n, cube(dilate_factor))
             nucleus = Nucleus(n = n, mask = mask, **kwargs)
         else:
-            nucleus = Nucleus(n = n, mask = L == n, **kwargs)
+            mask = L == n
+            nucleus = Nucleus(n = n, mask = mask, **kwargs)
 
         # Apply box
         msg += "    > Applying nuclear box [%d]...\n" % (n,)
@@ -481,6 +479,11 @@ def add_allele(data):
         [dict(zip(uID, uCount))[ID]
         for ID in data.loc[validIdx, 'universalID']])
     IDmap = np.array(list(IDmap))
+    
+    # Stop if now dots are inside a cell
+    if 0 == sum(IDmap.shape):
+        data['Allele'] = ''
+        return(data.drop('universalID', 1))
 
     # Fill Allele column -------------------------------------------------------
     
@@ -540,7 +543,9 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 
     # Read image
     msg += "   - Reading ...\n"
-    im = io.imread(os.path.join(imdir, impath))[0]
+    im = io.imread(os.path.join(imdir, impath))
+    if 1 == im.shape[0]:
+        im = im[0]
 
     # Re-slice
     msg += "    > Re-slicing ...\n"
@@ -721,19 +726,25 @@ subt = t.loc[t['Allele'] > 0,:]
 # Go through cells
 for uid in subt['universalID']:
     # Retrieve allele coordinates
-    focus = subt.loc[subt['universalID'] == uid, ('x', 'y', 'z')]
+    focus = subt.loc[subt['universalID'] == uid, ('z', 'x', 'y')]
+    if 0 == sum(focus.shape):
+        continue
 
     # Identify nucleus
     cell_ID = subt['cell_ID'].values[0]
     series_ID = subt['File'].values[0]
-    nucleus = [n for n in nuclei if n.s == series_ID and n.n == cell_ID][0]
+    nucleus = [n for n in nuclei if n.s == series_ID and n.n == cell_ID]
+    if 0 == len(nucleus):
+        continue
+    else:
+        nucleus = nucleus[0]
 
     # Calculate angle
     idx = subt[subt['universalID'] == uid].index
     t.loc[idx, 'angle'] = angle_between_points(
-        focus.loc[focus.index[0],:],
+        focus.loc[focus.index[0],:] - nucleus.box_origin,
         nucleus.box_mass_center,
-        focus.loc[focus.index[1],:]
+        focus.loc[focus.index[1],:] - nucleus.box_origin
     )
 
 # Remove universal ID
