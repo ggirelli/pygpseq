@@ -11,6 +11,8 @@
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v3.0.0 - 20171120: changed dilation to allow anisotropic images.
+#  v2.3.1 - 20171120: fixed dilation factor (now corresponds to number of px).
 #  v2.3.0 - 20171120: fixed allele angle calculation and minor bug.
 #  v2.2.1 - 20171116: fixed series ID issue, added version column.
 #  v2.2.0 - 20171116: added polarity calculation between alleles.
@@ -79,7 +81,8 @@ parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 parser.add_argument('-d', '--delim', type = str, nargs = 1,
     help = """Input table delimiter. Default: ','""", default = [','])
 parser.add_argument('--dilate', type = int, nargs = 1,
-    help = """Number of pixels for nuclear mask dilation. Default: 0""",
+    help = """Number of pixels for nuclear mask dilation. It is automatically
+    scaled based on the specified aspect to be isotropic in 3D. Default: 0""",
     default = [0])
 parser.add_argument('-t', '--threads', type = int, nargs = 1,
     help = """Number of threads for parallelization. Default: 1""",
@@ -109,7 +112,7 @@ ncores = args.threads[0]
 # Params
 seg_type = gp.const.SEG_3D
 an_type = gp.const.AN_3D
-version = "2.3.0"
+version = "3.0.0"
 
 # Additional checks
 if not outdir[-1] == "/":
@@ -122,8 +125,40 @@ maxncores = multiprocessing.cpu_count()
 if maxncores < ncores:
     print("Lowered number of threads to maximum available: %d" % (maxncores))
     ncores = maxncores
+if 0 != dilate_factor and ax != ay:
+    print("Cannot apply dilation on images with different X/Y aspect.")
+    sys.exit()
 
 # FUNCTIONS ====================================================================
+
+def mkIsoStruct(dilate_factor, aspect):
+    # Builds isotropic structuring element for dilation.
+    #
+    # Args:
+    #   dilate_factor (int): number of px for isotropic 2D dilation.
+    #   aspect (tuple(float)): voxel side ratios.
+    # 
+    # Returns:
+    #   np.ndarray: structureing element for 3D anisotropic dilation.
+    
+    # Dilation factors
+    df_xy = int(dilate_factor * 2 + 1)
+    df_z = int(dilate_factor * aspect[1] / aspect[0] * 2 + 1)
+
+    if df_z == df_xy:
+        # Isotropic
+        return(cube(df_z))
+    elif df_z > df_xy:
+        # Larger Z side
+        se = cube(df_z)
+        se = se[:, 0:df_xy, 0:df_xy]
+    else:
+        # Larger XY side
+        se = cube(df_xy)
+        se = se[0:df_z]
+
+    # Output
+    return(se)
 
 def in_mask(coords, imbin):
     '''Check if a pixel in a mask is foreground.'''
@@ -230,7 +265,7 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
         # Make nucleus
         if 0 != dilate_factor:
             # With dilated mask
-            mask = dilation(L == n, cube(dilate_factor))
+            mask = dilation(L == n, istruct)
             nucleus = Nucleus(n = n, mask = mask, **kwargs)
         else:
             mask = L == n
@@ -590,7 +625,8 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
     # Export dilated mask
     if not noplot and 0 != dilate_factor:
         msg += "   - Saving dilated mask...\n"
-        imbin_dil = dilation(imbin, cube(dilate_factor))
+        imbin_dil = dilation(imbin, istruct)
+        #io.imsave("%sdilated.tif" % (maskdir,), imbin_dil.astype('u4'))
         title = "Dilated mask, %d factor." % (dilate_factor,)
         outname = "%smask.%s.dilated%d.png" % (maskdir, impath, dilate_factor)
         save_mask_png(outname, imbin_dil, impath, title)
@@ -642,6 +678,14 @@ if not os.path.isdir(outdir):
 maskdir = outdir + "masks/"
 if not os.path.isdir(maskdir):
     os.mkdir(maskdir)
+
+# Build 3D isotropic structuring element for dilation
+istruct = mkIsoStruct(dilate_factor, (az, ay, ax))
+if az != ax:
+    t = np.array(istruct.shape) / 2
+    msg = "  Anisotropic dilation of "
+    msg += "(%d, %d, %d) px in ZYX, respectively." % tuple(t.tolist())
+    print(msg)
 
 # Input ------------------------------------------------------------------------
 
