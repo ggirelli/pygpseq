@@ -5,12 +5,14 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 2.3.0
+# Version: 3.0.1
 # Date: 20170718
 # Project: GPSeq
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v3.0.1 - 20171130: adjusted allele polarity, fixed selection,
+#                     also now allowing missing images.
 #  v3.0.0 - 20171120: changed dilation to allow anisotropic images.
 #  v2.3.1 - 20171120: fixed dilation factor (now corresponds to number of px).
 #  v2.3.0 - 20171120: fixed allele angle calculation and minor bug.
@@ -112,7 +114,7 @@ ncores = args.threads[0]
 # Params
 seg_type = gp.const.SEG_3D
 an_type = gp.const.AN_3D
-version = "3.0.0"
+version = "3.0.1"
 
 # Additional checks
 if not outdir[-1] == "/":
@@ -555,23 +557,28 @@ def add_allele(data):
     # Output -------------------------------------------------------------------
     return(data.drop('universalID', 1))
 
-def angle_between_points( p0, p1, p2 ):
-    # p1 is the center point; result is in degrees
+def angle_between_points( p0, c, p1 ):
+    # c is the center point; result is in degrees
     # From http://phrogz.net/angle-between-three-points
     p0 = np.array(p0)
+    c = np.array(c)
     p1 = np.array(p1)
-    p2 = np.array(p2)
-    a = np.sum((p1 - p0)**2)
-    b = np.sum((p1 - p2)**2)
-    c = np.sum((p2 - p0)**2)
-    return(math.acos( (a + b - c) / math.sqrt(4 * a * b) ) * 180 / math.pi)
+
+    p0c = np.sqrt(np.sum((p0 - c)**2))
+    p1c = np.sqrt(np.sum((p1 - c)**2))
+    p01 = np.sqrt(np.sum((p0 - p1)**2))
+
+    tetha = math.acos( (p0c**2 + p1c**2 - p01**2) / (2 * p0c * p1c) )
+
+    return(tetha / math.pi * 180)
 
 def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
     maskdir, dilate_factor, aspect, t):
     # Logger for logpath
     logger = iot.IOinterface()
 
-    (idx, impath) = list(imfov.items())[ii]
+    idx = ii
+    impath = imfov[ii]
     print("  Started '%s' job..." % (impath,))
     msg = "> Job '%s'...\n" % (impath,)
     subt_idx = np.where(t['File'] == idx)[0]
@@ -643,7 +650,7 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 
     # Store nuclei -------------------------------------------------------------
     msg, curnuclei = build_nuclei(msg, L, dilate_factor,
-        series_id = ii + 1, thr = thr,
+        series_id = ii, thr = thr,
         dna_bg = dna_bg, sig_bg = 0,
         aspect = aspect, offset = (1, 1, 1),
         logpath = logger.logpath, i = im)
@@ -717,7 +724,11 @@ imlist = [f for f in flist if 'tif' in f]
 # Assign field of views to images
 imfov = {}
 for i in set(t['File']):
-    imfov[i] = [im for im in imlist if "%03d" % (i,) in im][0]
+    imsel = [im for im in imlist if "%03d" % (i,) in im]
+    if not 0 == len(imsel):
+        imfov[i] = imsel[0]
+    else:
+        print("  Missing image for field #%d, skipped." % (i,))
 
 # Start iteration --------------------------------------------------------------
 
@@ -732,7 +743,7 @@ kwargs = {
 }
 anData = Parallel(n_jobs = ncores)(
     delayed(analyze_field_of_view)(ii, **kwargs)
-    for ii in range(len(imfov.keys())))
+    for ii in set(imfov.keys()))
 for (curnuclei, subt, subt_idx) in anData:
     nuclei.extend(curnuclei.values())
     t.loc[subt_idx, :] = subt
@@ -786,9 +797,9 @@ for uid in subt['universalID']:
     # Calculate angle
     idx = subt[subt['universalID'] == uid].index
     t.loc[idx, 'angle'] = angle_between_points(
-        focus.loc[focus.index[0],:] - nucleus.box_origin,
-        nucleus.box_mass_center,
-        focus.loc[focus.index[1],:] - nucleus.box_origin
+        focus.loc[focus.index[0],:],
+        (nucleus.box_mass_center + nucleus.box_origin).astype('i'),
+        focus.loc[focus.index[1],:]
     )
 
 # Remove universal ID
@@ -802,4 +813,3 @@ t.to_csv(outname, sep = '\t', index = False)
 # END ==========================================================================
 
 ################################################################################
-

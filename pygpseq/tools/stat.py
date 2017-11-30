@@ -36,43 +36,49 @@ def get_fwhm(xs, ys):
 
 	# Get FWHM range [left] ----------------------------------------------------
 	
-	# Get absolute difference to HM value
-	x1 = abs(ys[range(xmaxi)] - max(ys) / 2)
+	if 0 != xmaxi:
+		# Get absolute difference to HM value
+		x1 = abs(ys[range(xmaxi)] - max(ys) / 2)
 
-	# Get threshold based on average distance of consecutive points
-	if 1 == len(x1):
-		thr = x1[0]
+		# Get threshold based on average distance of consecutive points
+		if 1 == len(x1):
+			thr = x1[0]
+		else:
+			thr = np.max(abs(np.diff(x1)))
+
+		# Select values close to the HM (based on threshold and abs difference)
+		selected = [i for i in range(len(x1)) if x1[i] <= thr]
+
+		# Select left boundary
+		if 0 == len(selected):
+			x1 = xs[range(xmaxi)][x1.tolist().index(min(x1))]
+		else:
+			x1 = xs[range(xmaxi)][max(selected)]
 	else:
-		thr = np.max(abs(np.diff(x1)))
-
-	# Select values close to the HM (based on threshold and absolut difference)
-	selected = [i for i in range(len(x1)) if x1[i] <= thr]
-
-	# Select left boundary
-	if 0 == len(selected):
-		x1 = xs[range(xmaxi)][x1.tolist().index(min(x1))]
-	else:
-		x1 = xs[range(xmaxi)][max(selected)]
+		x1 = min(xs)
 
 	# Get FWHM range [right] ---------------------------------------------------
 
-	# Get absolute difference to HM value
-	x2 = abs(ys[range(xmaxi + 1, len(ys))] - max(ys) / 2)
+	if len(xs) != (xmaxi + 1):
+		# Get absolute difference to HM value
+		x2 = abs(ys[range(xmaxi + 1, len(ys))] - max(ys) / 2)
 
-	# Get threshold based on average distance of consecutive points
-	if 1 == len(x2):
-		thr = x2[0]
+		# Get threshold based on average distance of consecutive points
+		if 1 == len(x2):
+			thr = x2[0]
+		else:
+			thr = np.max(abs(np.diff(x2)))
+
+		# Select values close to the HM (based on threshold and abs difference)
+		selected = [i for i in range(len(x2)) if x2[i] <= thr]
+
+		# Select right boundary
+		if 0 == len(selected):
+			x2 = xs[range(xmaxi + 1, len(xs))][x2.tolist().index(min(x2))]
+		else:
+			x2 = xs[range(xmaxi + 1, len(xs))][min(selected)]
 	else:
-		thr = np.max(abs(np.diff(x2)))
-
-	# Select values close to the HM (based on threshold and absolut difference)
-	selected = [i for i in range(len(x2)) if x2[i] <= thr]
-
-	# Select right boundary
-	if 0 == len(selected):
-		x2 = xs[range(xmaxi + 1, len(xs))][x2.tolist().index(min(x2))]
-	else:
-		x2 = xs[range(xmaxi + 1, len(xs))][min(selected)]
+		x2 = max(xs)
 
 	# Output
 	return([x1, x2])
