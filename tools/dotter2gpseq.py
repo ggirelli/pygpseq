@@ -11,6 +11,7 @@
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v3.1.0 - 20171204: fixed allele polarity including aspect ratio.
 #  v3.0.1 - 20171130: adjusted allele polarity, fixed selection,
 #                     also now allowing missing images.
 #  v3.0.0 - 20171120: changed dilation to allow anisotropic images.
@@ -114,7 +115,7 @@ ncores = args.threads[0]
 # Params
 seg_type = gp.const.SEG_3D
 an_type = gp.const.AN_3D
-version = "3.0.1"
+version = "3.1.0"
 
 # Additional checks
 if not outdir[-1] == "/":
@@ -794,12 +795,15 @@ for uid in subt['universalID']:
     else:
         nucleus = nucleus[0]
 
+    # Central coordinates
+    centr_coords = (nucleus.box_mass_center + nucleus.box_origin).astype('i')
+
     # Calculate angle
     idx = subt[subt['universalID'] == uid].index
     t.loc[idx, 'angle'] = angle_between_points(
-        focus.loc[focus.index[0],:],
-        (nucleus.box_mass_center + nucleus.box_origin).astype('i'),
-        focus.loc[focus.index[1],:]
+        focus.loc[focus.index[0],:] * aspect,
+        centr_coords * aspect,
+        focus.loc[focus.index[1],:] * aspect
     )
 
 # Remove universal ID
