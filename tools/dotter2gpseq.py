@@ -5,12 +5,13 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 3.0.1
+# Version: 3.1.1
 # Date: 20170718
 # Project: GPSeq
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v3.1.1 - 20171206: fixed allele polarity, using correct center of mass.
 #  v3.1.0 - 20171204: fixed allele polarity including aspect ratio.
 #  v3.0.1 - 20171130: adjusted allele polarity, fixed selection,
 #                     also now allowing missing images.
@@ -97,6 +98,11 @@ parser.add_argument('--noplot',
     const = True, default = False,
     help = 'Do not produce any plots.')
 
+# Version flag
+version = "3.1.1"
+parser.add_argument('--version', action = 'version',
+    version = '%s %s' % (sys.argv[0], version,))
+
 # Parse arguments
 args = parser.parse_args()
 
@@ -115,7 +121,6 @@ ncores = args.threads[0]
 # Params
 seg_type = gp.const.SEG_3D
 an_type = gp.const.AN_3D
-version = "3.1.0"
 
 # Additional checks
 if not outdir[-1] == "/":
@@ -708,6 +713,7 @@ t['centr_dist'] = np.zeros(len(t.index))
 t['centr_dist_norm'] = np.zeros(len(t.index))
 t['dilation'] = dilate_factor
 t['angle'] = np.zeros(len(t.index))
+t['com'] = "_"
 t['version'] = version
 
 # Identify images --------------------------------------------------------------
@@ -781,30 +787,36 @@ subt = t.loc[t['Allele'] > 0,:]
 
 # Go through cells
 for uid in subt['universalID']:
+    idx = subt[subt['universalID'] == uid].index
+
     # Retrieve allele coordinates
-    focus = subt.loc[subt['universalID'] == uid, ('z', 'x', 'y')]
+    focus = subt.loc[subt['universalID'] == uid, ('x', 'y', 'z')]
     if 0 == sum(focus.shape):
         continue
 
     # Identify nucleus
-    cell_ID = subt['cell_ID'].values[0]
-    series_ID = subt['File'].values[0]
+    cell_ID = subt.loc[subt['universalID'] == uid, 'cell_ID'].values[0]
+    series_ID = subt.loc[subt['universalID'] == uid, 'File'].values[0]
     nucleus = [n for n in nuclei if n.s == series_ID and n.n == cell_ID]
     if 0 == len(nucleus):
+        print("Nucleus not found for %s.%s" % (series_ID, cell_ID,))
         continue
     else:
         nucleus = nucleus[0]
 
-    # Central coordinates
+    # Nucleus center of mass coordinates
     centr_coords = (nucleus.box_mass_center + nucleus.box_origin).astype('i')
+    # Re-order center of mass coordinates
+    centr_coords = centr_coords[[1, 2, 0]]
 
     # Calculate angle
-    idx = subt[subt['universalID'] == uid].index
+    xyz_aspect = np.array((ax, ay, az))
     t.loc[idx, 'angle'] = angle_between_points(
-        focus.loc[focus.index[0],:] * aspect,
-        centr_coords * aspect,
-        focus.loc[focus.index[1],:] * aspect
+        focus.loc[focus.index[0],:] * xyz_aspect,
+        centr_coords * xyz_aspect,
+        focus.loc[focus.index[1],:] * xyz_aspect
     )
+    t.loc[idx, 'com'] = "_".join([str(x) for x in centr_coords.tolist()])
 
 # Remove universal ID
 t = t.drop('universalID', 1)
