@@ -101,7 +101,7 @@ parser.add_argument('--noplot',
 # Version flag
 version = "3.1.1"
 parser.add_argument('--version', action = 'version',
-    version = '%s %s' % (sys.argv[0], version,))
+    version = '%s v%s' % (sys.argv[0], version,))
 
 # Parse arguments
 args = parser.parse_args()
