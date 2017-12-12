@@ -11,6 +11,7 @@
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v3.2.0 - 20171212: fixed G1 selection in output table.
 #  v3.1.1 - 20171206: fixed allele polarity, using correct center of mass.
 #  v3.1.0 - 20171204: fixed allele polarity including aspect ratio.
 #  v3.0.1 - 20171130: adjusted allele polarity, fixed selection,
@@ -99,7 +100,7 @@ parser.add_argument('--noplot',
     help = 'Do not produce any plots.')
 
 # Version flag
-version = "3.1.1"
+version = "3.2.0"
 parser.add_argument('--version', action = 'version',
     version = '%s v%s' % (sys.argv[0], version,))
 
@@ -443,13 +444,23 @@ def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
     # Check which dots are in which nucleus and update flag --------------------
     print("   > Matching DOTTER cells with GPSeq cells...")
     t['G1'] = np.zeros((t.shape[0],))
-    used_nuclei = []
-    for ti in t.index:
-        for n in sel_nucl:
-            if not n.s == int(t.ix[ti, 0]-1):
-                continue
-            if n.n == t.loc[ti, 'cell_ID']:
-                t.loc[ti, 'G1'] = 1
+    t['universalID'] =  ["_%s.%s_" % x for x in zip(
+        t['File'].values, t['cell_ID'].astype('i').values
+    )]
+    g1ids = [i for i in range(t.shape[0])
+        if t.loc[i, 'universalID'] in sel_nuclei_labels]
+    t.loc[g1ids, 'G1'] = 1
+    t = t.drop('universalID', 1)
+
+    # Add G1 status to summary -------------------------------------------------
+    summary = pd.DataFrame(summary)
+    summary['G1'] = np.zeros((summary.shape[0],))
+    summary['universalID'] =  ["_%s.%s_" % x
+        for x in zip(summary['s'].values, summary['n'].values)]
+    g1ids = [i for i in range(summary.shape[0])
+        if summary.loc[i, 'universalID'] in sel_nuclei_labels]
+    summary.loc[g1ids, 'G1'] = 1
+    summary = summary.drop('universalID', 1)
 
     # Export -------------------------------------------------------------------
 
@@ -464,7 +475,7 @@ def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
     # Export summary
     outname = "%s/nuclei.out.dilate%d.%s" % (
         outdir, dilate_factor, dot_file_name)
-    np.savetxt(outname, summary, delimiter = '\t')
+    summary.to_csv(outname, sep = '\t', index = False)
 
     # Output -------------------------------------------------------------------
     print("> Flagged G1 cells...")
