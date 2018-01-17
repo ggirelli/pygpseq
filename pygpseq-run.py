@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(
 
 # Positional parameters
 parser.add_argument('inDir', type = str, nargs = 1,
-	help = """Path to input directory, containing single-condition directories
+	help = """Path to input directory, containing singlcde-condition directories
 	with TIF files.""")
 parser.add_argument('outDir', type = str, nargs = 1,
 	help = """Path to output directory, must be different from the input
