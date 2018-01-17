@@ -310,7 +310,9 @@ class Nucleus(iot.IOinterface):
 			sig = sig[mid, :, :]
 
 		# Perform distance transform
-		D = distance_transform_edt(mask, aspect[3-len(mask.shape):])
+		laminD = distance_transform_edt(mask, aspect[3-len(mask.shape):])
+		centrD = distance_transform_edt(laminD != laminD.max(),
+			aspect[3-len(mask.shape):])
 
 		# Export single-nucleus images in debugging mode
 		if debugging:
@@ -346,7 +348,8 @@ class Nucleus(iot.IOinterface):
 		# Flatten data for export
 		data['dna'] = vt.flatten_and_select(dna, mask_flat)
 		data['sig'] = vt.flatten_and_select(sig, mask_flat)
-		data['d'] = vt.flatten_and_select(D, mask_flat)
+		data['lamin_d'] = vt.flatten_and_select(laminD, mask_flat)
+		data['centr_d'] = vt.flatten_and_select(centrD, mask_flat)
 		data['part'] = vt.flatten_and_select(sm, mask_flat)
 		data['n'] = [self.n for i in data['dna']]
 
@@ -359,13 +362,8 @@ class Nucleus(iot.IOinterface):
 		data['sig'] = np.array(data['sig']) - self.sig_bg
 
 		# Add normalized distance
-		data['dnorm'] = data['d'] - min(data['d'])
-		if not 0. == max(data['dnorm']):
-			data['dnorm'] = data['dnorm'] / max(data['dnorm'])
-		else:
-			msg = 'Found 0 maximum distance at '
-			msg += str(self.s) + '.' + str(self.n) + '\n\n'
-			log += self.printout(msg, -1)
+		data['lamin_dnorm'] = data['lamin_d'] + data['centr_d']
+		data['lamin_dnorm'] = data['lamin_d'] / ( data['lamin_dnorm'] )
 
 		# Output
 		return((data, log))

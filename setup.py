@@ -21,7 +21,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='pygpseq',
 
-    version='0.1.2',
+    version='1.0.0dev',
 
     description='A GPSeq image analysis package',
     long_description=long_description,

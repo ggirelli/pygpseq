@@ -58,8 +58,10 @@ _const.PALETTE = ('#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99',
 _const.DTYPE_NUCLEAR_SUMMARY = [('s', 'u4'), ('n', 'u4'),
 	('flat_size', 'u8'), ('size', 'u8'),
 	('surf', 'f8'), ('sumI', 'f8'), ('meanI', 'f8'), ('shape', 'f8')]
+_const.LAMIN_DNORM_LABEL = "lamin_dnorm"
 _const.DTYPE_NUCLEAR_DATA = [('s', 'u4'), ('n', 'u4'), ('dna', 'u8'),
-	('sig', 'u8'), ('d', 'f8'), ('dnorm', 'f8'), ('part', 'b')]
+	('sig', 'u8'), ('lamin_d', 'f8'), ('centr_d', 'f8'),
+	(_const.LAMIN_DNORM_LABEL, 'f8'), ('part', 'b')]
 _const.DTYPE_NDATA_EXPORT = [('c', 'u4'), ('s', 'u4'), ('n', 'u4'),
 	('flat_size', 'u8'), ('size', 'u8'), ('surf', 'f8'), ('sumI', 'f8'),
 	('meanI', 'f8'), ('shape', 'f8')]

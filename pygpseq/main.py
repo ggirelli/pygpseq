@@ -147,7 +147,7 @@ class Main(Analyzer):
 
 		# Distance field for profiles
 		if self.normalize_distance:
-			kwargs['dfield'] = 'dnorm'
+			kwargs['dfield'] = const.LAMIN_DNORM_LABEL
 			kwargs['dlabel'] = 'Relative distance from nuclear lamina'
 			kwargs['dlabel'] += ' [a.u.]'
 		else:
