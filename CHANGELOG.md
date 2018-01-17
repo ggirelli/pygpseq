@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Now normalizing lamin distance over its sum with central distance.
 
+### Added
+- Sigma option to `pygpseq-run.py`.
 
 
 ## [0.1.2]

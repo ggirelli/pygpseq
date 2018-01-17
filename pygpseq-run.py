@@ -74,6 +74,9 @@ parser.add_argument('--nuclear-sel', type = str, nargs = '*',
 	Use -- after the last one. Default: flat_size sumI""",
 	choices = ['size', 'surf', 'shape', 'sumI', 'meanI', 'flat_size'],
 	default = ['flat_size', 'sumI'])
+parser.add_argument('--sigma', metavar = 'sigma', type = float,
+	nargs = 1, default = [.1],
+	help = """Sigma value for sparse gaussian smoothing.""")
 parser.add_argument('--description', type = str, nargs = '*',
 	help = """Space separated condition:description couples.
 	'condition' are the name of condition folders.
@@ -215,6 +218,9 @@ gpi.rescale_deconvolved = args.rescale_deconvolved
 # Normalize distance?
 gpi.normalize_distance = args.normalize_distance
 
+# Sigma
+gpi.sigma = args.sigma[0]
+
 # Better condition naming
 if not None is args.description:
 	for descr in args.description:
@@ -253,6 +259,7 @@ print("""
 
 Voxel aspect (ZYX):  """+str(gpi.aspect)+"""
  Minimum Z portion:  """+str(gpi.min_z_size)+"""
+             Sigma:  """+str(gpi.sigma)+"""
 
   Condition descr.:  """+"\n                     ".join(readable_cdescr)+"""
 
