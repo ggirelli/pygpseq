@@ -74,7 +74,7 @@ parser.add_argument('--nuclear-sel', type = str, nargs = '*',
 	Use -- after the last one. Default: flat_size sumI""",
 	choices = ['size', 'surf', 'shape', 'sumI', 'meanI', 'flat_size'],
 	default = ['flat_size', 'sumI'])
-parser.add_argument('--sigma', metavar = 'sigma', type = float,
+parser.add_argument('--sigma', metavar = 'sigmaValue', type = float,
 	nargs = 1, default = [.1],
 	help = """Sigma value for sparse gaussian smoothing.""")
 parser.add_argument('--description', type = str, nargs = '*',
