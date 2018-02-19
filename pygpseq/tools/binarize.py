@@ -124,7 +124,8 @@ class Binarize(iot.IOinterface):
 		if self.do_clear_borders:
 			msg = 'Removing objects touching the image border...'
 			log += self.printout(msg, 2)
-			mask = imt.clear_borders(mask, self.do_clear_Z_borders)
+			mask = imt.clear_borders2(label(mask), self.do_clear_Z_borders)
+			mask = mask != 0
 		
 		# Fill holes -----------------------------------------------------------
 		if self.do_fill_holes:

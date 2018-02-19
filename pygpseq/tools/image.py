@@ -75,26 +75,68 @@ def binarize(i, thr):
 		i = closing(i > thr, cube(3))
 	return(i)
 
-def clear_borders(i, clean_z = None):
-	"""Remove objects touching the borders of the image.
+def clear_borders(img, clean_z = None):
+    # Remove objects touching the borders of the image.
+    # 
+    # Args:
+    #     img (np.array): binary image.
+    #     clean_z (bool): True to remove the objects touching the Z borders.
+    # 
+    # Returns:
+    #     np.array: cleaned image.
 
-	Args:
-		i (np.array): image.
-		clean_z (bool): True to remove the objects touching the Z borders.
+    if 2 == len(img.shape):
+        img = clear_border(img)
+    elif 3 == len(img.shape):
+        for slide_id in range(img.shape[0]):
+            img[slide_id, :, :] = clear_border(img[slide_id, :, :])
+        if True == clean_z:
+            for slide_id in range(img.shape[1]):
+                img[:, slide_id, :] = clear_border(img[:, slide_id, :])
+    return(img)
 
-	Returns:
-		np.array: cleaned image.
-	"""
+def clear_borders2(img, clean_z = None):
+    # Remove objects touching the borders of the image.
+    # 
+    # Args:
+    #     img (np.array): labeled image.
+    #     clean_z (bool): True to remove the objects touching the Z borders.
+    # 
+    # Returns:
+    #     np.array: cleaned image.
 
-	if 2 == len(i.shape):
-		i = clear_border(i)
-	elif 3 == len(i.shape):
-		for slide_id in range(i.shape[0]):
-			i[slide_id, :, :] = clear_border(i[slide_id, :, :])
-		if True == clean_z:
-			for slide_id in range(i.shape[1]):
-				i[:, slide_id, :] = clear_border(i[:, slide_id, :])
-	return(i)
+    if 2 == len(img.shape):
+        img = clear_border(img)
+    elif 3 == len(img.shape):
+        # Identify 3D objects touching X/Y borders
+        l = []
+        l.extend(np.unique(img[:, 0, :]).tolist())
+        l.extend(np.unique(img[:, -1, :]).tolist())
+        l.extend(np.unique(img[:, :, 0]).tolist())
+        l.extend(np.unique(img[:, :, -1]).tolist())
+        ii = set(l)
+
+        # Remove them
+        for i in ii:
+            img[img == i] = 0
+
+        # Apply also to Z borders
+        if True == clean_z:
+            # Identify
+            l = []
+            l.extend(np.unique(img[0, :, :]).tolist())
+            l.extend(np.unique(img[-1, :, :]).tolist())
+            ii = set(l)
+
+            # Remove
+            for i in ii:
+                img[img == i] = 0
+
+        # Re-label
+        img = label(img)
+
+    # Output
+    return(img)
 
 def threshold_adaptive(i, block_size):
 	"""Adaptive threshold.
