@@ -208,12 +208,13 @@ class Condition(iot.IOinterface):
 		if not 'plotting' in kwargs.keys():
 			kwargs['plotting'] = True
 
-		fig = plt.figure()
-		suptitle = 'Automatic nuclei threshold for condition "'
+		fig = plt.figure(figsize = [8, 8])
+		suptitle = 'Automatic nuclei threshold for condition '
 		if self.name in kwargs['cdescr'].keys():
-			suptitle += kwargs['cdescr'][cond_name] + '"'
+			suptitle += '"%s"' % (kwargs['cdescr'][cond_name],)
 		else:
-			suptitle += cond_name + '"'
+			suptitle += '"%s"' % (cond_name,)
+			suptitle += "\n [sigma: %.2f]" % (sigma_density,)
 		plt.suptitle(suptitle)
 
 		# Setup subplots spacing

@@ -56,7 +56,7 @@ def density_with_range(density, fwhm_range,
 
 	# New figure
 	if new_figure:
-		fig = plt.figure()
+		fig = plt.figure(figsize = [8, 8])
 
 	# Plot
 	plt.plot(density['x'], density['y'], 'k')
