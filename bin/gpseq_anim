@@ -46,6 +46,9 @@ parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 	help = """Physical size of Z, Y and X voxel sides.
 	Default: 300.0 216.6 216.6""",
 	metavar = ('Z', 'Y', 'X'), default = [300., 216.6, 216.6])
+parser.add_argument('-U', '--umes', type = str, nargs = 1,
+	help = """Unit of measure for the aspect. Default: nm""",
+	metavar = "unit", default = ["nm"])
 parser.add_argument('-d', '--dna-channels', type = str, nargs = '+',
 	help = """Space-separated names of DNA staining channels.
 	Use -- after the last one.""",
@@ -74,9 +77,12 @@ parser.add_argument('--nuclear-sel', type = str, nargs = '*',
 	Use -- after the last one. Default: flat_size sumI""",
 	choices = ['size', 'surf', 'shape', 'sumI', 'meanI', 'flat_size'],
 	default = ['flat_size', 'sumI'])
-parser.add_argument('--sigma', metavar = 'sigmaValue', type = float,
+parser.add_argument('--sigma-smooth', metavar = 'sigmaValue', type = float,
 	nargs = 1, default = [.1],
 	help = """Sigma value for sparse gaussian smoothing.""")
+parser.add_argument('--sigma-density', metavar = 'sigmaValue', type = float,
+	nargs = 1, default = [.1],
+	help = """Sigma value for density calculation.""")
 parser.add_argument('--description', type = str, nargs = '*',
 	help = """Space separated condition:description couples.
 	'condition' are the name of condition folders.
@@ -189,6 +195,7 @@ gpi.mid_type = dmid[args.mid_type[0]]
 
 # Voxel aspect proportions (or sizes, ZYX)
 gpi.aspect = tuple(args.aspect)
+gpi.umes = args.umes[0]
 
 # Minimum percentage of stack to be occupied by a cell
 gpi.min_z_size = args.min_z[0]
@@ -224,7 +231,8 @@ gpi.rescale_deconvolved = args.rescale_deconvolved
 gpi.normalize_distance = args.normalize_distance
 
 # Sigma
-gpi.sigma = args.sigma[0]
+gpi.sigma_smooth = args.sigma_smooth[0]
+gpi.sigma_density = args.sigma_density[0]
 
 # Better condition naming
 if not None is args.description:
@@ -263,8 +271,10 @@ print("""
     Middle section:  """+args.mid_type[0]+"""
 
 Voxel aspect (ZYX):  """+str(gpi.aspect)+"""
+       Aspect unit: """+gpi.umes+"""
  Minimum Z portion:  """+str(gpi.min_z_size)+"""
-             Sigma:  """+str(gpi.sigma)+"""
+    Sigma (smooth):  """+str(gpi.sigma_smooth)+"""
+   Sigma (density):  """+str(gpi.sigma_density)+"""
 
   Condition descr.:  """+"\n                     ".join(readable_cdescr)+"""
 

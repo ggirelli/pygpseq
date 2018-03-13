@@ -16,6 +16,7 @@ from skimage.segmentation import clear_border
 
 from . import vector as vt
 from .. import const
+from .io import printout
 
 def read_tiff(impath):
 	'''Read tiff image.
@@ -27,16 +28,14 @@ def read_tiff(impath):
 	# Check that the file exists
 	if not os.path.isfile(impath):
 		msg = "Trying to read missing file"
-		print("\n!ERROR! %s:\n%s\n" % (msg, impath))
-		sys.exit()
+		printout("%s:\n%s\n" % (msg, impath), -2)
 
 	# Read TIFF (capture any parsing issues)
 	try:
 		imch = imread(impath)
 	except ValueError as e:
 		msg = "Something went wrong while trying to read a file"
-		print("\n!ERROR! %s (possibly corrupt):\n%s\n" % (msg, impath))
-		sys.exit()
+		printout("%s (possibly corrupt):\n%s\n" % (msg, impath), -2)
 
 	# Reshape
 	imch = autoselect_time_frame(imch)

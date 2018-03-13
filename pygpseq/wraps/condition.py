@@ -142,7 +142,8 @@ class Condition(iot.IOinterface):
 			nuclei.extend(s.nuclei)
 		return(nuclei)
 
-	def single_threshold_nuclei(self, data, sigma, xlab = None, **kwargs):
+	def single_threshold_nuclei(self, data, sigma_density, xlab = None,
+		**kwargs):
 		"""Select a single-feature nuclear threshold.
 
 		Args:
@@ -157,7 +158,8 @@ class Condition(iot.IOinterface):
 		t = {'data' : data}
 
 		# Calculate density
-		t['density'] = stt.calc_density(t['data'], sigma = sigma)
+		t['density'] = stt.calc_density(t['data'],
+			sigma = sigma_density)
 
 		# Identify range
 		args = [t['density']['x'], t['density']['y']]
@@ -176,7 +178,7 @@ class Condition(iot.IOinterface):
 		return(t)
 
 	def multi_threshold_nuclei(self,
-		cond_name, seg_type, data, sigma, nsf,
+		cond_name, seg_type, data, sigma_density, nsf,
 		font_size, out_dir, wspace = None, hspace = None, **kwargs):
 		"""Plot density with FWHM range and select rows in that range.
 		
@@ -187,7 +189,7 @@ class Condition(iot.IOinterface):
 			seg_type (pygpseq.const): segmentation type according
 				to pygpseq.const.
 			data (numpy.array): nuclear data.
-			sigma (float): sigma for smoothing and covariance calculation.
+			sigma_density (float): sigma for density calculation.
 			xsteps (int): density distribution curve precision (opt).
 			nsf (list[int]): list of features to use for nuclear selection
 				according to pygpseq.const.
@@ -239,7 +241,7 @@ class Condition(iot.IOinterface):
 
 				# Plot
 				sel_data[nsf_field] = self.single_threshold_nuclei(
-					data = data[nsf_field], sigma = sigma,
+					data = data[nsf_field], sigma_density = sigma_density,
 					xlab = plot.get_nsf_label(nsfi, seg_type))
 
 				# Edit plot
@@ -570,7 +572,7 @@ class Condition(iot.IOinterface):
 		if None != supcomm:
 			suptitle += supcomm
 		suptitle += ' [' + str(kwargs['an_type']) + ']'
-		suptitle += ' [sigma = ' + str(kwargs['sigma']) + ']'
+		suptitle += ' [sigma = ' + str(kwargs['sigma_smooth']) + ']'
 		suptitle += ' [nbins = ' + str(kwargs['nbins']) + ']'
 
 		# Plot

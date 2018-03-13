@@ -14,6 +14,7 @@ class Analyzer(iot.IOinterface):
 		adaptive_neighbourhood (int): adaptive threshold neighbourhood square
 			side. If even, it's increased by one. If <= 1, turned off.
 		aspect (tuple[float]): relative/absolute px/vx size.
+		umes (str): unit of measure for the aspect.
 		radius_interval (tuple[float]): nuclear radius interval.
 		min_z_size (float): minimum Z size of the nucleus. If > 1, the ceil is
 			taken as the minimum number of slices. If < 1, the float is taken
@@ -27,7 +28,8 @@ class Analyzer(iot.IOinterface):
 		offset (tuple[int]): bounding box offset in px/vx [Z Y X].
 		part_n_erosion float: partial nucleus erosion distance threshold.
 		calc_n_surface (bool): True to calculate the nuclei mesh surface.
-		sigma (float): sigma for smoothing and for density calculation.
+		sigma_density (float): sigma for smoothing.
+		sigma_smooth (float): sigma for density calculation.
 		nbins (int): number of bins (precision) for profile calculation.
 		do_clear_Z_borders (bool): True to clear Z borders.
 		rescale_deconvolved (bool): True to rescale deconvolved images.
@@ -42,6 +44,7 @@ class Analyzer(iot.IOinterface):
 	sig_names = ('tmr', 'cy5')
 	adaptive_neighbourhood = 101
 	aspect = (1., 1., 1.)
+	umes = "nm"
 	radius_interval = (10., float('inf'))
 	min_z_size = .25
 	seg_type = const.SEG_SUM_PROJ
@@ -51,7 +54,8 @@ class Analyzer(iot.IOinterface):
 	offset = (0, 5, 5)
 	part_n_erosion = .5
 	calc_n_surface = False
-	sigma = .1
+	sigma_density = .1
+	sigma_smooth = .1
 	nbins = 200
 	do_clear_Z_borders = False
 	rescale_deconvolved = False
@@ -215,7 +219,7 @@ class Analyzer(iot.IOinterface):
 				msg = '"' + name + '" must be a non-empty tuple of integers.\n'
 				msg += 'Keeping previous value. [' + str(self[name]) + ']'
 				self.printout(msg, -1)
-		elif 'sigma' == name:
+		elif name in ["sigma_smooth", "sigma_density"]:
 			# Require float
 			if not type(1.) == type(value):
 				checked = False

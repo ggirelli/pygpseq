@@ -151,8 +151,9 @@ class Main(Analyzer):
 			kwargs['dlabel'] = 'Relative distance from nuclear lamina'
 			kwargs['dlabel'] += ' [a.u.]'
 		else:
-			kwargs['dfield'] = 'd'
-			kwargs['dlabel'] = 'Distance from nuclear lamina [a.u.]'
+			kwargs['dfield'] = const.LAMIN_LABEL
+			msg = "Absolute distance from nuclear lamina"
+			kwargs['dlabel'] = '%s [%s]' % (msg, self.umes)
 
 		# Update kwargs with self attributes
 		kwargs.update([(n, getattr(self, n)) for n in dir(self)
@@ -319,7 +320,8 @@ class Main(Analyzer):
 
 		# If no conditions, stop and trigger error
 		if 0 == len(self.conds):
-			msg = "No condition folders found."
+			msg = "No condition folders found, i.e., no tif files found in any "
+			msg += "subfolders of: %s\n" % (self.basedir,)
 			self.printout(msg, -2)
 		else:
 			msg = 'Found ' + str(len(self.conds)) + ' condition folder(s)...'
@@ -664,7 +666,8 @@ class Main(Analyzer):
 			'plotting' : self.plotting,
 			'fontsize' : self.font_size,
 			'nbins' : self.nbins,
-			'sigma' : self.sigma,
+			'sigma_smooth' : self.sigma_smooth,
+			'sigma_density' : self.sigma_density,
 			'seg_type' : const.SEG_LABELS[self.seg_type],
 			'adp_thr' : self.adaptive_neighbourhood,
 			'radius_interval' : self.radius_interval,
