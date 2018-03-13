@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### Added
+- Capturing TIFF read issues.
+
 ### Fixed
 - Now borders are properly cleared when analyzing in 3D.
 

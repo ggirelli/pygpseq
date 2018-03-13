@@ -5,7 +5,6 @@ import os
 
 import matplotlib.pyplot as plt
 import numpy as np
-from skimage.io import imread
 from skimage.measure import label
 
 from .. import const
@@ -93,8 +92,7 @@ class Series(iot.IOinterface):
 
 		# Read channel
 		f = self.find_channel(ch_name)
-		imch = imread(os.path.join(self.basedir, f[0]))
-		imch = imt.autoselect_time_frame(imch)
+		imch = imt.read_tiff(os.path.join(self.basedir, f[0]))
 		imch = imt.slice_k_d_img(imch, 3)
 
 		# Deconvolved images correction

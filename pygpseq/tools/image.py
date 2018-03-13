@@ -3,10 +3,12 @@
 """ Functions for the management of images """
 
 import os
+import sys
 
 import numpy as np
 from scipy.ndimage.morphology import distance_transform_edt
 from skimage import filters
+from skimage.io import imread
 from skimage.measure import label, marching_cubes_lewiner, mesh_surface_area
 from skimage.morphology import closing, convex_hull_image, cube
 from skimage.morphology import square
@@ -14,6 +16,32 @@ from skimage.segmentation import clear_border
 
 from . import vector as vt
 from .. import const
+
+def read_tiff(impath):
+	'''Read tiff image.
+
+	Args:
+		impath (string): path to tiff image.
+	'''
+
+	# Check that the file exists
+	if not os.path.isfile(impath):
+		msg = "Trying to read missing file"
+		print("\n!ERROR! %s:\n%s\n" % (msg, impath))
+		sys.exit()
+
+	# Read TIFF (capture any parsing issues)
+	try:
+		imch = imread(impath)
+	except ValueError as e:
+		msg = "Something went wrong while trying to read a file"
+		print("\n!ERROR! %s (possibly corrupt):\n%s\n" % (msg, impath))
+		sys.exit()
+
+	# Reshape
+	imch = autoselect_time_frame(imch)
+
+	return(imch)
 
 def autoselect_time_frame(im):
 	"""Selects the first non-empty time frame found.
