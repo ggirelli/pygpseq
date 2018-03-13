@@ -21,21 +21,21 @@ From withing the root folder: `sphinx-apidoc -f -o docs/ .`
 How to run
 ----------
 
-Use the `pgpseq-run.py` script.
+Use the `gpseq_anim` script.
 
 ```
-usage: pygpseq-run.py [-h] [--skip {inst,seg,an,box,plot,report}] [-l log]
-                      [-a Z Y X] [-d [dna_name [dna_name ...]]]
-                      [-s [sig_name [sig_name ...]]] [-z min_z]
-                      [--seg-type {sum_proj,max_proj,3d}]
-                      [--an-type {sum_proj,an_proj,3d,mid}]
-                      [--mid-type {central,largest,maxIsum}]
-                      [--nuclear-sel [{size,surf,shape,sumI,meanI,flat_size} [{size,surf,shape,sumI,meanI,flat_size} ...]]]
-                      [--description [DESCRIPTION [DESCRIPTION ...]]]
-                      [-t ncores] [--note NOTE] [--regexp REGEXP] [-r] [-n]
-                      inDir outDir
+usage: gpseq_anim  [-h] [--skip {inst,seg,an,box,plot,report}] [-l log]
+                   [-a Z Y X] [-d [dna_name [dna_name ...]]]
+                   [-s [sig_name [sig_name ...]]] [-z min_z]
+                   [--seg-type {sum_proj,max_proj,3d}]
+                   [--an-type {sum_proj,an_proj,3d,mid}]
+                   [--mid-type {central,largest,maxIsum}]
+                   [--nuclear-sel [{size,surf,shape,sumI,meanI,flat_size} [{size,surf,shape,sumI,meanI,flat_size} ...]]]
+                   [--description [DESCRIPTION [DESCRIPTION ...]]]
+                   [-t ncores] [--note NOTE] [--regexp REGEXP] [-r] [-n]
+                   inDir outDir
 
-Run pygpseq-based analysis.
+Run GPSeq image analysis.
 
 positional arguments:
   inDir                 Path to input directory, containing single-condition

@@ -24,7 +24,7 @@ import sys
 
 # Add script description
 parser = argparse.ArgumentParser(
-	description = """Run pygpseq-based analysis."""
+	description = """Run GPSeq image analysis."""
 )
 
 # Positional parameters
@@ -88,8 +88,8 @@ parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
 	number of threads might increase the required amount of RAM.""")
 parser.add_argument('--note', type = str, nargs = 1,
 	help = """Dataset/Analysis description. Use double quotes.""")
-regexp = "^(?P<channel_name>[^/]*)\.(?P<channel_id>channel[0-9]+)"
-regexp += "\.(?P<series_id>series[0-9]+)(?P<ext>(_cmle)?\.tif)$"
+regexp = "^(?P<channel_name>[^/]*)\\.(?P<channel_id>channel[0-9]+)"
+regexp += "\\.(?P<series_id>series[0-9]+)(?P<ext>(_cmle)?\\.tif)$"
 parser.add_argument('--regexp', type = str, nargs = 1,
 	help = """Advanced. Regular expression to identify tif images.""",
 	default = [regexp])
@@ -106,6 +106,11 @@ parser.add_argument('-n', '--normalize-distance', action = 'store_const',
 parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 	help = """Debugging mode.""",
 	const = True, default = False)
+
+# Version flag
+version = gp.const.VERSION
+parser.add_argument('--version', action = 'version',
+	version = '%s v%s' % (sys.argv[0], version,))
 
 # Parse arguments
 args = parser.parse_args()

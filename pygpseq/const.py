@@ -12,7 +12,7 @@ class _const:
 		self.__dict__[name] = value
 
 # Package version
-_const.VERSION = '0.1.2'
+_const.VERSION = pkg_resources.get_distribution('pygpseq').version
 _const.PACK_NAME = 'pygpseq'
 
 # Series regexp fields
