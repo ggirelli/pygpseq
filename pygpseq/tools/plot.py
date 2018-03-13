@@ -742,7 +742,7 @@ def multi_condition_single_boxplot(profiles, data, data_field,
 	"""
 
 	# Plot
-	fig = plt.figure(figsize = (2 + len(profiles), 4))
+	fig = plt.figure(figsize = (4 + len(profiles), 4))
 	boxplot(fig, 111, [d[data_field] for d in data],
 		[i + 1 for i in range(len(profiles))], bp_widths.tolist(), ylab,
 		[p['n'] for p in profiles], forceSciNotation = True

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Now borders are properly cleared when analyzing in 3D.
 - Nuclear threshold plot size.
+- Report format.
 
 ### Changed
 - Cleaned package structure.

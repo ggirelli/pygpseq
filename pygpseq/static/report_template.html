@@ -305,13 +305,13 @@
 			{% else %}
 			Condition "{{conds[i].name}}" with {{conds[i].series|length}} series and {{cnuclei[i]}} nuclei.<br />
 			{% endif %}
-			<table>
+			<table width="100%">
 				<tr>
-					<td><div style="width: 200px; height: 350px;">
+					<td><div style="width: 200px; height: 350px; overflow: hidden;">
 						<img style="position: absolute; display: block; width: 250px; clip: rect(0px,300px,300px,0px);" src="file://{{outdir}}out_masks/{{conds[i].name}}.series001.mask{{suffix}}.png" alt="{{conds[i].name}}.series001.mask not found" />
 					</div></td>
 					<td>
-						<img style="display: block; height: 300px; margin: 0 auto;" src="file://{{outdir}}out_png/{{conds[i].name}}.threshold_summary{{suffix}}.png" alt="{{conds[i].name}}.threshold_summary not found" />
+						<img style="display: block; width: 350px; margin: 0 auto; margin-left: 50px;" src="file://{{outdir}}out_png/{{conds[i].name}}.threshold_summary{{suffix}}.png" alt="{{conds[i].name}}.threshold_summary not found" />&nbsp;
 					</td>
 				</tr>
 			</table>
