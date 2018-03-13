@@ -1,8 +1,0 @@
-jinja2
-joblib
-matplotlib
-numpy
-pandas
-scikit-image
-scipy
-weasyprint
