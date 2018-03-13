@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Added
 - Capturing TIFF read issues.
+- Voxel aspect unit of measure.
 
 ### Fixed
 - Now borders are properly cleared when analyzing in 3D.
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Renamed `pygpseq-run.py` to `gpseq_anim` and allowed for easy installation.
 - `VERSION` constant now source only from `setup.py`.
 - Setup base for unit testing with `nosetests`.
+- Sigma used for smoothing and density curve production are now separate.
 
 
 
