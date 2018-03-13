@@ -377,7 +377,7 @@ class Main(Analyzer):
 				cia = {}
 
 				# For statistic measure
-				for k2 in ['mean', 'median', 'mode']:
+				for k2 in ['mean', 'median', 'mode', 'max']:
 					cprof = profile[k1]
 
 					# Get the intercepts ---------------------------------------
@@ -518,7 +518,7 @@ class Main(Analyzer):
 		out_png = self.outdir + const.OUTDIR_PNG
 
 		# Multi condition profile plot
-		for yfield in ['mean', 'median', 'mode']:
+		for yfield in ['mean', 'median', 'mode', 'max']:
 			msg = 'Preparing multi-condition profiles plot [' + yfield + ']...'
 			self.printout(msg, 0)
 
@@ -569,7 +569,7 @@ class Main(Analyzer):
 			self.printout('Selecting partial-volume pixels...', 0)
 			part_profiles = [p['part'] for p in profiles]
 
-			for yfield in ['mean', 'median', 'mode']:
+			for yfield in ['mean', 'median', 'mode', 'max']:
 				msg = 'Preparing partial volume multi-condition profiles plot ['
 				msg += yfield + ']...'
 				self.printout(msg, 0)

@@ -113,9 +113,9 @@ _const.PARAM_STATIC = ('basedir', 'cdescr', 'debugging', 'font_size', 'logpath',
 	'ncores', 'notes', 'outdir', 'plotting', 'skip', 'suffix', 'verbose')
 _const.PARAM_SEG = ('adp_thr', 'calc_n_surface', 'dna_names', 'ext',
 	'min_z_size', 'seg_type', 'sig_names', 'offset', 'radius_interval', 'reg',
-	'rescale_deconvolved', 'rm_z_tips', 'seg_type', 'sig_names', 'sigma')
+	'rescale_deconvolved', 'rm_z_tips', 'seg_type', 'sig_names')
 _const.PARAM_AN = ('an_type', 'aspect', 'nbins', 'normalize_distance', 'nsf',
-	'part_n_erosion')
+	'part_n_erosion', 'sigma_smooth', 'sigma_density')
 _const.PARAM_PROPAGATE = ('logpath',)
 
 # Save constants

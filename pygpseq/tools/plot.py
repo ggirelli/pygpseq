@@ -128,18 +128,45 @@ def single_pixel_study(xs, ys, field_label, profile, nbins = None, **kwargs):
 	# MULTIPLOT ================================================================
 
 	# Init figure --------------------------------------------------------------
-	fig = plt.figure(figsize = [40, 20])
+	fig = plt.figure(figsize = [40, 15])
 	rc('font', **{'size' : 15})
 
+	# Number of pixels plot ----------------------------------------------------
+	plt.subplot2grid((4, 3), (0, 0))
+	plt.plot(range(nbins), hh.sum(1))
+	plt.ylabel('Number of pixels')
+	plt.xlabel(kwargs['dlabel'])
+
+	# Adjust ticks
+	ax = plt.gca()
+	ticks = ax.get_xticks() / float(nbins) * xyrange[0][1]
+	ticks = [const.SCI_FORMAT % n for n in ticks]
+	ax.get_xaxis().set_visible(False)
+	plt.ticklabel_format(style = 'sci', axis = 'y', scilimits = (0, 0))
+
 	# Boxplot ------------------------------------------------------------------
-	ax = plt.subplot2grid((4, 2), (0, 0))
+	ax = plt.subplot2grid((4, 3), (1, 0))
 	plt.boxplot(binned_ydat, sym = 'k.')
 	plt.ylabel(field_label)
 	ax.get_xaxis().set_visible(False)
 	plt.ticklabel_format(style = 'sci', axis = 'y', scilimits = (0, 0))
 
+	# STD plot -----------------------------------------------------------------
+	plt.subplot2grid((4, 3), (2, 0))
+	plt.plot(profile['std_raw'], 'r')
+	plt.plot(profile['std_raw'], 'r.')
+	plt.ylabel('std(' + field_label + ')')
+	plt.hold(True)
+	plt.plot(profile['std'], 'k')
+	plt.xlabel(kwargs['dlabel'])
+
+	# Adjust ticks
+	ax = plt.gca()
+	ax.set_xticklabels(ticks)
+	plt.ticklabel_format(style = 'sci', axis = 'y', scilimits = (0, 0))
+
 	# Mean plot ----------------------------------------------------------------
-	plt.subplot2grid((4, 2), (1, 0))
+	plt.subplot2grid((4, 3), (0, 1))
 	plt.plot(profile['mean_raw'], 'b')
 	plt.plot(profile['mean_raw'], 'b.')
 	plt.ylabel('mean(' + field_label + ')')
@@ -148,13 +175,11 @@ def single_pixel_study(xs, ys, field_label, profile, nbins = None, **kwargs):
 
 	# Adjust ticks
 	ax = plt.gca()
-	ticks = ax.get_xticks() / float(nbins) * xyrange[0][1]
-	ticks = [const.SCI_FORMAT % n for n in ticks]
-	ax.set_xticklabels(ticks)
+	ax.get_xaxis().set_visible(False)
 	plt.ticklabel_format(style = 'sci', axis = 'y', scilimits = (0, 0))
 
 	# Median plot --------------------------------------------------------------
-	plt.subplot2grid((4, 2), (2, 0))
+	plt.subplot2grid((4, 3), (1, 1))
 	plt.plot(profile['median_raw'], 'r')
 	plt.plot(profile['median_raw'], 'r.')
 	plt.ylabel('median(' + field_label + ')')
@@ -163,11 +188,11 @@ def single_pixel_study(xs, ys, field_label, profile, nbins = None, **kwargs):
 
 	# Adjust ticks
 	ax = plt.gca()
-	ax.set_xticklabels(ticks)
+	ax.get_xaxis().set_visible(False)
 	plt.ticklabel_format(style = 'sci', axis = 'y', scilimits = (0, 0))
 
 	# Mode plot ----------------------------------------------------------------
-	plt.subplot2grid((4, 2), (3, 0))
+	plt.subplot2grid((4, 3), (2, 1))
 	plt.plot(profile['mode_raw'], 'c')
 	plt.plot(profile['mode_raw'], 'c.')
 	plt.ylabel('mode(' + field_label + ')')
@@ -177,13 +202,16 @@ def single_pixel_study(xs, ys, field_label, profile, nbins = None, **kwargs):
 
 	# Adjust ticks
 	ax = plt.gca()
-	ax.set_xticklabels(ticks)
+	ax.get_xaxis().set_visible(False)
 	plt.ticklabel_format(style = 'sci', axis = 'y', scilimits = (0, 0))
 
-	# Number of pixels plot ----------------------------------------------------
-	plt.subplot2grid((4, 2), (0, 1))
-	plt.plot(range(nbins), hh.sum(1))
-	plt.ylabel('Number of pixels')
+	# Max plot -----------------------------------------------------------------
+	plt.subplot2grid((4, 3), (3, 1))
+	plt.plot(profile['max_raw'], 'c')
+	plt.plot(profile['max_raw'], 'c.')
+	plt.ylabel('max(' + field_label + ')')
+	plt.hold(True)
+	plt.plot(profile['max'], 'b')
 	plt.xlabel(kwargs['dlabel'])
 
 	# Adjust ticks
@@ -192,23 +220,9 @@ def single_pixel_study(xs, ys, field_label, profile, nbins = None, **kwargs):
 	plt.ticklabel_format(style = 'sci', axis = 'y', scilimits = (0, 0))
 
 	# Local density scatterplot ------------------------------------------------
-	plt.subplot2grid((4, 2), (1, 1), rowspan = 2)
+	plt.subplot2grid((4, 3), (0, 2), rowspan = 4, colspan = 2)
 	profile_density_scatterplot(pp, field_label, nbins, xyrange, profile,
 		dlabel = kwargs['dlabel'], new_figure = False)
-
-	# STD plot -----------------------------------------------------------------
-	plt.subplot2grid((4, 2), (3, 1))
-	plt.plot(profile['std_raw'], 'r')
-	plt.plot(profile['std_raw'], 'r.')
-	plt.ylabel('std(' + field_label + ')')
-	plt.hold(True)
-	plt.plot(profile['std'], 'g')
-	plt.xlabel(kwargs['dlabel'])
-
-	# Adjust ticks
-	ax = plt.gca()
-	ax.set_xticklabels(ticks)
-	plt.ticklabel_format(style = 'sci', axis = 'y', scilimits = (0, 0))
 
 	# SINGLE PLOTS =============================================================
 
@@ -313,7 +327,7 @@ def profile_density_scatterplot(pp, field_label, nbins, xyrange,
 		new_figure = True
 
 	if new_figure:
-		fig = plt.figure()
+		fig = plt.figure(figsize = [10, 10])
 
 	# PLOT =====================================================================
 	
@@ -337,6 +351,9 @@ def profile_density_scatterplot(pp, field_label, nbins, xyrange,
 	plt.plot(range(nbins), nbins *
 		(profile['mode'] - xyrange[1][0]) / (xyrange[1][1] - xyrange[1][0]),
 		'm', linewidth = 2)
+	plt.plot(range(nbins), nbins *
+		(profile['max'] - xyrange[1][0]) / (xyrange[1][1] - xyrange[1][0]),
+		'b', linewidth = 2)
 
 	plt.xlim([0, nbins - 1])
 	plt.ylim([0, nbins - 1])
@@ -416,21 +433,21 @@ def single_condition_profiles(profiles, font_size = None, color = None,
 		fig = plt.figure(figsize = (12, 8))
 
 		# Main title
-		title = 'GPSeq profiles for condition "'
-		title += profiles['condition'] + '" (n.nuclei = ' + str(n_nuclei) + ')'
+		title = 'GPSeq profiles for condition "%s" (n.nuclei = %d)' % (
+			profiles['condition'], n_nuclei)
 
 		# Add user-defined comment
 		if 'title_comment' in kwargs.keys():
-			title += ' [' + kwargs['title_comment'] + ']'
+			title += ' [%s]' % (kwargs['title_comment'],)
 
 		# Additional information
-		if 'sigma' in kwargs.keys():
-			title += ' [sigma = ' + str(kwargs['sigma']) + ']'
+		if 'sigma_smooth' in kwargs.keys():
+			title += ' [sigma = %.3f]' % (kwargs['sigma_smooth'],)
 		if 'nbins' in kwargs.keys():
-			title += ' [nbins = ' + str(kwargs['nbins']) + ']'
+			title += ' [nbins = %d]' % (kwargs['nbins'],)
 
 		# Add suptitle
-		plt.suptitle(title)
+		plt.suptitle(title, fontsize = font_size)
 
 	# Setup subplots spacing
 	plt.subplots_adjust(wspace = wspace, hspace = hspace)
@@ -546,11 +563,11 @@ def multi_condition_profiles(profiles, font_size = None,
 	# Add title
 	title = 'GPSeq profiles [' + yfield + ']'
 	if 'title_comment' in kwargs.keys():
-		title += ' [' + kwargs['title_comment'] + ']'
-	if 'sigma' in kwargs.keys():
-		title += ' [sigma = ' + str(kwargs['sigma']) + ']'
+		title += ' [%s]' % (kwargs['title_comment'],)
+	if 'sigma_smooth' in kwargs.keys():
+		title += ' [sigma = %.2f]' % (kwargs['sigma_smooth'],)
 	if 'nbins' in kwargs.keys():
-		title += ' [nbins = ' + str(kwargs['nbins']) + ']'
+		title += ' [nbins = %d]' % (kwargs['nbins'],)
 	plt.suptitle(title)
 
 	# Output

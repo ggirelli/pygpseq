@@ -436,10 +436,13 @@ class Condition(iot.IOinterface):
 			yfield = 'median', new_figure = False, **kwargs)
 		plot.single_condition_profiles(profiles, n_nuclei = len(data),
 			yfield = 'mode', new_figure = False, **kwargs)
+		plot.single_condition_profiles(profiles, n_nuclei = len(data),
+			yfield = 'max', new_figure = False, **kwargs)
 
 		# Add legend
 		plt.subplot(3, 2, 1)
-		plt.legend(labels = ['mean', 'median', 'mode'],
+		plot.set_font_size(12)
+		plt.legend(labels = ['mean', 'median', 'mode', 'max'],
 			bbox_to_anchor = (0., 1.12, 1., .102), loc = 3,
 			ncol = 2, mode = "expand", borderaxespad = 0.)
 
@@ -487,10 +490,14 @@ class Condition(iot.IOinterface):
 			plot.single_condition_profiles(profiles['part'],
 				n_nuclei = len(data), yfield = 'mode', title_comment = title,
 				new_figure = False, **kwargs)
+			plot.single_condition_profiles(profiles['part'],
+				n_nuclei = len(data), yfield = 'max', title_comment = title,
+				new_figure = False, **kwargs)
 
 			# Add legend
 			plt.subplot(3, 2, 1)
-			plt.legend(labels = ['mean', 'median', 'mode'],
+			plot.set_font_size(12)
+			plt.legend(labels = ['mean', 'median', 'mode', 'max'],
 				bbox_to_anchor = (0., 1.12, 1., .102), loc = 3,
 				ncol = 2, mode = "expand", borderaxespad = 0.)
 
@@ -583,6 +590,8 @@ class Condition(iot.IOinterface):
 			# Actual plot
 			fig = plot.single_pixel_study(indata[kwargs['dfield']],
 				y, ylab, profiles[lab], partial = partial, **kwargs)
+			fig.tight_layout()
+			plt.subplots_adjust(top = 0.95)
 			plt.suptitle(suptitle)
 
 			# Export PDF

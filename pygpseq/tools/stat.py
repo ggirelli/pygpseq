@@ -168,7 +168,7 @@ def smooth_sparse_gaussian(x, y, nbins = None, sigma = None,
 	}
 
 	# Smoothen profiles
-	for field in ['mean', 'median', 'mode', 'std']:
+	for field in ['mean', 'median', 'mode', 'std', 'max']:
 		out[field + '_raw'] = data[field]
 		out[field] = smooth_gaussian(data['breaks'],
 			data[field], sigma, nbins)
@@ -203,8 +203,8 @@ def binned_profile(x, y, nbins = None):
 	# Get mean and median for every bin
 	data = np.zeros((len(breaks),),
 		dtype = [('breaks', 'f'), ('mean', 'f'), ('median', 'f'), ('std', 'f'),
-		('mode', 'f'), ('mean_raw', 'f'), ('median_raw', 'f'), ('std_raw', 'f'),
-		('mode_raw', 'f'), ('n', 'f')])
+		('mode', 'f'), ('max', 'f'), ('mean_raw', 'f'), ('median_raw', 'f'),
+		('std_raw', 'f'), ('mode_raw', 'f'), ('max_raw', 'f'), ('n', 'f')])
 	for bin_id in range(assigned_bins.max()):
 		where = np.where(assigned_bins == bin_id)
 		data['breaks'][bin_id] = breaks[bin_id]
@@ -213,12 +213,14 @@ def binned_profile(x, y, nbins = None):
 			data['median'][bin_id] = np.median(y[where])
 			data['mode'][bin_id] = binned_mode(y[where], nbins)
 			data['std'][bin_id] = np.std(y[where])
+			data['max'][bin_id] = np.max(y[where])
 			data['n'][bin_id] = len(y[where])
 		else:
 			data['mean'][bin_id] = np.nan
 			data['median'][bin_id] = np.nan
 			data['mode'][bin_id] = np.nan
 			data['std'][bin_id] = np.nan
+			data['max'][bin_id] = np.nan
 			data['n'][bin_id] = 0
 
 	# Output
