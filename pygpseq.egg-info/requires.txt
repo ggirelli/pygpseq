@@ -3,6 +3,6 @@ joblib
 matplotlib
 numpy
 pandas
-scipy
 scikit-image
+scipy
 weasyprint

@@ -1,6 +1,8 @@
-pygpseq/*.pyc
-pygpseq/__pycache__/*
-pygpseq/tools/*.pyc
-pygpseq/tools/__pycache__/*    
-pygpseq/wraps/*.pyc
-pygpseq/wraps/__pycache__/*
+# Compiled python modules.
+*.pyc
+
+# Setuptools distribution folder.
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools.
+/*.egg-info

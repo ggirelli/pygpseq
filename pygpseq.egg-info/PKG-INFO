@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: pygpseq
-Version: 0.1.2
+Version: 1.0.0
 Summary: A GPSeq image analysis package
 Home-page: https://github.com/ggirelli/BiCroGG
 Author: Gabriele Girelli
@@ -16,18 +16,20 @@ Description: pyGPSeq
         Read the documentation in ``docs/_build/html`` for more details.
         
         Build package
-        ---
+        -------------
+        
+        Source distribution: `python setup.py sdist`
+        Universal wheel: `python setup.py bdist_wheel --universal`
         
         Build docs
-        ---
+        ----------
+        
+        From withing the root folder: `sphinx-apidoc -f -o docs/ .`
         
 Keywords: microscopy image analysis bioimaging biology cell DNA
 Platform: UNKNOWN
-Classifier: Development Status :: 4 - Beta
+Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Science/Research
 Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
 Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
-Classifier: Programming Language :: Python :: 2
-Classifier: Programming Language :: Python :: 2.7
 Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.5
