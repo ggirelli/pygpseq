@@ -19,7 +19,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 	long_description = f.read()
 
 setup(name='pygpseq',
-	version='1.1.0',
+	version='2.0.0',
 	description='A GPSeq image analysis package',
 	long_description=long_description,
 	url='https://github.com/ggirelli/gpseq-img-py',
@@ -27,7 +27,7 @@ setup(name='pygpseq',
 	author_email='gabriele.girelli@scilifelab.se',
 	license='MIT',
 	classifiers=[
-		'Development Status :: 5 - Production/Stable',
+		'Development Status :: 1 - Planning',
 		'Intended Audience :: Science/Research',
 		'Topic :: Scientific/Engineering :: Bio-Informatics',
 		'License :: OSI Approved :: MIT License',

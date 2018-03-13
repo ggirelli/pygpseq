@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [2.0.0]
+### ...
+- ...
+
+
+
 ## [1.1.0] - 2018-03-13
 ### Added
 - Capturing TIFF read issues.
@@ -77,7 +83,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
-[1.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v1.0.0
+[2.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.0.0
+[1.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v1.1.0
 [1.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v1.0.0
 [0.1.3] https://github.com/ggirelli/gpseq-img-py/
 [0.1.2] https://github.com/ggirelli/gpseq-img-py/
