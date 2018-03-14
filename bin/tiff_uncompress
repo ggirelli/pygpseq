@@ -31,13 +31,14 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 0.0.1
+# Version: 1.0.0
 # Date: 20180302
 # Project: bioimaging
 # Description: Uncompress compressed tiff.
 # Requires: 
 # 
 # Changelog:
+#  v1.0.0 - 20180314: merged with pygpseq.
 #  v0.0.1 - 20171205: first implementation.
 # 
 # ------------------------------------------------------------------------------
@@ -53,14 +54,19 @@ import numpy as np
 import os
 import re
 from scipy import ndimage as ndi
+import sys
+import tifffile
+import warnings
+
+from pygpseq.tools import image as imt
+from pygpseq.tools import path as pt
+from pygpseq.tools import plot
+
 from skimage.filters import threshold_local, threshold_otsu
 import skimage.io as io
 from skimage.measure import label
 from skimage.morphology import closing, cube, square
 from skimage.segmentation import clear_border
-import sys
-import tifffile
-import warnings
 
 # PARAMETERS ===================================================================
 
@@ -86,7 +92,7 @@ parser.add_argument('--threads', type = int, nargs = 1,
     default = [1])
 
 # Version flag
-version = "0.0.1"
+version = "1.0.0"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
@@ -107,93 +113,7 @@ if maxncores < ncores:
 
 # FUNCTIONS ====================================================================
 
-def add_trailing_slash(s):
-    # Add OS-specific folder separator if missing
-    # 
-    # Args:
-    #   s (string): path to folder.
-    # 
-    # Returnsç
-    #   string: fixed path to folder.
-    if not os.sep == s[-1]:
-        return(s + os.sep)
-    else:
-        return(s)
-
-def autoselect_time_frame(im):
-    # Selects the first non-empty time frame found.
-    #
-    # Args:
-    #     im (np.array): image.
-
-    # Select time frame if TZYX or ZYXT
-    if 4 == len(im.shape):
-        # TZYX
-        if im.shape[0] == 1:
-            return(im)
-        
-        #ZYXT
-        selected = None
-        if 4 == len(im.shape):
-            for i in range(im.shape[3]):
-                if 0 != im[:, :, :, i].max():
-                    selected = i
-                    break
-        return(im[:, :, :, selected])
-    else:
-        return(im)
-
-def slice_k_d_img(img, k):
-    # Select one k-d image from a n-d image.
-    # 
-    # Note:
-    #     n >= k
-    # 
-    # Args:
-    #     img (np.array): image.
-    #     k (int): number of dimensions to keep.
-    # 
-    # Returns:
-    #     np.array: k-d image.
-
-    # Check that k is lower than or equal to n
-    if k > len(img.shape):
-        return(img)
-
-    # Slice image
-    idxs = [(0,) for i in range(len(img.shape) - k)]
-    for i in range(k):
-        idxs.append(tuple(range(img.shape[len(img.shape) - k + i])))
-    img = img[np.ix_(*idxs)].reshape(img.shape[len(img.shape) - k:])
-
-    # Output
-    return(img)
-
-def get_dtype(i):
-    '''
-    Identify bit depth for a matrix of maximum intensity i.
-    '''
-    depths = [1, 2, 4, 8, 16]
-    for depth in depths:
-        if i <= 2**depth-1:
-            return("u%d" % (depth,))
-    return("u")
-
-def save_tif(path, img, dtype, compressed):
-    new_shape = [1]
-    [new_shape.append(n) for n in img.shape]
-    img.shape = new_shape
-
-    if compressed:
-        tifffile.imsave(path, img.astype(dtype),
-            shape = img.shape, compress = 9,
-            dtype = dtype, imagej = True, metadata = {'axes' : 'CZYX'})
-    else:
-        tifffile.imsave(path, img.astype(dtype),
-            shape = img.shape, compress = 0,
-            dtype = dtype, imagej = True, metadata = {'axes' : 'CZYX'})
-
-def uncompress(imgpath, imgdir):
+def uncompress(imgpath, imgdir, outdir):
     # Perform 3D segmentation of nuclear staining image.
     # 
     # Args:
@@ -206,18 +126,18 @@ def uncompress(imgpath, imgdir):
     # Preparation --------------------------------------------------------------
 
     # Read image
-    img = tifffile.imread(os.path.join(imgdir, imgpath))
+    img = imt.read_tiff(os.path.join(imgdir, imgpath))
 
     # Write image
-    save_tif(os.path.join(outdir, imgpath), img, 'uint8', False)
+    plot.save_tif(os.path.join(outdir, imgpath), img, imt.get_dtype(img), False)
 
     return(os.path.join(outdir, imgpath))
 
 # RUN ==========================================================================
 
 # Add trailing slashes
-imgdir = add_trailing_slash(imgdir)
-outdir = add_trailing_slash(outdir)
+imgdir = pt.add_trailing_slash(imgdir)
+outdir = pt.add_trailing_slash(outdir)
 
 # Stop if input folder does not exist
 if not os.path.isdir(imgdir):
@@ -237,7 +157,7 @@ imglist = [f for f in os.listdir(imgdir)
 # Start iteration --------------------------------------------------------------
 
 outlist = Parallel(n_jobs = ncores)(
-    delayed(uncompress)(imgpath, imgdir)
+    delayed(uncompress)(imgpath, imgdir, outdir)
     for imgpath in imglist)
 
 # END ==========================================================================

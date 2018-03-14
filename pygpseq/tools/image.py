@@ -268,8 +268,8 @@ def get_dtype(i):
     depths = [1, 2, 4, 8, 16]
     for depth in depths:
         if i <= 2**depth-1:
-            return("u%d" % (depth,))
-    return("u")
+            return("uint%d" % (depth,))
+    return("uint")
 
 def get_mid_section_idx(i, mask, mid_type = None):
     """Identify mid-section index.

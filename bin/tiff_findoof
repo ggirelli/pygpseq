@@ -45,7 +45,8 @@
 import argparse
 import os
 import re
-import skimage.io as io
+
+from pygpseq.tools import image as imt
 
 # PARAMETERS ===================================================================
 
@@ -105,7 +106,7 @@ imlist = [f for f in flist if not type(None) == type(re.match(pattern, f))]
 # Iterate through fields of view
 for impath in imlist:
     # Read image
-    im = io.imread(imdir + impath)
+    im = imt.read_tiff(imdir + impath)
     
     # Select first time frame
     while 3 < len(im.shape):
