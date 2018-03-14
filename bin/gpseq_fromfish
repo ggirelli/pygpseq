@@ -97,29 +97,42 @@ from pygpseq.fish.nucleus import flag_G1_cells
 
 # Add script description
 parser = argparse.ArgumentParser(description = '''
-Calculate radial position of dots in cells.
+Calculate radial position of FISH signals (dots) in nuclei.
 
-The G1 selection is actually a selection of the most represented cell sub-
--population based on flatten area and integral of DNA stain intensity. In other
-words, it will selected the most represented cell cycle phase in your cell
-population (generally, G1). Images are expected to follow DOTTER filename
-notation: "channel_series.tif".
+Images are expected to follow DOTTER filename notation: "channel_series.tif".
+Identified images are first re-scaled (if deconvolved with Huygens software),
+then a global (Otsu) and local (median) thresholds are combined to binarize the
+image in 3D. Then, holes are filled in 3D and a closing operation is performed
+to remove small objects. Objects are filtered based on volume and Z size, and
+those touching the XY contour of the image are discarded. If the --labeled
+option is used, the generated images have identified objects labeled with
+different intensity values. Both compressed and normal TIFF files are
+compatible as input/output. To produce compressed TIFF files as output use the
+--compressed option.
 
-If you already segmented your images (i.e., produced masks), provide the path to
-the folder containing the masks using -m, and the prefix for the mask name with
--m. For example, with '-m /ex/mask_dir/ -M mask_', in the case of the image
+If you previously segmented your images (i.e., produced masks), provide the path
+to the folder containing the masks using -m, and the prefix for the mask name
+with -m. For example, with '-m /ex/mask_dir/ -M mask_', in the case of the image
 file '1.tif', the script will look for the mask at "/ex/mask_dir/mask_1.tif".
 If the mask can be found, it will be used, otherwise it will be generated and
 then saved. This can be used also to export masks as tifs to the folder
 specified with -m.
 
-If your cells have ellipsoidal shape, use the --annotate-compartments flag to
-assign each dot to the poles (2), bottom center (1) or top center (0)
-compartments. The pole compartments are defined as the 20%% of the whole volume,
-by cutting perpendicularly to the major axis. Information on goodnes of fit is
-reported and a plot is provided with each nucleus rotated and centered. Plotting
-can be turned off generally with the --noplot flag, and specifically with the
---no-compartment-plot flag.
+The G1 selection is actually a selection of the most represented cell sub-
+-population based on flatten area and integral of DNA stain intensity. In other
+words, it will selected the most represented cell cycle phase in your cell
+population (generally, G1).
+
+If your cells have ellipsoidal shape, you can use the --annotate-compartments
+flag to assign each dot to the poles (2), bottom center (1) or top center (0)
+compartments. The pole compartments are defined as the 25%% of the whole volume,
+by cutting perpendicularly to the major axis. Such definition can be changed
+with the -P (--pole) option specifying a different axis fraction. Information on
+goodnes of fit is reported and a plot is provided with each nucleus rotated and
+centered.
+
+Plotting can be turned off generally with the --noplot flag, and specifically
+with the --no-compartment-plot flag.
 ''', formatter_class = argparse.RawDescriptionHelpFormatter)
 
 # Add mandatory arguments

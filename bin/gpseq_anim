@@ -50,9 +50,9 @@ import sys
 # PARAMETERS ===================================================================
 
 # Add script description
-parser = argparse.ArgumentParser(
-	description = """Run GPSeq image analysis."""
-)
+parser = argparse.ArgumentParser(description = """
+Analyse a multi-condition GPSeq image dataset.
+""", formatter_class = argparse.RawDescriptionHelpFormatter)
 
 # Positional parameters
 parser.add_argument('inDir', type = str, nargs = 1,

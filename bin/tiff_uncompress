@@ -61,6 +61,7 @@ import warnings
 from pygpseq.tools import image as imt
 from pygpseq.tools import path as pt
 from pygpseq.tools import plot
+from pygpseq.tools.io import printout
 
 from skimage.filters import threshold_local, threshold_otsu
 import skimage.io as io
@@ -72,23 +73,33 @@ from skimage.segmentation import clear_border
 
 # Add script description
 parser = argparse.ArgumentParser(description = '''
-Uncompress all tiff files matching the specified pattern.
-''')
+Uncompress TIFF images. Provide either a single input/output image path, or 
+input/output folder paths. In case of folder input/output, all tiff files in the
+inout folder with a name matching the specified pattern are uncompressed and
+saved to the output folder.
+
+When uncompressing multiple images, the --threads option allows to parallelize
+on multiple threads. Disk read/write operations become the bottleneck when
+parallelizing, thus working on a SSD is advised.
+''', formatter_class = argparse.RawDescriptionHelpFormatter)
 
 # Add mandatory arguments
-parser.add_argument('imgFolder', type = str, nargs = 1,
-    help = 'Path to folder containing deconvolved tiff images.')
-parser.add_argument('outFolder', type = str, nargs = 1,
-    help = '''Path to output folder where binarized images will be stored
-    (created if does not exist).''')
+parser.add_argument('input', type = str, nargs = 1,
+    help = '''Path to the TIFF image to uncompress, or to a folder containing
+    multiple TIFF images. In the latter case, the --inreg pattern is used to
+    identify the images.''')
+parser.add_argument('output', type = str, nargs = 1,
+    help = '''Path to output TIFF image, or output folder if the input is a
+    older.''')
 
 # Optional parameters
 default_inreg = '^.*\.tiff?$'
 parser.add_argument('--inreg', type = str, nargs = 1,
-    help = """regular expression to identify images from imgFolder.
-    Default: '%s'""" % (default_inreg,), default = [default_inreg])
+    help = """Regular expression to identify image files, when the input is a
+    folder. Default: '%s'""" % (default_inreg,), default = [default_inreg])
 parser.add_argument('--threads', type = int, nargs = 1,
-    help = """number of threads for parallelization. Default: 1""",
+    help = """Number of threads for parallelization. Used only to uncompress
+    multiple images (i.e., input is a folder). Default: 1""",
     default = [1])
 
 # Version flag
@@ -100,8 +111,26 @@ parser.add_argument('--version', action = 'version',
 args = parser.parse_args()
 
 # Assign to in-script variables
-imgdir = args.imgFolder[0]
-outdir = args.outFolder[0]
+do_multiple = False
+if os.path.isdir(args.input[0]):
+    do_multiple = True
+    imgdir = args.input[0]
+    if os.path.isfile(args.output[0]):
+        printout("""Output must be a folder if the provided input is a folder
+            too.""", -2)
+    else:
+        outdir = args.output[0]
+else:
+    if os.path.isfile(args.input[0]):
+        imgpath = args.input[0]
+        if os.path.isdir(args.output[0]):
+            printout("""Output can be a folder only if the provided input is a
+                folder too.""", -2)
+        else:
+            outpath = arg.output[0]
+    else:
+        printout("Input file not found: %s" % (args.input[0],), -2)
+
 inpattern = re.compile(args.inreg[0])
 ncores = args.threads[0]
 
@@ -135,30 +164,35 @@ def uncompress(imgpath, imgdir, outdir):
 
 # RUN ==========================================================================
 
-# Add trailing slashes
-imgdir = pt.add_trailing_slash(imgdir)
-outdir = pt.add_trailing_slash(outdir)
+if do_multiple:
+    # Uncompess multiple images ------------------------------------------------
 
-# Stop if input folder does not exist
-if not os.path.isdir(imgdir):
-    sys.exit("!ERROR! Image folder not found: %s" % (imgdir,))
+    # Add trailing slashes
+    imgdir = pt.add_trailing_slash(imgdir)
+    outdir = pt.add_trailing_slash(outdir)
 
-# Create output folder
-if not os.path.isdir(outdir):
-    os.mkdir(outdir)
+    # Stop if input folder does not exist
+    if not os.path.isdir(imgdir):
+        sys.exit("!ERROR! Image folder not found: %s" % (imgdir,))
 
-# Identify images --------------------------------------------------------------
+    # Create output folder
+    if not os.path.isdir(outdir):
+        os.mkdir(outdir)
 
-# Identify tiff images
-imglist = [f for f in os.listdir(imgdir) 
-    if os.path.isfile(os.path.join(imgdir, f))
-    and not type(None) == type(re.match(inpattern, f))]
+    # Identify images
+    imglist = [f for f in os.listdir(imgdir) 
+        if os.path.isfile(os.path.join(imgdir, f))
+        and not type(None) == type(re.match(inpattern, f))]
 
-# Start iteration --------------------------------------------------------------
-
-outlist = Parallel(n_jobs = ncores)(
-    delayed(uncompress)(imgpath, imgdir, outdir)
-    for imgpath in imglist)
+    # Start iteration
+    outlist = Parallel(n_jobs = ncores)(
+        delayed(uncompress)(imgpath, imgdir, outdir)
+        for imgpath in imglist)
+else:
+    # Uncompress a single image ------------------------------------------------
+    imgdir = os.path.dirname(imgpath)
+    imgpath = os.path.basename(imgpath)
+    uncompress(imgpath, imgdir, outdir)
 
 # END ==========================================================================
 
