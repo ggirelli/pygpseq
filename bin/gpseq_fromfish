@@ -31,7 +31,7 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 4.1.4
+# Version: 5.0.0
 # Date: 20170718
 # Project: GPSeq
 # Description: Calculate radial position of dots in cells
@@ -177,7 +177,7 @@ parser.add_argument('--no-compart-plot', action = 'store_const',
 	help = 'Do not produce compartments-related plots.')
 
 # Version flag
-version = "4.1.4"
+version = "5.0.0"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
