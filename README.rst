@@ -16,6 +16,13 @@ cd gpseq-seq-py
 sudo -H pip3 install -e .
 ```
 
+To update, run the following from within the repository folder.
+
+```
+git pull
+sudo -H pip3 install -e .
+```
+
 License
 ---
 

@@ -16,89 +16,35 @@ cd gpseq-seq-py
 sudo -H pip3 install -e .
 ```
 
+To update, run the following from within the repository folder.
+
+```
+git pull
+sudo -H pip3 install -e .
+```
+
 Usage
 ----------
 
-Use the `gpseq_anim` script.
+#### Analyze a GPSeq image dataset
 
-```
-usage: gpseq_anim [-h]
-                  [--skip [{inst,seg,an,box,plot,report} [{inst,seg,an,box,plot,report} ...]]]
-                  [-l log] [-a Z Y X] [-U unit] [-d dna_name [dna_name ...]]
-                  [-s sig_name [sig_name ...]] [-z min_z]
-                  [--seg-type {sum_proj,max_proj,3d}]
-                  [--an-type {sum_proj,max_proj,3d,mid}]
-                  [--mid-type {central,largest,maxIsum}]
-                  [--nuclear-sel [{size,surf,shape,sumI,meanI,flat_size} [{size,surf,shape,sumI,meanI,flat_size} ...]]]
-                  [--sigma-smooth sigmaValue] [--sigma-density sigmaValue]
-                  [--description [DESCRIPTION [DESCRIPTION ...]]]
-                  [-t nthreads] [--note NOTE] [--regexp REGEXP] [-r] [-n] [-u]
-                  [--version]
-                  inDir outDir
+The `gpseq_anim` (**GPSeq** **an**alysis of **im**ages) analyzes a multi-condition GPSeq image dataset. Run `gpseq_anim -h` for more details.
 
-Run GPSeq image analysis.
+#### Calculate lamin distance of FISH signals
 
-positional arguments:
-  inDir                 Path to input directory, containing singlcde-condition
-                        directories with TIF files.
-  outDir                Path to output directory, must be different from the
-                        input directory.
+The `gpseq_fromfish` script characterizes FISH signals identified with `DOTTER` (or similar tools) by calculating: absolute/normalized distance from lamina and central region, nuclear compartment, allele status,... Run `gpseq_fromfish -h` for more details.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --skip [{inst,seg,an,box,plot,report} [{inst,seg,an,box,plot,report} ...]]
-                        Space-separated phases to be skipped. Use -- after the
-                        last one.
-  -l log, --logpath log
-                        Path to log file. By default: outDir/log
-  -a Z Y X, --aspect Z Y X
-                        Physical size of Z, Y and X voxel sides. Default:
-                        300.0 216.6 216.6
-  -U unit, --umes unit  Unit of measure for the aspect. Default: nm
-  -d dna_name [dna_name ...], --dna-channels dna_name [dna_name ...]
-                        Space-separated names of DNA staining channels. Use --
-                        after the last one.
-  -s sig_name [sig_name ...], --sig-channels sig_name [sig_name ...]
-                        Space-separated names of GPSeq signal channels. Use --
-                        after the last one.
-  -z min_z, --min-z min_z
-                        If lower than 1, minimum fraction of stack, if higher
-                        than 1, minimum number of slices to be occupied by a
-                        nucleus. Default: .25
-  --seg-type {sum_proj,max_proj,3d}
-                        Segmentation type. Default: 3d
-  --an-type {sum_proj,max_proj,3d,mid}
-                        Analysis type. Default: mid
-  --mid-type {central,largest,maxIsum}
-                        Method for mid-section selection. Default: largest
-  --nuclear-sel [{size,surf,shape,sumI,meanI,flat_size} [{size,surf,shape,sumI,meanI,flat_size} ...]]
-                        Space-separated features for nuclear selection. Use --
-                        after the last one. Default: flat_size sumI
-  --sigma-smooth sigmaValue
-                        Sigma value for sparse gaussian smoothing.
-  --sigma-density sigmaValue
-                        Sigma value for density calculation.
-  --description [DESCRIPTION [DESCRIPTION ...]]
-                        Space separated condition:description couples.
-                        'condition' are the name of condition folders.
-                        'description' are descriptive labels used in plots
-                        instead of folder names. Use -- after the last one.
-  -t nthreads, --threads nthreads
-                        Number of threads to be used for parallelization.
-                        Increasing the number of threads might increase the
-                        required amount of RAM.
-  --note NOTE           Dataset/Analysis description. Use double quotes.
-  --regexp REGEXP       Advanced. Regular expression to identify tif images.
-  -r, --rescale-deconvolved
-                        Perform rescaling of deconvolved images. Requires
-                        Huygens Professional v4.5 log file for an image to be
-                        rescaled.
-  -n, --normalize-distance
-                        Perform distance normalization. Necessary to compare
-                        nuclei with different radius.
-  -u, --DEBUG-MODE      Debugging mode.
-  --version             show program's version number and exit
-```
+#### Perform automatic 3D nuclei segmentation
+
+Run `tiff_auto3dseg -h` for more details on how to produce binary/labeled (compressed) masks of your nuclei staining channels
+
+#### Identify out of focus (OOF) fields of view
+
+Run `tiff_findoof -h` for more details on how to quickly identify out of focus fields of view. Also, the `tiff_plotoof` script (in R, requires `argparser` and `ggplot2`) can be used to produce an informative plot with the signal location over the Z stack.
+
+#### Uncompress a tiff
+
+To uncompress a set of tiff, use the `tiff_uncompress` command (`-h` for more details).
 
 License
 ---
