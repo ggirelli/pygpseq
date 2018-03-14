@@ -16,19 +16,7 @@ import time
 
 from joblib import Parallel, delayed
 
-from . import const
-
-from .tools.binarize import Binarize
-from .tools import image as imt
-from .tools import io as iot
-from .tools import path as pt
-from .tools import string as st
-
-from .anim.main import Main
-from .anim.analysis import Analyzer
-from .anim.nucleus import Nucleus
-from .anim.series import Series
-from .anim.condition import Condition
+from . import const, tools, anim, fish
 
 # END ==========================================================================
 
