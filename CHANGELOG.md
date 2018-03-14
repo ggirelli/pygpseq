@@ -13,8 +13,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [2.0.0]
-### ...
-- ...
+### Changed
+- Cleaned up `const.py`.
+- `wraps` module renamed `anim`, will contain all wrappers for GPSeq standard image dataset analysis.
+- `main` library moved to `anim` module.
+- Cleaned up and re-structure comment style in all libraries and modules.
+
+### Added
+- License text in `bin/gpseq_anim`
 
 
 
