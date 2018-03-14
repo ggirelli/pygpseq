@@ -556,6 +556,35 @@ def read_tiff(impath):
 
     return(imch)
 
+def rm_from_mask(L, torm):
+    # Remove elements from a mask.
+    # 
+    # Args:
+    #     L (np.array[int]): labelled objects.
+    #     torm (list): list of objects indexes (to remove).
+
+    if len(torm) <= L.max() - len(torm):
+        # Update list of objects to be discarded
+        torm = [e + 1  for e in torm]
+
+        # Identify which objects to discard
+        rm_mask = np.vectorize(lambda x: x in torm)(L)
+
+        # Discard and re-label
+        L[rm_mask] = 0
+    else:
+        # Select objects to be kept
+        tokeep = [e + 1 for e in range(L.max()) if not e in torm]
+
+        # Identify which objects to discard
+        rm_mask = np.vectorize(lambda x: not x in tokeep)(L)
+
+        # Discard and re-label
+        L[rm_mask] = 0
+
+    # Output
+    return(L > 0)
+
 def slice_k_d_img(img, k):
     """Select one k-d image from a n-d image.
     Note: n >= k
