@@ -13,7 +13,7 @@ Installation
 ```
 git clone http://github.com/ggirelli/gpseq-seq-py
 cd gpseq-seq-py
-pip3 install .
+sudo -H pip3 install -e .
 ```
 
 License
