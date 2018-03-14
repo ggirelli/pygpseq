@@ -37,7 +37,11 @@ setup(name='pygpseq',
 	packages=["pygpseq"],
 	install_requires=['jinja2', 'joblib', 'matplotlib', 'numpy', 'pandas',
 	'scipy', 'scikit-image', 'tifffile', 'weasyprint'],
-	scripts=["bin/gpseq_anim"],
+	scripts=[
+		"bin/gpseq_anim", "bin/gpseq_fromfish",
+		"bin/tiff_auto3dseg", "bin/tiff_findoof", "bin/tiff_plotoof",
+		"bin/tiff_uncompress"
+	],
 	test_suite="nose.collector",
 	tests_require=["nose"],
 )
