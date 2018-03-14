@@ -78,35 +78,17 @@
 
 # DEPENDENCIES =================================================================
 
-import matplotlib
-matplotlib.use('ps')
-import matplotlib.lines as mlines
-import matplotlib.pyplot as plt
-
 import argparse
 from joblib import Parallel, delayed
-import math
 import multiprocessing
 import numpy as np
 import os
 import pandas as pd
 import pickle
 import sys
-import tifffile
-
-from scipy.ndimage.measurements import center_of_mass
-from scipy.ndimage.morphology import distance_transform_edt
-
-from skimage import draw
-import skimage.io as io
-from skimage.measure import label
-from skimage.morphology import dilation, cube
 
 import pygpseq as gp
-from pygpseq.anim import Nucleus
 from pygpseq.tools import image as imt
-from pygpseq.tools import io as iot
-from pygpseq.tools import plot
 from pygpseq.tools import stat as stt
 from pygpseq.fish.dot import add_allele
 from pygpseq.fish.nucleus import flag_G1_cells
