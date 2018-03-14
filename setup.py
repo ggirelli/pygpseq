@@ -10,12 +10,13 @@ from setuptools import setup, find_packages
 
 # To use a consistent encoding
 from codecs import open
-from os import path
+import os
 
-here = path.abspath(path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))
+bindir = os.path.join(here, "bin/")
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 	long_description = f.read()
 
 setup(name='pygpseq',
@@ -37,11 +38,7 @@ setup(name='pygpseq',
 	packages=["pygpseq"],
 	install_requires=['jinja2', 'joblib', 'matplotlib', 'numpy', 'pandas',
 	'scipy', 'scikit-image', 'tifffile', 'weasyprint'],
-	scripts=[
-		"bin/gpseq_anim", "bin/gpseq_fromfish",
-		"bin/tiff_auto3dseg", "bin/tiff_findoof", "bin/tiff_plotoof",
-		"bin/tiff_uncompress"
-	],
+	scripts=[os.path.join(bindir, fp) for fp in os.listdir(bindir)],
 	test_suite="nose.collector",
 	tests_require=["nose"],
 )

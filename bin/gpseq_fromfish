@@ -78,6 +78,9 @@
 
 # DEPENDENCIES =================================================================
 
+import matplotlib
+matplotlib.use('ps')
+
 import argparse
 from joblib import Parallel, delayed
 import multiprocessing
@@ -88,7 +91,7 @@ import pickle
 import sys
 
 import pygpseq as gp
-from pygpseq.tools import image as imt
+import pygpseq.tools.image as imt
 from pygpseq.tools import stat as stt
 from pygpseq.fish.dot import add_allele
 from pygpseq.fish.nucleus import flag_G1_cells

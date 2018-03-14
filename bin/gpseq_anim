@@ -40,6 +40,9 @@
 
 # DEPENDENCIES =================================================================
 
+import matplotlib
+matplotlib.use('ps')
+
 import argparse
 import numpy as np
 import os

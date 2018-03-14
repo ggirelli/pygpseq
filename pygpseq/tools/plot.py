@@ -10,6 +10,7 @@
 
 # DEPENDENCIES =================================================================
 
+import matplotlib
 from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import rc
 from matplotlib import ticker
