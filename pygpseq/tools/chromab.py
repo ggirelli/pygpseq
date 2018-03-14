@@ -15,6 +15,46 @@ from skimage.morphology import dilation
 
 # FUNCTIONS ====================================================================
 
+def correct_stack(stack, chname, m):
+    """Apply chromatic aberraction correction to a 3D image (stack),
+    using the specified channel as a reference.
+
+    Args:
+      stack (ndarray)
+      chname (string): name of the stack's channel
+      m (dict): CA correction measurements {cnames, P:ndarray, N:int}}
+    """
+
+    # Identify coefficients of interes
+    ids = filter(lambda i: m['chan'][i] == chname, range(len(m['chan'])))
+    dz = m['dz'][ids]
+    Cx = m['Cx'][:, ids]
+    Cy = m['Cy'][:, ids]
+
+    # Setup transformation matrices
+    # ==================================
+
+    # Coordinates
+    Y, X = np.meshgrid(range(stack.shape[1]), range(stack.shape[2]))
+    X = X.reshape((np.prod(X.shape), 1))
+    Y = Y.reshape((np.prod(Y.shape), 1))
+
+    # Polynomial
+    PD = poly2mat(np.concatenate((X, Y), 1), 3)
+    QDx = PD.dot(Cx).reshape((len(X),))
+    QDy = PD.dot(Cy).reshape((len(Y),))
+
+    # Correct every single plane
+    jstack = stack.copy()
+    for i in range(stack.shape[0]):
+        rstack = stack[i,:,:].reshape((np.prod(stack.shape[1:3]),))
+        jstack[i,:,:] = griddata(
+            (Y.reshape((len(Y),)), X.reshape((len(X),))),
+            rstack, np.transpose(np.array([QDy, QDx])),
+            method = 'cubic').reshape(stack[i,:,:].shape)
+
+    return(jstack)
+
 def dot_candidates(I,
     sigma = None, sigma_diff = None, max_n_dots = None, padding = None):
     """Extract dots from the stack I as local maximas and order them
@@ -103,6 +143,37 @@ def dot_fitting(I, P, cluster_min_dist, figmas, use_clustering = None):
       use_clustering (bool): True to use clustering
     """
         
+def poly2mat(m, i):
+    """Returns the i-th polynomial matrix of m."""
+    
+    if i == 3:
+        out = np.concatenate((
+            np.ones((m.shape[0], 1)),
+            m[:, [0]],
+            m[:, [1]],
+            m[:, [0]]**2,
+            m[:, [0]] * m[:, [1]],
+            m[:, [1]]**2,
+            m[:, [0]]**3,
+            m[:, [0]]**2 * m[:, [1]],
+            m[:, [0]] * m[:, [1]]**2,
+            m[:, [1]]**3), 1)
+    elif i == 2:
+
+        out = np.concatenate((
+            np.ones((m.shape[0], 1)),
+            m[:, [0]],
+            m[:, [1]],
+            m[:, [0]]**2,
+            m[:, [0]] * m[:, [1]],
+            m[:, [1]]**2), 1)
+    elif i == 1:
+        out = np.ones((m.shape[0], 3))
+        out[:, 1:3] = m[:, :2]
+    else:
+        out = m
+    return(out)
+        
 def set_borders(I, paddings = None , value = None):
     """Sets the edge pixels to the provided value.
 
@@ -142,77 +213,6 @@ def set_borders(I, paddings = None , value = None):
         J[np.ix_(*left_pad)] = value
 
     return(J)
-
-def correct_stack(stack, chname, m):
-    """Apply chromatic aberraction correction to a 3D image (stack),
-    using the specified channel as a reference.
-
-    Args:
-      stack (ndarray)
-      chname (string): name of the stack's channel
-      m (dict): CA correction measurements {cnames, P:ndarray, N:int}}
-    """
-
-    # Identify coefficients of interes
-    ids = filter(lambda i: m['chan'][i] == chname, range(len(m['chan'])))
-    dz = m['dz'][ids]
-    Cx = m['Cx'][:, ids]
-    Cy = m['Cy'][:, ids]
-
-    # Setup transformation matrices
-    # ==================================
-
-    # Coordinates
-    Y, X = np.meshgrid(range(stack.shape[1]), range(stack.shape[2]))
-    X = X.reshape((np.prod(X.shape), 1))
-    Y = Y.reshape((np.prod(Y.shape), 1))
-
-    # Polynomial
-    PD = poly2mat(np.concatenate((X, Y), 1), 3)
-    QDx = PD.dot(Cx).reshape((len(X),))
-    QDy = PD.dot(Cy).reshape((len(Y),))
-
-    # Correct every single plane
-    jstack = stack.copy()
-    for i in range(stack.shape[0]):
-        rstack = stack[i,:,:].reshape((np.prod(stack.shape[1:3]),))
-        jstack[i,:,:] = griddata(
-            (Y.reshape((len(Y),)), X.reshape((len(X),))),
-            rstack, np.transpose(np.array([QDy, QDx])),
-            method = 'cubic').reshape(stack[i,:,:].shape)
-
-    return(jstack)
-
-def poly2mat(m, i):
-    """Returns the i-th polynomial matrix of m."""
-    
-    if i == 3:
-        out = np.concatenate((
-            np.ones((m.shape[0], 1)),
-            m[:, [0]],
-            m[:, [1]],
-            m[:, [0]]**2,
-            m[:, [0]] * m[:, [1]],
-            m[:, [1]]**2,
-            m[:, [0]]**3,
-            m[:, [0]]**2 * m[:, [1]],
-            m[:, [0]] * m[:, [1]]**2,
-            m[:, [1]]**3), 1)
-    elif i == 2:
-
-        out = np.concatenate((
-            np.ones((m.shape[0], 1)),
-            m[:, [0]],
-            m[:, [1]],
-            m[:, [0]]**2,
-            m[:, [0]] * m[:, [1]],
-            m[:, [1]]**2), 1)
-    elif i == 1:
-        out = np.ones((m.shape[0], 3))
-        out[:, 1:3] = m[:, :2]
-    else:
-        out = m
-    return(out)
 
 # END ==========================================================================
 

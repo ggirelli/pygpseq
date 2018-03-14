@@ -100,332 +100,174 @@ class Main(Analyzer):
 
         self.printout('', 0)
 
-    def run(self, **kwargs):
-        """Run the GPSeq manager. """
-
-        # INIT =================================================================
-
-        # Suppress RuntimeWarning(s)
-        warnings.simplefilter("ignore", category = FutureWarning)
-        warnings.simplefilter("ignore", category = RuntimeWarning)
-        warnings.simplefilter("ignore", category = UserWarning)
-
-        # Check number of cores
-        if self.ncores > multiprocessing.cpu_count():
-            self.ncores = multiprocessing.cpu_count()
-            msg = 'Decreased core number to maximum allowed: %i' % self.ncores
-            msg += '\nPlease, don\'t ask for the impossible... ಠ_ಠ'
-            self.printout(msg, -1)
-            self.printout('', 0)
-
-        # Warn for log freezing if parallelization is on
-        if self.ncores > 1:
-            msg = 'pyGPSeq log might freeze due to parallelization.\n'
-            msg += 'But do NOT dispair. Everything will work out, eventually...'
-            msg += ' Just be patient.\n┬─┬﻿ ノ( ゜-゜ノ)'
-            self.printout(msg, -1)
-            self.printout('', 0)
-
-        # Check parameters
-        start_time = time.time()
-        kwargs['suffix'] = st.add_leading_dot(self.suffix)
-        self.basedir = pt.add_trailing_slash(self.basedir)
-        self.outdir = pt.add_trailing_slash(self.outdir)
-
-        # Create basedir and outdir if missing
-        for d in [self.basedir, self.outdir]:
-            if not os.path.isdir(d):
-                os.makedirs(d)
-
-        # Make profile output folder
-        for d in [const.OUTDIR_PDF, const.OUTDIR_PNG, const.OUTDIR_CSV,
-            const.OUTDIR_PNG_REPORT, const.OUTDIR_MASK]:
-            if not os.path.exists(self.outdir + d):
-                os.makedirs(self.outdir + d)
-        debug_dir = self.outdir + const.OUTDIR_DEBUG
-        if self.debugging and not os.path.exists(debug_dir):
-            os.makedirs(debug_dir)
-
-        # Plot font-size
-        if not 'font_size' in kwargs.keys():
-            kwargs['font_size'] = self.font_size
-
-        # Number of cores for parallelization
-        if not 'ncores' in kwargs.keys():
-            kwargs['ncores'] = self.ncores
-
-        # Output directory
-        kwargs['out_dir'] = self.outdir
-
-        # Distance field for profiles
-        if self.normalize_distance:
-            kwargs['dfield'] = const.DLAMIN_NORM_LABEL
-            kwargs['dlabel'] = 'Relative distance from nuclear lamina'
-            kwargs['dlabel'] += ' [a.u.]'
+    def __getitem__(self, key):
+        """ Allow get item. """
+        if key in dir(self):
+            return(getattr(self, key))
         else:
-            kwargs['dfield'] = const.DLAMIN_LABEL
-            msg = "Absolute distance from nuclear lamina"
-            kwargs['dlabel'] = '%s [%s]' % (msg, self.umes)
+            return(None)
 
-        # Update kwargs with self attributes
-        kwargs.update([(n, getattr(self, n)) for n in dir(self)
-            if type(getattr(self, n)) in const.KWARGS_TYPELIST and
-            not n.startswith('__') and not n in const.KWARGS_AVOIDLIST])
+    def __setitem__(self, key, value):
+        """ Allow set item. """
+        if key in dir(self):
+            self.__setattr__(key, value)
 
-        # SINGLE STEPS =========================================================
+    def __setattr__(self, name, value):
+        """ Check the attribute and set it. """
 
-        # INSTANTIATION --------------------------------------------------------
-        # Check whether to skip instantiation
-        if self.is_skipped(1):
-            fname = self.outdir + 'gpi.inst' + kwargs['suffix'] + '.cpickle'
-            if os.path.exists(fname):
-                self.printout('Skipping instantiation...', 0)
-                self.printout('Loading dumped instance...\n', 0)
+        # Check the attribute
+        check = self.check_attr(name, value)
 
-                try:
-                    # Load
-                    f = open(fname, 'rb')
-                    keys = list(const.PARAM_SEG)
-                    keys.extend(list(const.PARAM_AN))
-                    self = self.load(f, keys)
-                    f.close()
+        if True == check:
+            # Set the attribute
+            return(super(Main, self).__setattr__(name, value))
+        else:
+            # Don't set the attribute
+            return(None)
 
-                    # Dump
-                    f = open(fname, 'wb')
-                    cp.dump(self, f)
-                    f.close()
-                except:
-                    self.printout('Unable to load dumped instance...', 0)
-                    self.printout('Unskipping instantiation...', 0)
-                    self.unskip(1)
-            else:
-                self.printout('Unskipping instantiation...', 0)
-                self.unskip(1)
+    def check_attr(self, name, value):
+        """Check attribute format and value.
+
+        Args:
+          name (string): attribute name
+          value: attribute value
+
+        Returns:
+          bool: whether the provided (name,value) couple passed its
+                name-specific test
+        """
+
+        # Default answer
+        checked = super(Main, self).check_attr(name, value)
+
+        if name in ['basedir', 'outdir']:
+            # Require a string
+            if not type('') == type(value):
+                checked = False
+            # # Require an existing folder
+            # elif not os.path.isdir(value):
+            #   checked = False
+
+            if not checked:
+                msg = '"' + name + '" must be an existing folder\'s path.\n'
+                msg += 'Keeping previous value.'
+                self.printout(msg, -1)
+        elif 'ncores' == name:
+            # Require an integer
+            if not type(0) == type(value):
+                checked = False
+            # Require a positive non-zero integer
+            elif 0 >= value:
+                    checekd = False
+
+            if not checked:
+                msg = '"' + name + '" must be a positive non-zero integer.\n'
+                msg += 'Keeping previous value.'
+                self.printout(msg, -1)
+        elif 'ext' == name:
+            # Require a string
+            if not type('') == type(value):
+                checked = False
+            # Require a file extension (\..+)
+            elif not value.startswith('.') or 1 >= len(value):
+                checked = False
+
+            if not checked:
+                msg = '"' + name + '" must be a file extension'
+                msg += ' (start with ".").\n'
+                msg += 'Keeping previous value.'
+                self.printout(msg, -1)
+        elif 'skip' == name:
+            # Require a list
+            if not type([]) == type(value):
+                checked = False
+            elif not 0 == len(value):
+                # Require integer list
+                types = [-1 for i in value if type(i) != type(0)]
+                types = 0 == len(types)
+                if not types:
+                    checked = False
+
+            if not checked:
+                msg = '"' + name + '" must be an integer list (can be empty).\n'
+                msg += 'Keeping previous value.'
+                self.printout(msg, -1)
+        elif 'font_size' == name:
+            # Require positive number
+            if not type(value) in [type(0), type(0.)]:
+                checked = False
+            elif 0 >= value:
+                checked = False
+
+            if not checked:
+                msg = '"' + name + '" must be a positive non-zero number.\n'
+                msg += 'Keeping previous value.'
+                self.printout(msg, -1)
+        elif 'reg' == name:
+            # Require a string
+            if not type('') == type(value):
+                checked = False
+
+                msg = '"' + name + '" must be a regular expression (string).\n'
+                msg += 'Keeping previous value.'
+                self.printout(msg, -1)
         
-        if not self.is_skipped(1):
-            # Run instantiation if not skipped
-            self.run_initialization(**kwargs)
+        # Output
+        return(checked)
 
-            # Dump
-            fname = self.outdir + 'gpi.inst' + kwargs['suffix'] + '.cpickle'
-            f = open(fname, 'wb')
-            cp.dump(self, f)
-            f.close()
+    def is_skipped(self, step):
+        """Check if a run step should be skipped. """
+        return(step in self.skip)
 
-        # SEGMENTATION ---------------------------------------------------------
-        # Check whether to skip segmentation
-        if self.is_skipped(2):
-            fname = self.outdir + 'gpi.seg' + kwargs['suffix'] + '.cpickle'
-            if os.path.exists(fname):
-                self.printout('Skipping segmentation...', 0)
-                self.printout('Loading dumped instance...\n', 0)
+    def load(self, f, more_keys = None):
+        """Re-load a dumped pyGPSeq instance.
+        The function keeps some parameters from the current instance.
 
-                try:
-                    # Load
-                    f = open(fname, 'rb')
-                    self = self.load(f, const.PARAM_AN)
-                    f.close()
+        Args:
+          f (file): file pointer to dumped instance.
+          more_keys (list[string]): list of attribute names to be kept
+                                    from the current instance.
 
-                    # Dump
-                    f = open(fname, 'wb')
-                    cp.dump(self, f)
-                    f.close()
-                except:
-                    self.printout('Unable to load dumped instance...', 0)
-                    self.printout('Unskipping segmentation...', 0)
-                    self.unskip(2)
-            else:
-                self.printout('Unskipping segmentation...', 0)
-                self.unskip(2)
-        
-        if not self.is_skipped(2):
-            # Run segmentation if not skipped
-            self.run_segmentation(**kwargs)
+        Returns:
+          pygpseq.Main: dumped instance with some attributes from the current.
+        """
 
-            # Dump
-            fname = self.outdir + 'gpi.seg'+ kwargs['suffix'] +'.cpickle'
-            f = open(fname, 'wb')
-            cp.dump(self, f)
-            f.close()
+        # Parameters to keep from current instance
+        keys = list(const.PARAM_STATIC)
+        if not None == more_keys:
+            keys.extend(list(more_keys))
+        vals = [self[k] for k in keys]
 
-        # ANALYSIS -------------------------------------------------------------
-        # Check whether to skip analysis
-        if self.is_skipped(3):
-            fname = self.outdir + 'gpi.an' + kwargs['suffix'] + '.cpickle'
-            if os.path.exists(fname):
-                self.printout('Skipping analysis...', 0)
-                self.printout('Loading dumped instance...\n', 0)
+        # Load
+        loaded = cp.load(f)
 
-                try:
-                    # Load
-                    f = open(fname, 'rb')
-                    self, profiles, profeat, sumd = self.load(f)
-                    f.close()
+        # If the loaded cpickle bundle contained a Main instance
+        if type(loaded) == type(self):
+            # Set parameters back
+            for i in range(len(keys)):
+                loaded[keys[i]] = vals[i]
 
-                    # Dump
-                    f = open(fname, 'wb')
-                    cp.dump((self, profiles, profeat, sumd), f)
-                    f.close()
-                except:
-                    self.printout('Unable to load dumped instance...', 0)
-                    self.printout('Unskipping analysis...', 0)
-                    self.unskip(3)
-            else:
-                self.printout('Unskipping analysis...', 0)
-                self.unskip(3)
-        
-        if not self.is_skipped(3):
-            # Run analysis if not skipped
-            profiles, profeat, sumd, md = self.run_analysis(**kwargs)
+            # Propagate parameters
+            for param in const.PARAM_PROPAGATE:
+                loaded.propagate_attr(param)
+        elif not 0 == len(loaded):
+            # Identify the Main instance
+            i = [i for i in range(len(loaded)) if type(loaded[i]) == type(self)]
+            tmp = loaded[i[0]]
 
-            # Dump
-            fname = self.outdir + 'gpi.an' + kwargs['suffix'] + '.cpickle'
-            f = open(fname, 'wb')
-            cp.dump((self, profiles, profeat, sumd), f)
-            f.close()
+            # Set parameters back
+            for j in range(len(keys)):
+                tmp[keys[j]] = vals[j]
 
-            # Generate general boxplots if not skipped
-            if not self.is_skipped(3.5):
-                self.mk_general_boxplots(profiles, sumd, md, **kwargs)
+            # Propagate parameters
+            for param in const.PARAM_PROPAGATE:
+                tmp.propagate_attr(param)
 
-        # FINAL PLOTS ----------------------------------------------------------
-        # Produce final plots if not skipped
-        if not self.is_skipped(4):
-            self.mk_general_plots(profiles, sumd, **kwargs)
-        else:
-            self.printout('Skipping final plots...', 0)
+            # Prepare output
+            loaded = [tmp if j == i else loaded[j] for j in range(len(loaded))]
+            loaded = tuple(loaded)
 
-        # FINAL REPORT ---------------------------------------------------------
-        # Execution end
-        end_time = time.time()
-
-        # Generate final report if not skipped
-        if not self.is_skipped(5):
-            self.printout('Generating final report...', 0)
-            self.mk_report(start_time, end_time, profeat)
-        else:
-            self.printout('Skipping final report...', 0)
-
-        # CONCLUSION ===========================================================
-
-        # Final remarks
-        self.printout('', 0)
-        self.printout('~ took %s s ~' % (end_time - start_time), 0)
-        self.printout('\n ~ FIN ~', 0)
-        self.printout('\n└[∵┌] └[ ∵ ]┘ [┐∵]┘\n\n', 0)
-
-        return(self)
-
-    def run_initialization(self, **kwargs):
-        """Initialize run. """
-
-        self.printout('Starting GPSeq manager...', 0)
-
-        self.printout('Looking into folder: "' + self.basedir + '"', 0)
-        self.printout('', 0)
-
-        # Instantiate OOP architecture
-        self.printout('* Building OOP Architecture *', 0)
-
-        # Select condition folders
-        self.conds = pt.select_folders(self.basedir, self.ext)
-
-        # If no conditions, stop and trigger error
-        if 0 == len(self.conds):
-            msg = "No condition folders found, i.e., no tif files found in any "
-            msg += "subfolders of: %s\n" % (self.basedir,)
-            self.printout(msg, -2)
-        else:
-            msg = 'Found ' + str(len(self.conds)) + ' condition folder(s)...'
-            self.printout(msg, 0)
-            self.printout('', 0)
-
-        # Instantiate conditions
-        self.conds = [Condition(c, main = self) for c in self.conds]
-        self.printout('', 0)
-
-    def run_segmentation(self, **kwargs):
-        """Run segmentation. """
-
-        # Check analysis/segmentation types
-        self.check_anseg_types()
-
-        # Identify nuclei
-        self.printout('* Looking for nuclei *', 0)
-        self.printout('', 0)
-        [c.find_nuclei(**kwargs) for c in self.conds]
-        self.printout('', 0)
-
-    def run_analysis(self, **kwargs):
-        """Run analysis. """
-
-        # Retrieve and save nuclear data
-        self.printout('* Retrieving nuclear data *', 0)
-        self.printout('', 0)
-
-        # [{dtype:{x:float, y:float}, n:int, condition:string}]
-        data = [c.analyze_nuclei(**kwargs) for c in self.conds]
-        profiles = [d[0] for d in data if not type(None) == type(d)]
-        sumd = [d[1] for d in data if not type(None) == type(d)]
-        md = [d[2] for d in data if not type(None) == type(d)]
-
-        # Calculate profile-specific features
-        self.printout('* Calculating profile features *', 0)
-        profeat = []
-        for ip in range(len(profiles)):
-            self.printout('Working on "' + self.conds[ip].name + '"', 1)
-            profile = profiles[ip]
-
-            # Will contain current profile features
-            cpf = {}
-
-            # For profile type
-            for k1 in ['dna', 'sig', 'ratio']:
-                self.printout('"' + k1 + '" profile...', 2)
-                # Intercepts
-                cis = {}
-
-                # Area
-                cia = {}
-
-                # For statistic measure
-                for k2 in ['mean', 'median', 'mode', 'max']:
-                    cprof = profile[k1]
-
-                    # Get the intercepts ---------------------------------------
-                    cis[k2] = []
-
-                    cis[k2].append(stt.get_intercepts(
-                        cprof[k2],
-                        cprof['x']
-                    ))
-                    if len(cis[k2][0]) == len(cprof[k2]):
-                        cis[k2][0] = []
-
-                    cis[k2].append(stt.get_intercepts(
-                        np.diff(cprof[k2]),
-                        cprof['x'][0:(len(cprof['x']) - 1)]
-                    ))
-                    if len(cis[k2][1]) == (len(cprof[k2]) - 1):
-                        cis[k2][1] = []
-
-                    cis[k2].append(stt.get_intercepts(
-                        np.diff(np.diff(cprof[k2])),
-                        cprof['x'][0:(len(cprof['x']) - 2)]
-                    ))
-                    if len(cis[k2][2]) == (len(cprof[k2]) - 2):
-                        cis[k2][2] = []
-
-                    # Get the area
-                    cia[k2] = sum(cprof[k2])
-
-                # Save current stat features
-                cpf[k1] = [cis, cia]
-
-            # Save current profile features
-            profeat.append(cpf)
-
-        return((profiles, profeat, sumd, md))
+        return(loaded)
 
     def mk_general_boxplots(self, profiles, sumd, md, **kwargs):
         """Generate general boxplots. """
@@ -724,183 +566,341 @@ class Main(Analyzer):
         # f.write(html_out)
         # f.close()     
 
-    def is_skipped(self, step):
-        """Check if a run step should be skipped. """
-        return(step in self.skip)
-
-    def unskip(self, step):
-        """Unskips a run step that was supposed to be skipped. """
-        self.skip = [i for i in self.skip if step != i]
-
-    def load(self, f, more_keys = None):
-        """Re-load a dumped pyGPSeq instance.
-        The function keeps some parameters from the current instance.
-
-        Args:
-          f (file): file pointer to dumped instance.
-          more_keys (list[string]): list of attribute names to be kept
-                                    from the current instance.
-
-        Returns:
-          pygpseq.Main: dumped instance with some attributes from the current.
-        """
-
-        # Parameters to keep from current instance
-        keys = list(const.PARAM_STATIC)
-        if not None == more_keys:
-            keys.extend(list(more_keys))
-        vals = [self[k] for k in keys]
-
-        # Load
-        loaded = cp.load(f)
-
-        # If the loaded cpickle bundle contained a Main instance
-        if type(loaded) == type(self):
-            # Set parameters back
-            for i in range(len(keys)):
-                loaded[keys[i]] = vals[i]
-
-            # Propagate parameters
-            for param in const.PARAM_PROPAGATE:
-                loaded.propagate_attr(param)
-        elif not 0 == len(loaded):
-            # Identify the Main instance
-            i = [i for i in range(len(loaded)) if type(loaded[i]) == type(self)]
-            tmp = loaded[i[0]]
-
-            # Set parameters back
-            for j in range(len(keys)):
-                tmp[keys[j]] = vals[j]
-
-            # Propagate parameters
-            for param in const.PARAM_PROPAGATE:
-                tmp.propagate_attr(param)
-
-            # Prepare output
-            loaded = [tmp if j == i else loaded[j] for j in range(len(loaded))]
-            loaded = tuple(loaded)
-
-        return(loaded)
-
     def propagate_attr(self, key):
         """Propagate attribute current value to every condition. """
         for i in range(len(self.conds)):
             self.conds[i][key] = self[key]
 
-    def __getitem__(self, key):
-        """ Allow get item. """
-        if key in dir(self):
-            return(getattr(self, key))
+    def run(self, **kwargs):
+        """Run the GPSeq manager. """
+
+        # INIT =================================================================
+
+        # Suppress RuntimeWarning(s)
+        warnings.simplefilter("ignore", category = FutureWarning)
+        warnings.simplefilter("ignore", category = RuntimeWarning)
+        warnings.simplefilter("ignore", category = UserWarning)
+
+        # Check number of cores
+        if self.ncores > multiprocessing.cpu_count():
+            self.ncores = multiprocessing.cpu_count()
+            msg = 'Decreased core number to maximum allowed: %i' % self.ncores
+            msg += '\nPlease, don\'t ask for the impossible... ಠ_ಠ'
+            self.printout(msg, -1)
+            self.printout('', 0)
+
+        # Warn for log freezing if parallelization is on
+        if self.ncores > 1:
+            msg = 'pyGPSeq log might freeze due to parallelization.\n'
+            msg += 'But do NOT dispair. Everything will work out, eventually...'
+            msg += ' Just be patient.\n┬─┬﻿ ノ( ゜-゜ノ)'
+            self.printout(msg, -1)
+            self.printout('', 0)
+
+        # Check parameters
+        start_time = time.time()
+        kwargs['suffix'] = st.add_leading_dot(self.suffix)
+        self.basedir = pt.add_trailing_slash(self.basedir)
+        self.outdir = pt.add_trailing_slash(self.outdir)
+
+        # Create basedir and outdir if missing
+        for d in [self.basedir, self.outdir]:
+            if not os.path.isdir(d):
+                os.makedirs(d)
+
+        # Make profile output folder
+        for d in [const.OUTDIR_PDF, const.OUTDIR_PNG, const.OUTDIR_CSV,
+            const.OUTDIR_PNG_REPORT, const.OUTDIR_MASK]:
+            if not os.path.exists(self.outdir + d):
+                os.makedirs(self.outdir + d)
+        debug_dir = self.outdir + const.OUTDIR_DEBUG
+        if self.debugging and not os.path.exists(debug_dir):
+            os.makedirs(debug_dir)
+
+        # Plot font-size
+        if not 'font_size' in kwargs.keys():
+            kwargs['font_size'] = self.font_size
+
+        # Number of cores for parallelization
+        if not 'ncores' in kwargs.keys():
+            kwargs['ncores'] = self.ncores
+
+        # Output directory
+        kwargs['out_dir'] = self.outdir
+
+        # Distance field for profiles
+        if self.normalize_distance:
+            kwargs['dfield'] = const.DLAMIN_NORM_LABEL
+            kwargs['dlabel'] = 'Relative distance from nuclear lamina'
+            kwargs['dlabel'] += ' [a.u.]'
         else:
-            return(None)
+            kwargs['dfield'] = const.DLAMIN_LABEL
+            msg = "Absolute distance from nuclear lamina"
+            kwargs['dlabel'] = '%s [%s]' % (msg, self.umes)
 
-    def __setitem__(self, key, value):
-        """ Allow set item. """
-        if key in dir(self):
-            self.__setattr__(key, value)
+        # Update kwargs with self attributes
+        kwargs.update([(n, getattr(self, n)) for n in dir(self)
+            if type(getattr(self, n)) in const.KWARGS_TYPELIST and
+            not n.startswith('__') and not n in const.KWARGS_AVOIDLIST])
 
-    def __setattr__(self, name, value):
-        """ Check the attribute and set it. """
+        # SINGLE STEPS =========================================================
 
-        # Check the attribute
-        check = self.check_attr(name, value)
+        # INSTANTIATION --------------------------------------------------------
+        # Check whether to skip instantiation
+        if self.is_skipped(1):
+            fname = self.outdir + 'gpi.inst' + kwargs['suffix'] + '.cpickle'
+            if os.path.exists(fname):
+                self.printout('Skipping instantiation...', 0)
+                self.printout('Loading dumped instance...\n', 0)
 
-        if True == check:
-            # Set the attribute
-            return(super(Main, self).__setattr__(name, value))
-        else:
-            # Don't set the attribute
-            return(None)
+                try:
+                    # Load
+                    f = open(fname, 'rb')
+                    keys = list(const.PARAM_SEG)
+                    keys.extend(list(const.PARAM_AN))
+                    self = self.load(f, keys)
+                    f.close()
 
-    def check_attr(self, name, value):
-        """Check attribute format and value.
-
-        Args:
-          name (string): attribute name
-          value: attribute value
-
-        Returns:
-          bool: whether the provided (name,value) couple passed its
-                name-specific test
-        """
-
-        # Default answer
-        checked = super(Main, self).check_attr(name, value)
-
-        if name in ['basedir', 'outdir']:
-            # Require a string
-            if not type('') == type(value):
-                checked = False
-            # # Require an existing folder
-            # elif not os.path.isdir(value):
-            #   checked = False
-
-            if not checked:
-                msg = '"' + name + '" must be an existing folder\'s path.\n'
-                msg += 'Keeping previous value.'
-                self.printout(msg, -1)
-        elif 'ncores' == name:
-            # Require an integer
-            if not type(0) == type(value):
-                checked = False
-            # Require a positive non-zero integer
-            elif 0 >= value:
-                    checekd = False
-
-            if not checked:
-                msg = '"' + name + '" must be a positive non-zero integer.\n'
-                msg += 'Keeping previous value.'
-                self.printout(msg, -1)
-        elif 'ext' == name:
-            # Require a string
-            if not type('') == type(value):
-                checked = False
-            # Require a file extension (\..+)
-            elif not value.startswith('.') or 1 >= len(value):
-                checked = False
-
-            if not checked:
-                msg = '"' + name + '" must be a file extension'
-                msg += ' (start with ".").\n'
-                msg += 'Keeping previous value.'
-                self.printout(msg, -1)
-        elif 'skip' == name:
-            # Require a list
-            if not type([]) == type(value):
-                checked = False
-            elif not 0 == len(value):
-                # Require integer list
-                types = [-1 for i in value if type(i) != type(0)]
-                types = 0 == len(types)
-                if not types:
-                    checked = False
-
-            if not checked:
-                msg = '"' + name + '" must be an integer list (can be empty).\n'
-                msg += 'Keeping previous value.'
-                self.printout(msg, -1)
-        elif 'font_size' == name:
-            # Require positive number
-            if not type(value) in [type(0), type(0.)]:
-                checked = False
-            elif 0 >= value:
-                checked = False
-
-            if not checked:
-                msg = '"' + name + '" must be a positive non-zero number.\n'
-                msg += 'Keeping previous value.'
-                self.printout(msg, -1)
-        elif 'reg' == name:
-            # Require a string
-            if not type('') == type(value):
-                checked = False
-
-                msg = '"' + name + '" must be a regular expression (string).\n'
-                msg += 'Keeping previous value.'
-                self.printout(msg, -1)
+                    # Dump
+                    f = open(fname, 'wb')
+                    cp.dump(self, f)
+                    f.close()
+                except:
+                    self.printout('Unable to load dumped instance...', 0)
+                    self.printout('Unskipping instantiation...', 0)
+                    self.unskip(1)
+            else:
+                self.printout('Unskipping instantiation...', 0)
+                self.unskip(1)
         
-        # Output
-        return(checked)
+        if not self.is_skipped(1):
+            # Run instantiation if not skipped
+            self.run_initialization(**kwargs)
+
+            # Dump
+            fname = self.outdir + 'gpi.inst' + kwargs['suffix'] + '.cpickle'
+            f = open(fname, 'wb')
+            cp.dump(self, f)
+            f.close()
+
+        # SEGMENTATION ---------------------------------------------------------
+        # Check whether to skip segmentation
+        if self.is_skipped(2):
+            fname = self.outdir + 'gpi.seg' + kwargs['suffix'] + '.cpickle'
+            if os.path.exists(fname):
+                self.printout('Skipping segmentation...', 0)
+                self.printout('Loading dumped instance...\n', 0)
+
+                try:
+                    # Load
+                    f = open(fname, 'rb')
+                    self = self.load(f, const.PARAM_AN)
+                    f.close()
+
+                    # Dump
+                    f = open(fname, 'wb')
+                    cp.dump(self, f)
+                    f.close()
+                except:
+                    self.printout('Unable to load dumped instance...', 0)
+                    self.printout('Unskipping segmentation...', 0)
+                    self.unskip(2)
+            else:
+                self.printout('Unskipping segmentation...', 0)
+                self.unskip(2)
+        
+        if not self.is_skipped(2):
+            # Run segmentation if not skipped
+            self.run_segmentation(**kwargs)
+
+            # Dump
+            fname = self.outdir + 'gpi.seg'+ kwargs['suffix'] +'.cpickle'
+            f = open(fname, 'wb')
+            cp.dump(self, f)
+            f.close()
+
+        # ANALYSIS -------------------------------------------------------------
+        # Check whether to skip analysis
+        if self.is_skipped(3):
+            fname = self.outdir + 'gpi.an' + kwargs['suffix'] + '.cpickle'
+            if os.path.exists(fname):
+                self.printout('Skipping analysis...', 0)
+                self.printout('Loading dumped instance...\n', 0)
+
+                try:
+                    # Load
+                    f = open(fname, 'rb')
+                    self, profiles, profeat, sumd = self.load(f)
+                    f.close()
+
+                    # Dump
+                    f = open(fname, 'wb')
+                    cp.dump((self, profiles, profeat, sumd), f)
+                    f.close()
+                except:
+                    self.printout('Unable to load dumped instance...', 0)
+                    self.printout('Unskipping analysis...', 0)
+                    self.unskip(3)
+            else:
+                self.printout('Unskipping analysis...', 0)
+                self.unskip(3)
+        
+        if not self.is_skipped(3):
+            # Run analysis if not skipped
+            profiles, profeat, sumd, md = self.run_analysis(**kwargs)
+
+            # Dump
+            fname = self.outdir + 'gpi.an' + kwargs['suffix'] + '.cpickle'
+            f = open(fname, 'wb')
+            cp.dump((self, profiles, profeat, sumd), f)
+            f.close()
+
+            # Generate general boxplots if not skipped
+            if not self.is_skipped(3.5):
+                self.mk_general_boxplots(profiles, sumd, md, **kwargs)
+
+        # FINAL PLOTS ----------------------------------------------------------
+        # Produce final plots if not skipped
+        if not self.is_skipped(4):
+            self.mk_general_plots(profiles, sumd, **kwargs)
+        else:
+            self.printout('Skipping final plots...', 0)
+
+        # FINAL REPORT ---------------------------------------------------------
+        # Execution end
+        end_time = time.time()
+
+        # Generate final report if not skipped
+        if not self.is_skipped(5):
+            self.printout('Generating final report...', 0)
+            self.mk_report(start_time, end_time, profeat)
+        else:
+            self.printout('Skipping final report...', 0)
+
+        # CONCLUSION ===========================================================
+
+        # Final remarks
+        self.printout('', 0)
+        self.printout('~ took %s s ~' % (end_time - start_time), 0)
+        self.printout('\n ~ FIN ~', 0)
+        self.printout('\n└[∵┌] └[ ∵ ]┘ [┐∵]┘\n\n', 0)
+
+        return(self)
+
+    def run_analysis(self, **kwargs):
+        """Run analysis. """
+
+        # Retrieve and save nuclear data
+        self.printout('* Retrieving nuclear data *', 0)
+        self.printout('', 0)
+
+        # [{dtype:{x:float, y:float}, n:int, condition:string}]
+        data = [c.analyze_nuclei(**kwargs) for c in self.conds]
+        profiles = [d[0] for d in data if not type(None) == type(d)]
+        sumd = [d[1] for d in data if not type(None) == type(d)]
+        md = [d[2] for d in data if not type(None) == type(d)]
+
+        # Calculate profile-specific features
+        self.printout('* Calculating profile features *', 0)
+        profeat = []
+        for ip in range(len(profiles)):
+            self.printout('Working on "' + self.conds[ip].name + '"', 1)
+            profile = profiles[ip]
+
+            # Will contain current profile features
+            cpf = {}
+
+            # For profile type
+            for k1 in ['dna', 'sig', 'ratio']:
+                self.printout('"' + k1 + '" profile...', 2)
+                # Intercepts
+                cis = {}
+
+                # Area
+                cia = {}
+
+                # For statistic measure
+                for k2 in ['mean', 'median', 'mode', 'max']:
+                    cprof = profile[k1]
+
+                    # Get the intercepts ---------------------------------------
+                    cis[k2] = []
+
+                    cis[k2].append(stt.get_intercepts(
+                        cprof[k2],
+                        cprof['x']
+                    ))
+                    if len(cis[k2][0]) == len(cprof[k2]):
+                        cis[k2][0] = []
+
+                    cis[k2].append(stt.get_intercepts(
+                        np.diff(cprof[k2]),
+                        cprof['x'][0:(len(cprof['x']) - 1)]
+                    ))
+                    if len(cis[k2][1]) == (len(cprof[k2]) - 1):
+                        cis[k2][1] = []
+
+                    cis[k2].append(stt.get_intercepts(
+                        np.diff(np.diff(cprof[k2])),
+                        cprof['x'][0:(len(cprof['x']) - 2)]
+                    ))
+                    if len(cis[k2][2]) == (len(cprof[k2]) - 2):
+                        cis[k2][2] = []
+
+                    # Get the area
+                    cia[k2] = sum(cprof[k2])
+
+                # Save current stat features
+                cpf[k1] = [cis, cia]
+
+            # Save current profile features
+            profeat.append(cpf)
+
+        return((profiles, profeat, sumd, md))
+
+    def run_initialization(self, **kwargs):
+        """Initialize run. """
+
+        self.printout('Starting GPSeq manager...', 0)
+
+        self.printout('Looking into folder: "' + self.basedir + '"', 0)
+        self.printout('', 0)
+
+        # Instantiate OOP architecture
+        self.printout('* Building OOP Architecture *', 0)
+
+        # Select condition folders
+        self.conds = pt.select_folders(self.basedir, self.ext)
+
+        # If no conditions, stop and trigger error
+        if 0 == len(self.conds):
+            msg = "No condition folders found, i.e., no tif files found in any "
+            msg += "subfolders of: %s\n" % (self.basedir,)
+            self.printout(msg, -2)
+        else:
+            msg = 'Found ' + str(len(self.conds)) + ' condition folder(s)...'
+            self.printout(msg, 0)
+            self.printout('', 0)
+
+        # Instantiate conditions
+        self.conds = [Condition(c, main = self) for c in self.conds]
+        self.printout('', 0)
+
+    def run_segmentation(self, **kwargs):
+        """Run segmentation. """
+
+        # Check analysis/segmentation types
+        self.check_anseg_types()
+
+        # Identify nuclei
+        self.printout('* Looking for nuclei *', 0)
+        self.printout('', 0)
+        [c.find_nuclei(**kwargs) for c in self.conds]
+        self.printout('', 0)
+
+    def unskip(self, step):
+        """Unskips a run step that was supposed to be skipped. """
+        self.skip = [i for i in self.skip if step != i]
 
 # END ==========================================================================
 

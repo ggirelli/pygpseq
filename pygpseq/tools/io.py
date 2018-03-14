@@ -67,40 +67,6 @@ class IOinterface(object):
                 c += 1
 
         self.logpath = curpath
-
-    def printout(self, s, lvl):
-        """Output for user.
-
-        Args:
-          s (string): message string.
-          lvl (int): message level.
-
-        Returns:
-          string: formatted string.
-        """
-
-        if self.verbose:
-            s = printout(s, lvl)
-            self.log(s)
-        return(printout(s, lvl, verbose = False))
-
-    def log(self, s):
-        """Write to logfile.
-
-        Args:
-          s (string): formatted message string.
-
-        Returns:
-          None: writes to logfile.
-        """
-
-        # Create log file directory if missing
-        self.check_log_dir()
-
-        # Write to logfile
-        f = open(self.logpath, 'a')
-        f.write(s)
-        f.close()
     
     def check_log_dir(self, path = None):
         """Create log file directory if missing.
@@ -125,41 +91,39 @@ class IOinterface(object):
         name = now + '_pyGPSeq.log'
         return(name)
 
-def printout(s, lvl, verbose = True):
-    """Log to shell.
+    def log(self, s):
+        """Write to logfile.
 
-    Args:
-      s (string): message string.
-      lvl (int): message level.
-      verbose (bool): True to display formatted message.
-    """
-    
-    # Only a string can be logged
-    if type(str()) != type(s):
-        return()
+        Args:
+          s (string): formatted message string.
 
-    # Add level-based prefix
-    if -2 == lvl:
-        s = '\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n' + s + '\nTerminated.\n'
-        print(s)
-        sys.exit()
-    elif -1 == lvl:
-        s = '\n~~ WARNING ~~ (ノ ゜Д゜)ノ ︵ ┻━┻\n' + s
-    elif 0 == lvl:
-        s = ' ' + s
-    elif 1 == lvl:
-        s = '  · ' + s
-    elif 2 == lvl:
-        s = '    > ' + s
-    elif 3 == lvl:
-        s = '    >> ' + s
-    elif 4 <= lvl:
-        s = '    >>> ' + s
+        Returns:
+          None: writes to logfile.
+        """
 
-    # Log
-    if verbose:
-        print(s)
-    return(st.add_trailing_new_line(s))
+        # Create log file directory if missing
+        self.check_log_dir()
+
+        # Write to logfile
+        f = open(self.logpath, 'a')
+        f.write(s)
+        f.close()
+
+    def printout(self, s, lvl):
+        """Output for user.
+
+        Args:
+          s (string): message string.
+          lvl (int): message level.
+
+        Returns:
+          string: formatted string.
+        """
+
+        if self.verbose:
+            s = printout(s, lvl)
+            self.log(s)
+        return(printout(s, lvl, verbose = False))
 
 def merge_profiles(profiles):
     """Formats the profiles into a single table.
@@ -218,6 +182,42 @@ def merge_summaries(sums):
         crow += summary.shape[0]
 
     return(out)
+
+def printout(s, lvl, verbose = True):
+    """Log to shell.
+
+    Args:
+      s (string): message string.
+      lvl (int): message level.
+      verbose (bool): True to display formatted message.
+    """
+    
+    # Only a string can be logged
+    if type(str()) != type(s):
+        return()
+
+    # Add level-based prefix
+    if -2 == lvl:
+        s = '\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n' + s + '\nTerminated.\n'
+        print(s)
+        sys.exit()
+    elif -1 == lvl:
+        s = '\n~~ WARNING ~~ (ノ ゜Д゜)ノ ︵ ┻━┻\n' + s
+    elif 0 == lvl:
+        s = ' ' + s
+    elif 1 == lvl:
+        s = '  · ' + s
+    elif 2 == lvl:
+        s = '    > ' + s
+    elif 3 == lvl:
+        s = '    >> ' + s
+    elif 4 <= lvl:
+        s = '    >>> ' + s
+
+    # Log
+    if verbose:
+        print(s)
+    return(st.add_trailing_new_line(s))
 
 # END ==========================================================================
 

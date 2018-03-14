@@ -87,44 +87,17 @@ class Condition(iot.IOinterface):
         [self.series[i].append(i + 1) for i in range(len(self.series))]
         self.series = [Series(s, condition = self) for s in self.series]
 
-    def find_nuclei(self, **kwargs):
-        """Segment current condition.
-
-        Args:
-          **kwargs: all Main attributes.
-        """
-
-        # Get default number of cores
-        if not 'ncores' in kwargs.keys():
-            ncores = 1
+    def __getitem__(self, key):
+        """Allow get item. """
+        if key in dir(self):
+            return(getattr(self, key))
         else:
-            ncores = kwargs['ncores']
+            return(None)
 
-        # Suffix for output
-        if not 'suffix' in kwargs.keys():
-            suffix = ''
-        else:
-            suffix = st.add_leading_dot(kwargs['suffix'])
-
-        # Check plotting
-        if not 'plotting' in kwargs.keys():
-            kwargs['plotting'] = True
-
-        # Check number of cores
-        if ncores > multiprocessing.cpu_count():
-            ncores = multiprocessing.cpu_count()
-            msg = 'Decreased core number to maximum allowed: %i' % ncores
-            msg += '\nPlease, don\'t ask for the impossible... ಠ_ಠ'
-            self.printout(msg, -1)
-
-        # Add necessary options
-        kwargs = self.adjust_options(**kwargs)
-
-        # Segment every series in the condition
-        self.printout('Current condition: "' + self.name + '"...', 0)
-        self.series = Parallel(n_jobs = ncores)(
-            delayed(find_series_nuclei)(self, i, **kwargs)
-            for i in range(len(self.series)))
+    def __setitem__(self, key, value):
+        """Allow set item. """
+        if key in dir(self):
+            self.__setattr__(key, value)
 
     def adjust_options(self, **kwargs):
         """Adjust options to be passed to the Series class.
@@ -140,182 +113,6 @@ class Condition(iot.IOinterface):
         kwargs['cond_name'] = self.name
 
         return(kwargs)
-
-    def get_nuclei(self):
-        """Return a list of the nuclei in the condition. """
-        nuclei = []
-        for s in self.series:
-            nuclei.extend(s.nuclei)
-        return(nuclei)
-
-    def single_threshold_nuclei(self, data, sigma_density, xlab = None,
-        **kwargs):
-        """Select a single-feature nuclear threshold.
-
-        Args:
-          data (numpy.array): single column nuclear data.
-          sigma_density (float): sigma for density profile calculation.
-          xlab (string): x-label (opt).
-
-        Returns:
-          dict: data to generate the density threshold plot.
-        """
-
-        # Start building output
-        t = {'data' : data}
-
-        # Calculate density
-        t['density'] = stt.calc_density(t['data'],
-            sigma = sigma_density)
-
-        # Identify range
-        args = [t['density']['x'], t['density']['y']]
-        t['fwhm_range'] = stt.get_fwhm(*args)
-
-        # Add plot features
-        if None != xlab:
-            t['xlab'] = xlab
-        else:
-            t['xlab'] = 'x'
-        t['ylab'] = 'Density'
-        np.set_printoptions(precision = 3)
-        t['title'] = str(np.array([float(x) for x in t['fwhm_range']]))
-
-        # Output
-        return(t)
-
-    def multi_threshold_nuclei(self,
-        cond_name, seg_type, data, sigma_density, nsf,
-        font_size, out_dir, wspace = None, hspace = None, **kwargs):
-        """Plot density with FWHM range and select rows in that range.
-        Features used for the selection based on nsf.
-
-        Args:
-          seg_type (pygpseq.const): segmentation type according to pygpseq.const
-          data (numpy.array): nuclear data.
-          sigma_density (float): sigma for density calculation.
-          xsteps (int): density distribution curve precision (opt).
-          nsf (list[int]): list of features to use for nuclear selection
-                           according to pygpseq.const.
-
-        Returns:
-          list: list of selected nuclei indexes.
-        """
-
-        # Set output suffix
-        if not 'suffix' in kwargs.keys():
-            suffix = ''
-        else:
-            suffix = st.add_leading_dot(kwargs['suffix'])
-
-        # Check plotting
-        if not 'plotting' in kwargs.keys():
-            kwargs['plotting'] = True
-
-        fig = plt.figure(figsize = [8, 8])
-        suptitle = 'Automatic nuclei threshold for condition '
-        if self.name in kwargs['cdescr'].keys():
-            suptitle += '"%s"' % (kwargs['cdescr'][cond_name],)
-        else:
-            suptitle += '"%s"' % (cond_name,)
-            suptitle += "\n [sigma: %.2f]" % (sigma_density,)
-        plt.suptitle(suptitle)
-
-        # Setup subplots spacing
-        if None == wspace:
-            wspace = .4
-        if None == hspace:
-            hspace = .4
-        plt.subplots_adjust(wspace = wspace, hspace = hspace)
-
-        if not 0 == len(nsf):
-            # Filter features
-            sel_data = {}
-            plot_counter = 1
-            for nsfi in nsf:
-                # Identify Nuclear Selection Feature
-                nsf_field = const.NSEL_FIELDS[nsfi]
-                nsf_name = const.NSEL_NAMES[nsfi]
-                self.printout('Filtering ' + nsf_name + '...', 2)
-
-                # Select subplot
-                if 1 == len(nsf):
-                    plt.subplot(1, 1, 1)
-                else:
-                    plt.subplot(2, 2, plot_counter)
-
-                # Plot
-                sel_data[nsf_field] = self.single_threshold_nuclei(
-                    data = data[nsf_field], sigma_density = sigma_density,
-                    xlab = plot.get_nsf_label(nsfi, seg_type))
-
-                # Edit plot
-                plot.set_font_size(font_size)
-                plot.density_with_range(new_figure = False,
-                    **sel_data[nsf_field])
-                plot_counter += 1
-
-            # Select based on range
-            self.printout('Selecting nuclei...', 2)
-            f = lambda x, r: x >= r[0] and x <= r[1]
-            for nsfi in nsf:
-                nsf_field = const.NSEL_FIELDS[nsfi]
-            
-                # Identify nuclei in the FWHM range
-                nsf_data = sel_data[nsf_field]
-                nsf_data['sel'] = [f(i, nsf_data['fwhm_range'])
-                    for i in nsf_data['data']]
-                sel_data[nsf_field] = nsf_data
-            
-            # Select those in every FWHM range
-            nsfields = [const.NSEL_FIELDS[nsfi] for nsfi in nsf]
-            selected = [sel_data[f]['sel'] for f in nsfields]
-            g = lambda i: all([sel[i] for sel in selected])
-            selected = [i for i in range(len(selected[0])) if g(i)]
-            sub_data = data[selected]
-
-            # Set title
-            title = 'Selected ' + str(len(selected)) + '/'
-            title += str(len(sel_data[const.NSEL_FIELDS[nsf[0]]]['data']))
-            title += ' nuclei.'
-
-            if not 1 == len(nsf):
-                # General scatterplot
-                plt.subplot(2, 2, 4)
-                plot.set_font_size(font_size)
-                plt.plot(data[const.NSEL_FIELDS[nsf[0]]],
-                    data[const.NSEL_FIELDS[nsf[1]]], ',k')
-                plt.hold(True)
-
-                # Selected scatterplot
-                plt.plot(sub_data[const.NSEL_FIELDS[nsf[0]]],
-                    sub_data[const.NSEL_FIELDS[nsf[1]]], ',r')
-                plt.xlabel(plot.get_nsf_label(nsf[0], seg_type))
-                plt.ylabel(plot.get_nsf_label(nsf[1], seg_type))
-                plt.title(title)
-                plt.ticklabel_format(style = 'sci', axis = 'x',
-                    scilimits = (0, 0))
-                plt.ticklabel_format(style = 'sci', axis = 'y',
-                    scilimits = (0, 0))
-        else:
-            # Set title
-            selected = range(data.shape[0])
-            title = 'Selected ' + str(len(selected)) + ' nuclei.'
-            plt.title(title)
-
-        # Export plot
-        self.printout('Exporting threshold plot...', 2)
-        fname = out_dir + const.OUTDIR_PDF + self.name + '.threshold_summary'
-        fname += suffix + '.pdf'
-        if kwargs['plotting']: plot.export(fname, 'pdf')
-        fname = out_dir + const.OUTDIR_PNG + self.name + '.threshold_summary'
-        fname += suffix + '.png'
-        if kwargs['plotting']: plot.export(fname, 'png')
-        self.printout(title, 2)
-        plt.close(fig)
-
-        # Output
-        return(selected)
 
     def analyze_nuclei(self, **kwargs):
         """Export current condition nuclei.
@@ -611,6 +408,90 @@ class Condition(iot.IOinterface):
         # Close file pointer
         if kwargs['plotting']: pp.close()
 
+    def export_nuclei(self, **kwargs):
+        """Export current condition nuclei. """
+
+        # Set output suffix
+        if not 'suffix' in kwargs.keys():
+            suffix = ''
+        else:
+            suffix = st.add_leading_dot(kwargs['suffix'])
+
+        # Add necessary options
+        self.printout('Current condition: "' + self.name + '"...', 0)
+        kwargs = self.adjust_options(**kwargs)
+
+        # Create condition nuclear data directory if necessary
+        if not os.path.isdir(kwargs['out_dir']):
+            os.mkdir(kwargs['out_dir'])
+
+        # Segment every series in the condition
+        logs = [s.export_nuclei(**kwargs) for s in self.series]
+
+        # Will contain the summaries
+        summary = np.zeros(sum([i.shape[0] for i in logs]),
+            dtype = const.DTYPE_NUCLEAR_SUMMARY)
+
+        # Log counter
+        c = 0
+        for log in logs:
+            # Merge logs
+            summary[c:(c + log.shape[0]), :] = log
+
+            # Increase log counter
+            c += log.shape[0]
+        
+        # Export condition summary
+        np.savetxt(kwargs['out_dir'] + 'summary' + suffix + '.csv',
+            summary, delimiter = ',', comments = '',
+            header = ",".join([h for h in summary.dtype.names]))
+
+    def find_nuclei(self, **kwargs):
+        """Segment current condition.
+
+        Args:
+          **kwargs: all Main attributes.
+        """
+
+        # Get default number of cores
+        if not 'ncores' in kwargs.keys():
+            ncores = 1
+        else:
+            ncores = kwargs['ncores']
+
+        # Suffix for output
+        if not 'suffix' in kwargs.keys():
+            suffix = ''
+        else:
+            suffix = st.add_leading_dot(kwargs['suffix'])
+
+        # Check plotting
+        if not 'plotting' in kwargs.keys():
+            kwargs['plotting'] = True
+
+        # Check number of cores
+        if ncores > multiprocessing.cpu_count():
+            ncores = multiprocessing.cpu_count()
+            msg = 'Decreased core number to maximum allowed: %i' % ncores
+            msg += '\nPlease, don\'t ask for the impossible... ಠ_ಠ'
+            self.printout(msg, -1)
+
+        # Add necessary options
+        kwargs = self.adjust_options(**kwargs)
+
+        # Segment every series in the condition
+        self.printout('Current condition: "' + self.name + '"...', 0)
+        self.series = Parallel(n_jobs = ncores)(
+            delayed(find_series_nuclei)(self, i, **kwargs)
+            for i in range(len(self.series)))
+
+    def get_nuclei(self):
+        """Return a list of the nuclei in the condition. """
+        nuclei = []
+        for s in self.series:
+            nuclei.extend(s.nuclei)
+        return(nuclei)
+
     def make_profiles(self, pdata, n_nuclei, **kwargs):
         """Prepare profiles for plotting.
 
@@ -650,8 +531,23 @@ class Condition(iot.IOinterface):
         # Output
         return(profiles)
 
-    def export_nuclei(self, **kwargs):
-        """Export current condition nuclei. """
+    def multi_threshold_nuclei(self,
+        cond_name, seg_type, data, sigma_density, nsf,
+        font_size, out_dir, wspace = None, hspace = None, **kwargs):
+        """Plot density with FWHM range and select rows in that range.
+        Features used for the selection based on nsf.
+
+        Args:
+          seg_type (pygpseq.const): segmentation type according to pygpseq.const
+          data (numpy.array): nuclear data.
+          sigma_density (float): sigma for density calculation.
+          xsteps (int): density distribution curve precision (opt).
+          nsf (list[int]): list of features to use for nuclear selection
+                           according to pygpseq.const.
+
+        Returns:
+          list: list of selected nuclei indexes.
+        """
 
         # Set output suffix
         if not 'suffix' in kwargs.keys():
@@ -659,51 +555,155 @@ class Condition(iot.IOinterface):
         else:
             suffix = st.add_leading_dot(kwargs['suffix'])
 
-        # Add necessary options
-        self.printout('Current condition: "' + self.name + '"...', 0)
-        kwargs = self.adjust_options(**kwargs)
+        # Check plotting
+        if not 'plotting' in kwargs.keys():
+            kwargs['plotting'] = True
 
-        # Create condition nuclear data directory if necessary
-        if not os.path.isdir(kwargs['out_dir']):
-            os.mkdir(kwargs['out_dir'])
+        fig = plt.figure(figsize = [8, 8])
+        suptitle = 'Automatic nuclei threshold for condition '
+        if self.name in kwargs['cdescr'].keys():
+            suptitle += '"%s"' % (kwargs['cdescr'][cond_name],)
+        else:
+            suptitle += '"%s"' % (cond_name,)
+            suptitle += "\n [sigma: %.2f]" % (sigma_density,)
+        plt.suptitle(suptitle)
 
-        # Segment every series in the condition
-        logs = [s.export_nuclei(**kwargs) for s in self.series]
+        # Setup subplots spacing
+        if None == wspace:
+            wspace = .4
+        if None == hspace:
+            hspace = .4
+        plt.subplots_adjust(wspace = wspace, hspace = hspace)
 
-        # Will contain the summaries
-        summary = np.zeros(sum([i.shape[0] for i in logs]),
-            dtype = const.DTYPE_NUCLEAR_SUMMARY)
+        if not 0 == len(nsf):
+            # Filter features
+            sel_data = {}
+            plot_counter = 1
+            for nsfi in nsf:
+                # Identify Nuclear Selection Feature
+                nsf_field = const.NSEL_FIELDS[nsfi]
+                nsf_name = const.NSEL_NAMES[nsfi]
+                self.printout('Filtering ' + nsf_name + '...', 2)
 
-        # Log counter
-        c = 0
-        for log in logs:
-            # Merge logs
-            summary[c:(c + log.shape[0]), :] = log
+                # Select subplot
+                if 1 == len(nsf):
+                    plt.subplot(1, 1, 1)
+                else:
+                    plt.subplot(2, 2, plot_counter)
 
-            # Increase log counter
-            c += log.shape[0]
-        
-        # Export condition summary
-        np.savetxt(kwargs['out_dir'] + 'summary' + suffix + '.csv',
-            summary, delimiter = ',', comments = '',
-            header = ",".join([h for h in summary.dtype.names]))
+                # Plot
+                sel_data[nsf_field] = self.single_threshold_nuclei(
+                    data = data[nsf_field], sigma_density = sigma_density,
+                    xlab = plot.get_nsf_label(nsfi, seg_type))
+
+                # Edit plot
+                plot.set_font_size(font_size)
+                plot.density_with_range(new_figure = False,
+                    **sel_data[nsf_field])
+                plot_counter += 1
+
+            # Select based on range
+            self.printout('Selecting nuclei...', 2)
+            f = lambda x, r: x >= r[0] and x <= r[1]
+            for nsfi in nsf:
+                nsf_field = const.NSEL_FIELDS[nsfi]
+            
+                # Identify nuclei in the FWHM range
+                nsf_data = sel_data[nsf_field]
+                nsf_data['sel'] = [f(i, nsf_data['fwhm_range'])
+                    for i in nsf_data['data']]
+                sel_data[nsf_field] = nsf_data
+            
+            # Select those in every FWHM range
+            nsfields = [const.NSEL_FIELDS[nsfi] for nsfi in nsf]
+            selected = [sel_data[f]['sel'] for f in nsfields]
+            g = lambda i: all([sel[i] for sel in selected])
+            selected = [i for i in range(len(selected[0])) if g(i)]
+            sub_data = data[selected]
+
+            # Set title
+            title = 'Selected ' + str(len(selected)) + '/'
+            title += str(len(sel_data[const.NSEL_FIELDS[nsf[0]]]['data']))
+            title += ' nuclei.'
+
+            if not 1 == len(nsf):
+                # General scatterplot
+                plt.subplot(2, 2, 4)
+                plot.set_font_size(font_size)
+                plt.plot(data[const.NSEL_FIELDS[nsf[0]]],
+                    data[const.NSEL_FIELDS[nsf[1]]], ',k')
+                plt.hold(True)
+
+                # Selected scatterplot
+                plt.plot(sub_data[const.NSEL_FIELDS[nsf[0]]],
+                    sub_data[const.NSEL_FIELDS[nsf[1]]], ',r')
+                plt.xlabel(plot.get_nsf_label(nsf[0], seg_type))
+                plt.ylabel(plot.get_nsf_label(nsf[1], seg_type))
+                plt.title(title)
+                plt.ticklabel_format(style = 'sci', axis = 'x',
+                    scilimits = (0, 0))
+                plt.ticklabel_format(style = 'sci', axis = 'y',
+                    scilimits = (0, 0))
+        else:
+            # Set title
+            selected = range(data.shape[0])
+            title = 'Selected ' + str(len(selected)) + ' nuclei.'
+            plt.title(title)
+
+        # Export plot
+        self.printout('Exporting threshold plot...', 2)
+        fname = out_dir + const.OUTDIR_PDF + self.name + '.threshold_summary'
+        fname += suffix + '.pdf'
+        if kwargs['plotting']: plot.export(fname, 'pdf')
+        fname = out_dir + const.OUTDIR_PNG + self.name + '.threshold_summary'
+        fname += suffix + '.png'
+        if kwargs['plotting']: plot.export(fname, 'png')
+        self.printout(title, 2)
+        plt.close(fig)
+
+        # Output
+        return(selected)
 
     def propagate_attr(self, key):
         """Propagate attribute current value to every series. """
         for i in range(len(self.series)):
             self.series[i][key] = self[key]
 
-    def __getitem__(self, key):
-        """Allow get item. """
-        if key in dir(self):
-            return(getattr(self, key))
-        else:
-            return(None)
+    def single_threshold_nuclei(self, data, sigma_density, xlab = None,
+        **kwargs):
+        """Select a single-feature nuclear threshold.
 
-    def __setitem__(self, key, value):
-        """Allow set item. """
-        if key in dir(self):
-            self.__setattr__(key, value)
+        Args:
+          data (numpy.array): single column nuclear data.
+          sigma_density (float): sigma for density profile calculation.
+          xlab (string): x-label (opt).
+
+        Returns:
+          dict: data to generate the density threshold plot.
+        """
+
+        # Start building output
+        t = {'data' : data}
+
+        # Calculate density
+        t['density'] = stt.calc_density(t['data'],
+            sigma = sigma_density)
+
+        # Identify range
+        args = [t['density']['x'], t['density']['y']]
+        t['fwhm_range'] = stt.get_fwhm(*args)
+
+        # Add plot features
+        if None != xlab:
+            t['xlab'] = xlab
+        else:
+            t['xlab'] = 'x'
+        t['ylab'] = 'Density'
+        np.set_printoptions(precision = 3)
+        t['title'] = str(np.array([float(x) for x in t['fwhm_range']]))
+
+        # Output
+        return(t)
 
 # FUNCTIONS ====================================================================
 

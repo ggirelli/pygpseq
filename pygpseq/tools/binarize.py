@@ -71,75 +71,91 @@ class Binarize(iot.IOinterface):
             if not k == 'logpath':
                 self[k] = kwargs[k]
 
-    def run(self, im):
-        """Binarize image with current instance settings.
+    def __getitem__(self, key):
+        """ Allow get item. """
+        if key in dir(self):
+            return(getattr(self, key))
+        else:
+            return(None)
+
+    def __setattr__(self, name, value):
+        """ Check the attribute and set it. """
+
+        # Check the attribute
+        check = self.check_attr(name, value)
+
+        if True == check:
+            # Set the attribute
+            return(super(Binarize, self).__setattr__(name, value))
+        else:
+            # Don't set the attribute
+            return(None)
+
+    def __setitem__(self, key, value):
+        """ Allow set item. """
+        if key in dir(self):
+            self.__setattr__(key, value)
+    
+    def check_attr(self, name, value):
+        """Check attribute format and value.
 
         Args:
-          im (np.array): image to be thresholded
+          name (string): attribute name
+          value: attribute value
 
         Returns:
-          tuple: binarized image, Otsu's threshold value and log string
+          bool: whether the provided (name,value) couple passed its
+                name-specific test
         """
 
-        log = ''
+        # Default answer
+        checked = True
 
-        # If no threshold is requested, return the image
-        if not self.do_global_thr and not self.do_adaptive_thr:
-            msg = 'No threshold applied.'
-            log += self.printout(msg, -1)
+        if name in ['do_global_thr', 'do_adaptive_thr', 'do_clear_borders',
+            'do_clear_Z_borders', 'do_fill_holes']:
+            # Require boolean
+            if not type(True) == type(value):
+                checked = False
+            
+                msg = '"' + name + '" must be a Boolean.\n'
+                msg += 'Keeping previous value [' + str(self[name]) + '].'
+                self.printout(msg, -1)
 
-            return((im, log))
+        elif name == 'adaptive_neighbourhood':
+            # Require boolean
+            if not type(0) == type(value):
+                checked = False
+            
+                msg = '"' + name + '" must be an integer.\n'
+                msg += 'Keeping previous value [' + str(self[name]) + '].'
+                self.printout(msg, -1)
 
-        # Make Z-projection ----------------------------------------------------
-        if const.SEG_3D != self.seg_type and 2 != len(im.shape):
-            msg = 'Generating Z-projection ['
-            msg += const.SEG_LABELS[self.seg_type] + ']...'
-            log += self.printout(msg, 2)
-            im = imt.mk_z_projection(im, self.seg_type)
+        elif 'an_type' == name:
+            # Check that it is one of the allowed constants
+            an_types = [const.AN_SUM_PROJ, const.AN_MAX_PROJ,
+                const.AN_3D, const.AN_MID]
+            if not value in an_types:
+                checked = False
 
-        # Binarize images ------------------------------------------------------
-        mask = []
+            if not checked:
+                msg = '"' + name + '" must be one of the following values:\n'
+                msg += str(an_types) + '\n'
+                msg += 'Keeping previous value [' + str(self[name]) + '].'
+                self.printout(msg, -1)
 
-        # Perform global threshold
-        if self.do_global_thr:
-            thr = threshold_otsu(im)
-            msg = 'Thresholding image, global thr: ' + str(thr)
-            log += self.printout(msg, 2)
-            mask.append(imt.binarize(im, thr))
+        elif 'seg_type' == name:
+            # Check that it is one of the allowed constants
+            seg_types = [const.SEG_SUM_PROJ, const.SEG_MAX_PROJ, const.SEG_3D]
+            if not value in seg_types:
+                checked = False
 
-        # Perform adaptive threshold
-        if self.do_adaptive_thr and 1 < self.adaptive_neighbourhood:
-            msg = 'Applying adaptive threshold to neighbourhood: '
-            msg += str(self.adaptive_neighbourhood)
-            log += self.printout(msg, 2)
-            mask.append(imt.threshold_adaptive(im, self.adaptive_neighbourhood))
+            if not checked:
+                msg = '"' + name + '" must be one of the following values:\n'
+                msg += str(seg_types) + '\n'
+                msg += 'Keeping previous value [' + str(self[name]) + '].'
+                self.printout(msg, -1)
 
-        # Combine masks
-        if len(mask) == 2:
-            mask = np.logical_and(mask[0], mask[1])
-        else:
-            mask = mask[0]
-
-        # Remove objects touching borders --------------------------------------
-        if self.do_clear_borders:
-            msg = 'Removing objects touching the image border...'
-            log += self.printout(msg, 2)
-            mask = imt.clear_borders2(label(mask), self.do_clear_Z_borders)
-            mask = mask != 0
-        
-        # Fill holes -----------------------------------------------------------
-        if self.do_fill_holes:
-            log += self.printout('Filling holes...', 2)
-            mask = ndi.binary_fill_holes(mask)
-
-            if 3 == len(mask.shape):
-                # Single slice filling
-                for sliceid in range(mask.shape[0]):
-                    slide = mask[sliceid, :, :]
-                    mask[sliceid, :, :] = ndi.binary_fill_holes(slide)
-
-        # Output ---------------------------------------------------------------
-        return((mask, thr, log))
+        return(checked)
     
     def filter_obj_XY_size(self, mask):
         """Filter objects XY size.
@@ -235,91 +251,75 @@ class Binarize(iot.IOinterface):
         # Output
         return((mask, log))
 
-    def __getitem__(self, key):
-        """ Allow get item. """
-        if key in dir(self):
-            return(getattr(self, key))
-        else:
-            return(None)
-
-    def __setitem__(self, key, value):
-        """ Allow set item. """
-        if key in dir(self):
-            self.__setattr__(key, value)
-
-    def __setattr__(self, name, value):
-        """ Check the attribute and set it. """
-
-        # Check the attribute
-        check = self.check_attr(name, value)
-
-        if True == check:
-            # Set the attribute
-            return(super(Binarize, self).__setattr__(name, value))
-        else:
-            # Don't set the attribute
-            return(None)
-
-    def check_attr(self, name, value):
-        """Check attribute format and value.
+    def run(self, im):
+        """Binarize image with current instance settings.
 
         Args:
-          name (string): attribute name
-          value: attribute value
+          im (np.array): image to be thresholded
 
         Returns:
-          bool: whether the provided (name,value) couple passed its
-                name-specific test
+          tuple: binarized image, Otsu's threshold value and log string
         """
 
-        # Default answer
-        checked = True
+        log = ''
 
-        if name in ['do_global_thr', 'do_adaptive_thr', 'do_clear_borders',
-            'do_clear_Z_borders', 'do_fill_holes']:
-            # Require boolean
-            if not type(True) == type(value):
-                checked = False
-            
-                msg = '"' + name + '" must be a Boolean.\n'
-                msg += 'Keeping previous value [' + str(self[name]) + '].'
-                self.printout(msg, -1)
+        # If no threshold is requested, return the image
+        if not self.do_global_thr and not self.do_adaptive_thr:
+            msg = 'No threshold applied.'
+            log += self.printout(msg, -1)
 
-        elif name == 'adaptive_neighbourhood':
-            # Require boolean
-            if not type(0) == type(value):
-                checked = False
-            
-                msg = '"' + name + '" must be an integer.\n'
-                msg += 'Keeping previous value [' + str(self[name]) + '].'
-                self.printout(msg, -1)
+            return((im, log))
 
-        elif 'an_type' == name:
-            # Check that it is one of the allowed constants
-            an_types = [const.AN_SUM_PROJ, const.AN_MAX_PROJ,
-                const.AN_3D, const.AN_MID]
-            if not value in an_types:
-                checked = False
+        # Make Z-projection ----------------------------------------------------
+        if const.SEG_3D != self.seg_type and 2 != len(im.shape):
+            msg = 'Generating Z-projection ['
+            msg += const.SEG_LABELS[self.seg_type] + ']...'
+            log += self.printout(msg, 2)
+            im = imt.mk_z_projection(im, self.seg_type)
 
-            if not checked:
-                msg = '"' + name + '" must be one of the following values:\n'
-                msg += str(an_types) + '\n'
-                msg += 'Keeping previous value [' + str(self[name]) + '].'
-                self.printout(msg, -1)
+        # Binarize images ------------------------------------------------------
+        mask = []
 
-        elif 'seg_type' == name:
-            # Check that it is one of the allowed constants
-            seg_types = [const.SEG_SUM_PROJ, const.SEG_MAX_PROJ, const.SEG_3D]
-            if not value in seg_types:
-                checked = False
+        # Perform global threshold
+        if self.do_global_thr:
+            thr = threshold_otsu(im)
+            msg = 'Thresholding image, global thr: ' + str(thr)
+            log += self.printout(msg, 2)
+            mask.append(imt.binarize(im, thr))
 
-            if not checked:
-                msg = '"' + name + '" must be one of the following values:\n'
-                msg += str(seg_types) + '\n'
-                msg += 'Keeping previous value [' + str(self[name]) + '].'
-                self.printout(msg, -1)
+        # Perform adaptive threshold
+        if self.do_adaptive_thr and 1 < self.adaptive_neighbourhood:
+            msg = 'Applying adaptive threshold to neighbourhood: '
+            msg += str(self.adaptive_neighbourhood)
+            log += self.printout(msg, 2)
+            mask.append(imt.threshold_adaptive(im, self.adaptive_neighbourhood))
 
-        return(checked)
+        # Combine masks
+        if len(mask) == 2:
+            mask = np.logical_and(mask[0], mask[1])
+        else:
+            mask = mask[0]
+
+        # Remove objects touching borders --------------------------------------
+        if self.do_clear_borders:
+            msg = 'Removing objects touching the image border...'
+            log += self.printout(msg, 2)
+            mask = imt.clear_borders2(label(mask), self.do_clear_Z_borders)
+            mask = mask != 0
+        
+        # Fill holes -----------------------------------------------------------
+        if self.do_fill_holes:
+            log += self.printout('Filling holes...', 2)
+            mask = ndi.binary_fill_holes(mask)
+
+            if 3 == len(mask.shape):
+                # Single slice filling
+                for sliceid in range(mask.shape[0]):
+                    slide = mask[sliceid, :, :]
+                    mask[sliceid, :, :] = ndi.binary_fill_holes(slide)
+
+        # Output ---------------------------------------------------------------
+        return((mask, thr, log))
 
 # END ==========================================================================
 

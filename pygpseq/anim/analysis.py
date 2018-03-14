@@ -80,29 +80,6 @@ class Analyzer(iot.IOinterface):
         """Run IOinterface __init__ method. """
         super(Analyzer, self).__init__()
 
-    def check_anseg_types(self):
-        """Check seg_type and an_type. """
-
-        # 2D segmentation does not allow 3D analysis
-        no3d_cond = self.an_type == const.AN_3D
-        no3d_cond = no3d_cond and self.seg_type != const.SEG_3D
-        if no3d_cond:
-            # Revert analysis to default
-            msg = '3D analysis is not available for 2D segmentation.\n'
-            msg += 'Using sum z-projection analysis instead...'
-            self.printout(msg, -1)
-            self.an_type = const.SEG_SUM_PROJ
-
-        # 2D segmentation does not allow mid-section analysis
-        nomid_cond = self.an_type == const.AN_MID
-        nomid_cond = nomid_cond and self.seg_type != const.SEG_3D
-        if nomid_cond:
-            # Revert analysis to default
-            msg = 'Mid-section analysis is not available for 2D segmentation.\n'
-            msg += 'Using sum z-projection analysis instead...'
-            self.printout(msg, -1)
-            self.an_type = const.SEG_SUM_PROJ
-
     def __setattr__(self, name, value):
         """Check the attribute and set it. """
 
@@ -270,6 +247,29 @@ class Analyzer(iot.IOinterface):
 
         # Output
         return(checked)
+
+    def check_anseg_types(self):
+        """Check seg_type and an_type. """
+
+        # 2D segmentation does not allow 3D analysis
+        no3d_cond = self.an_type == const.AN_3D
+        no3d_cond = no3d_cond and self.seg_type != const.SEG_3D
+        if no3d_cond:
+            # Revert analysis to default
+            msg = '3D analysis is not available for 2D segmentation.\n'
+            msg += 'Using sum z-projection analysis instead...'
+            self.printout(msg, -1)
+            self.an_type = const.SEG_SUM_PROJ
+
+        # 2D segmentation does not allow mid-section analysis
+        nomid_cond = self.an_type == const.AN_MID
+        nomid_cond = nomid_cond and self.seg_type != const.SEG_3D
+        if nomid_cond:
+            # Revert analysis to default
+            msg = 'Mid-section analysis is not available for 2D segmentation.\n'
+            msg += 'Using sum z-projection analysis instead...'
+            self.printout(msg, -1)
+            self.an_type = const.SEG_SUM_PROJ
 
 # END ==========================================================================
 

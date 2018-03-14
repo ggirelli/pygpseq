@@ -8,12 +8,6 @@
 
 # FUNCTIONS ====================================================================
 
-def add_trailing_new_line(s):
-    """Adds trailing new line. """
-    if '\n' != s[len(s) - 1]:
-        s += '\n'
-    return(s)
-
 def add_leading_dot(s, not_empty = None):
     """Adds leading dot.
 
@@ -28,6 +22,12 @@ def add_leading_dot(s, not_empty = None):
         return(s)
     if not s.startswith('.'):
         s = '.' + s
+    return(s)
+
+def add_trailing_new_line(s):
+    """Adds trailing new line. """
+    if '\n' != s[len(s) - 1]:
+        s += '\n'
     return(s)
 
 # END ==========================================================================

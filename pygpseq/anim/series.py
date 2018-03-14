@@ -73,55 +73,85 @@ class Series(iot.IOinterface):
         self.filist = ds[1]
         self.n = ds[2]
 
-    def get_c(self):
-        """Return number of channels in the series. """
-        return(len(self.filist))
+    def __getitem__(self, key):
+        """ Allow get item. """
+        if key in dir(self):
+            return(getattr(self, key))
+        else:
+            return(None)
 
-    def get_channel_names(self, channel_field = None):
-        """Return the names of the channels in the series. """
-        if None == channel_field:
-            channel_field = const.REG_CHANNEL_NAME
-        return([c[channel_field] for c in self.filist.values()])
+    def __setitem__(self, key, value):
+        """ Allow set item. """
+        if key in dir(self):
+            self.__setattr__(key, value)
 
-    def get_channel(self, ch_name, log = None, **kwargs):
-        """Read the series specified channel.
+    def adjust_options(self, read_only_dna = None, log = None, **kwargs):
+        """Adjust options to be passed to the Nucleus class.
 
         Args:
-          ch_name (string): channel name.
-          log (string): log string.
-          **kwargs
-        
+          dna_names (tuple[string]): dna channel names.
+          sig_names (tuple[string]): signal channel names.
+          an_type (pyGPSeq.const): analysis type.
+
         Returns:
-          tuple: channel image and log string.
+          dict: adds the following kwargs:
+            series_name (string): series wrap name.
+            basedir (string): series wrap base directory.
+            dna_ch (numpy.array): image (dimensionality based on an_type).
+            sig_ch (numpy.array): image (dimensionality based on an_type).
         """
 
-        # Start log (used when verbosity is off)
-        if None == log: log = ""
-        log += self.printout('Reading channel "' + str(ch_name) + '"...', 2)
+        # Start log
+        if None == log: log = ''
 
-        # Read channel
-        f = self.find_channel(ch_name)
-        imch = imt.read_tiff(os.path.join(self.basedir, f[0]))
-        imch = imt.slice_k_d_img(imch, 3)
+        # Only work on dna channel
+        if None == read_only_dna:
+            read_only_dna = False
 
-        # Deconvolved images correction
-        if 'rescale_deconvolved' in kwargs.keys():
-            if kwargs['rescale_deconvolved']:
-                # Get DNA scaling factor and rescale
-                sf = imt.get_rescaling_factor(f, **kwargs)
-                imch = (imch / sf).astype('float')
-                msg = 'Rescaling "' + f[0] + '" [' + str(sf) + ']...'
-                log += self.printout(msg, 3)
+        # Add necessary options
+        kwargs['series_name'] = self.name
+        kwargs['basedir'] = self.basedir
 
-        # Make Z-projection
-        if kwargs['an_type'] in [const.AN_SUM_PROJ, const.AN_MAX_PROJ]:
-            msg = 'Generating Z-projection [' + str(kwargs['an_type']) + ']...'
-            log += self.printout(msg, 3)
-            if 2 != len(imch.shape):
-                imch = imt.mk_z_projection(imch, kwargs['an_type'])
+        # Read DNA channel
+        kwargs['dna_ch'], log = self.get_channel(kwargs['dna_names'],
+            log, **kwargs)
+        if not read_only_dna:
+            kwargs['sig_ch'], log = self.get_channel(kwargs['sig_names'],
+                log, **kwargs)
 
-        # Prepare output
-        return((imch, log))
+        # Output
+        return((kwargs, log))
+
+    def export_nuclei(self, **kwargs):
+        """Export current series nuclei. """
+
+        # Set output suffix
+        if not 'suffix' in kwargs.keys():
+            suffix = ''
+        else:
+            suffix = st.add_leading_dot(kwargs['suffix'])
+
+        # Add necessary options
+        self.printout('Current series: "' + self.name + '"...', 1)
+        kwargs, log = self.adjust_options(**kwargs)
+
+        # Export nuclei
+        [n.export(**kwargs) for n in self.nuclei]
+        
+        # Produce log
+        log = np.zeros(len(self.nuclei), dtype = const.DTYPE_NUCLEAR_SUMMARY)
+        for l in [n.get_summary(**kwargs) for n in self.nuclei]:
+            # Append nuclear data to the series log
+            summary = [self.n]
+            summary.extend(l)
+            log[i, :] = summary
+
+        # Export series log
+        np.savetxt(kwargs['out_dir'] + self.name + '.summary' + suffix + '.csv',
+            log, delimiter = ',', comments = '',
+            header = ",".join([h for h in log.dtype.names]))
+
+        return(log)
 
     def find_channel(self, channel_names):
         """Return the first channel to correspond to channel_names. """
@@ -258,42 +288,55 @@ class Series(iot.IOinterface):
 
         return((self, log))
 
-    def adjust_options(self, read_only_dna = None, log = None, **kwargs):
-        """Adjust options to be passed to the Nucleus class.
+    def get_c(self):
+        """Return number of channels in the series. """
+        return(len(self.filist))
+
+    def get_channel(self, ch_name, log = None, **kwargs):
+        """Read the series specified channel.
 
         Args:
-          dna_names (tuple[string]): dna channel names.
-          sig_names (tuple[string]): signal channel names.
-          an_type (pyGPSeq.const): analysis type.
-
+          ch_name (string): channel name.
+          log (string): log string.
+          **kwargs
+        
         Returns:
-          dict: adds the following kwargs:
-            series_name (string): series wrap name.
-            basedir (string): series wrap base directory.
-            dna_ch (numpy.array): image (dimensionality based on an_type).
-            sig_ch (numpy.array): image (dimensionality based on an_type).
+          tuple: channel image and log string.
         """
 
-        # Start log
-        if None == log: log = ''
+        # Start log (used when verbosity is off)
+        if None == log: log = ""
+        log += self.printout('Reading channel "' + str(ch_name) + '"...', 2)
 
-        # Only work on dna channel
-        if None == read_only_dna:
-            read_only_dna = False
+        # Read channel
+        f = self.find_channel(ch_name)
+        imch = imt.read_tiff(os.path.join(self.basedir, f[0]))
+        imch = imt.slice_k_d_img(imch, 3)
 
-        # Add necessary options
-        kwargs['series_name'] = self.name
-        kwargs['basedir'] = self.basedir
+        # Deconvolved images correction
+        if 'rescale_deconvolved' in kwargs.keys():
+            if kwargs['rescale_deconvolved']:
+                # Get DNA scaling factor and rescale
+                sf = imt.get_rescaling_factor(f, **kwargs)
+                imch = (imch / sf).astype('float')
+                msg = 'Rescaling "' + f[0] + '" [' + str(sf) + ']...'
+                log += self.printout(msg, 3)
 
-        # Read DNA channel
-        kwargs['dna_ch'], log = self.get_channel(kwargs['dna_names'],
-            log, **kwargs)
-        if not read_only_dna:
-            kwargs['sig_ch'], log = self.get_channel(kwargs['sig_names'],
-                log, **kwargs)
+        # Make Z-projection
+        if kwargs['an_type'] in [const.AN_SUM_PROJ, const.AN_MAX_PROJ]:
+            msg = 'Generating Z-projection [' + str(kwargs['an_type']) + ']...'
+            log += self.printout(msg, 3)
+            if 2 != len(imch.shape):
+                imch = imt.mk_z_projection(imch, kwargs['an_type'])
 
-        # Output
-        return((kwargs, log))
+        # Prepare output
+        return((imch, log))
+
+    def get_channel_names(self, channel_field = None):
+        """Return the names of the channels in the series. """
+        if None == channel_field:
+            channel_field = const.REG_CHANNEL_NAME
+        return([c[channel_field] for c in self.filist.values()])
 
     def get_nuclei_data(self, nuclei_ids, **kwargs):
         """Retrieve a single nucleus from the current series. """
@@ -326,53 +369,10 @@ class Series(iot.IOinterface):
 
         return((data, log))
 
-    def export_nuclei(self, **kwargs):
-        """Export current series nuclei. """
-
-        # Set output suffix
-        if not 'suffix' in kwargs.keys():
-            suffix = ''
-        else:
-            suffix = st.add_leading_dot(kwargs['suffix'])
-
-        # Add necessary options
-        self.printout('Current series: "' + self.name + '"...', 1)
-        kwargs, log = self.adjust_options(**kwargs)
-
-        # Export nuclei
-        [n.export(**kwargs) for n in self.nuclei]
-        
-        # Produce log
-        log = np.zeros(len(self.nuclei), dtype = const.DTYPE_NUCLEAR_SUMMARY)
-        for l in [n.get_summary(**kwargs) for n in self.nuclei]:
-            # Append nuclear data to the series log
-            summary = [self.n]
-            summary.extend(l)
-            log[i, :] = summary
-
-        # Export series log
-        np.savetxt(kwargs['out_dir'] + self.name + '.summary' + suffix + '.csv',
-            log, delimiter = ',', comments = '',
-            header = ",".join([h for h in log.dtype.names]))
-
-        return(log)
-
     def propagate_attr(self, key):
         """Propagate attribute current value to every nucleus. """
         for i in range(len(self.nuclei)):
             self.nuclei[i][key] = self[key]
-
-    def __getitem__(self, key):
-        """ Allow get item. """
-        if key in dir(self):
-            return(getattr(self, key))
-        else:
-            return(None)
-
-    def __setitem__(self, key, value):
-        """ Allow set item. """
-        if key in dir(self):
-            self.__setattr__(key, value)
 
 # END ==========================================================================
 
