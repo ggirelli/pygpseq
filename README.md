@@ -51,9 +51,9 @@ Run `tiff_auto3dseg -h` for more details on how to produce binary/labeled (compr
 
 Run `tiff_findoof -h` for more details on how to quickly identify out of focus fields of view. Also, the `tiff_plotoof` script (in R, requires `argparser` and `ggplot2`) can be used to produce an informative plot with the signal location over the Z stack.
 
-#### Uncompress a tiff
+#### (Un)compress a tiff
 
-To uncompress a set of tiff, use the `tiff_uncompress` command (`-h` for more details).
+To uncompress a set of tiff, use the `tiffcu -u` command. To compress them use the `tiffcu -c` command instead. Use `tiffcu -h` for more details.
 
 License
 ---
