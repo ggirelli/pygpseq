@@ -103,9 +103,9 @@ def add_allele(data):
 				subt.loc[dotPair.index[1], 'Allele'] = 2 # Peripheral
 			else: # Different centrality
 				# Peripheral
-				subt.loc[dotPair['lamin_dist_norm'].argmin(), 'Allele'] = 2
+				subt.loc[dotPair['lamin_dist_norm'].idxmin(), 'Allele'] = 2
 				# Central
-				subt.loc[dotPair['lamin_dist_norm'].argmax(), 'Allele'] = 1
+				subt.loc[dotPair['lamin_dist_norm'].idxmax(), 'Allele'] = 1
 
 	# Output -------------------------------------------------------------------
 	data.loc[validIdx, 'Allele'] = subt['Allele']

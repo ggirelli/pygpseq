@@ -73,12 +73,12 @@ from skimage.segmentation import clear_border
 
 # Add script description
 parser = argparse.ArgumentParser(description = '''
-Uncompress TIFF images. Provide either a single input/output image path, or 
+(Un)compress TIFF images. Provide either a single input/output image path, or 
 input/output folder paths. In case of folder input/output, all tiff files in the
-inout folder with a name matching the specified pattern are uncompressed and
+inout folder with a name matching the specified pattern are (un)compressed and
 saved to the output folder.
 
-When uncompressing multiple images, the --threads option allows to parallelize
+When (un)compressing multiple files, the --threads option allows to parallelize
 on multiple threads. Disk read/write operations become the bottleneck when
 parallelizing, thus working on a SSD is advised.
 ''', formatter_class = argparse.RawDescriptionHelpFormatter)
@@ -102,6 +102,16 @@ parser.add_argument('--threads', type = int, nargs = 1,
     multiple images (i.e., input is a folder). Default: 1""",
     default = [1])
 
+# Add flags
+parser.add_argument('-u',
+    action = 'store_const', dest = 'doUncompress',
+    const = True, default = False,
+    help = 'Uncompress TIFF files.')
+parser.add_argument('-c',
+    action = 'store_const', dest = 'doCompress',
+    const = True, default = False,
+    help = 'Compress TIFF files.')
+
 # Version flag
 version = "1.0.0"
 parser.add_argument('--version', action = 'version',
@@ -111,6 +121,22 @@ parser.add_argument('--version', action = 'version',
 args = parser.parse_args()
 
 # Assign to in-script variables
+doCompress = args.doCompress
+doUncompress = args.doUncompress
+inpattern = re.compile(args.inreg[0])
+ncores = args.threads[0]
+
+# Additional checks
+if not doCompress and not doUncompress:
+    printout("""Please, use either -c (compress) or -u (uncompress).""", -2)
+if doCompress and doUncompress:
+    printout("""Please, use either -c (compress) or -u (uncompress).""", -2)
+maxncores = multiprocessing.cpu_count()
+if maxncores < ncores:
+    print("Lowered number of threads to maximum available: %d" % (maxncores))
+    ncores = maxncores
+
+# Select multitple/single operation style
 do_multiple = False
 if os.path.isdir(args.input[0]):
     do_multiple = True
@@ -127,22 +153,13 @@ else:
             printout("""Output can be a folder only if the provided input is a
                 folder too.""", -2)
         else:
-            outpath = arg.output[0]
+            outpath = args.output[0]
     else:
         printout("Input file not found: %s" % (args.input[0],), -2)
 
-inpattern = re.compile(args.inreg[0])
-ncores = args.threads[0]
-
-# Additional checks
-maxncores = multiprocessing.cpu_count()
-if maxncores < ncores:
-    print("Lowered number of threads to maximum available: %d" % (maxncores))
-    ncores = maxncores
-
 # FUNCTIONS ====================================================================
 
-def uncompress(imgpath, imgdir, outdir):
+def run(imgpath, imgdir, outdir, outpath = None, compress = None):
     # Perform 3D segmentation of nuclear staining image.
     # 
     # Args:
@@ -151,6 +168,9 @@ def uncompress(imgpath, imgdir, outdir):
     # 
     # Returns:
     #   string: path to output image.
+
+    if type(None) == type(compress):
+        compress = False
     
     # Preparation --------------------------------------------------------------
 
@@ -158,9 +178,17 @@ def uncompress(imgpath, imgdir, outdir):
     img = imt.read_tiff(os.path.join(imgdir, imgpath))
 
     # Write image
-    plot.save_tif(os.path.join(outdir, imgpath), img, imt.get_dtype(img), False)
+    if type(None) == type(outpath):
+        outpath = imgpath
+    
+    if not compress:
+        plot.save_tif(os.path.join(outdir, outpath),
+            img, imt.get_dtype(img.max()), False)
+    else:
+        plot.save_tif(os.path.join(outdir, outpath),
+            img, imt.get_dtype(img.max()), True)
 
-    return(os.path.join(outdir, imgpath))
+    return(os.path.join(outdir, outpath))
 
 # RUN ==========================================================================
 
@@ -186,13 +214,15 @@ if do_multiple:
 
     # Start iteration
     outlist = Parallel(n_jobs = ncores)(
-        delayed(uncompress)(imgpath, imgdir, outdir)
+        delayed(run)(imgpath, imgdir, outdir, compress = doCompress)
         for imgpath in imglist)
 else:
     # Uncompress a single image ------------------------------------------------
     imgdir = os.path.dirname(imgpath)
     imgpath = os.path.basename(imgpath)
-    uncompress(imgpath, imgdir, outdir)
+    outdir = os.path.dirname(outpath)
+    outpath = os.path.basename(outpath)
+    run(imgpath, imgdir, outdir, outpath, doCompress)
 
 # END ==========================================================================
 

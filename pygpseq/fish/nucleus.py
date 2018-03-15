@@ -11,7 +11,9 @@
 import matplotlib
 import matplotlib.pyplot as plt
 
+import math
 import numpy as np
+import os
 import pandas as pd
 from scipy.ndimage.measurements import center_of_mass
 from skimage import draw
@@ -25,7 +27,7 @@ from ..tools import stat as stt
 
 # FUNCTIONS ====================================================================
 
-def annotate_compartments(msg, t, nuclei, outdir):
+def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
 	'''
 	Add compartment status to dots table (by DOTTER).
 	For each nucleus: the major three axes are identified, the nucleus is
@@ -195,7 +197,7 @@ def annotate_compartments(msg, t, nuclei, outdir):
 			
 			if not type(None) == type(outdir):
 				outpng = open(os.path.join(outdir,
-					"%s.%s.png" % (fid, cid,)), "w+")
+					"%s.%s.png" % (fid, cid,)), "wb")
 				plt.close("all")
 				plot.ortho_3d(tcoords, dot_coords = dot_coords_t, c = a * 0.6)
 				plt.suptitle("\n".join(comments))

@@ -265,7 +265,7 @@ def get_dtype(i):
     '''
     Identify bit depth for a matrix of maximum intensity i.
     '''
-    depths = [1, 2, 4, 8, 16]
+    depths = [8, 16]
     for depth in depths:
         if i <= 2**depth-1:
             return("uint%d" % (depth,))

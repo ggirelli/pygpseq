@@ -95,6 +95,7 @@ import pygpseq.tools.image as imt
 from pygpseq.tools import stat as stt
 from pygpseq.fish.dot import add_allele
 from pygpseq.fish.nucleus import flag_G1_cells
+from pygpseq.fish.image import analyze_field_of_view
 
 # PARAMETERS ===================================================================
 
@@ -324,8 +325,9 @@ kwargs = {
 	'an_type' : an_type, 'seg_type' : seg_type, 'maskdir' : maskdir,
 	'dilate_factor' : dilate_factor, 'aspect' : aspect, 't' : t,
 	'main_mask_dir' : mask_iodir, 'main_mask_prefix' : maskpre,
-	'doCompartments' : doCompartments,
-	'plotCompartments' : not noplot_compartments, 'outdir' : outdir
+	'doCompartments' : doCompartments, 'pole_fraction' : pole_fraction,
+	'plotCompartments' : not noplot_compartments, 'outdir' : outdir,
+	'noplot' : noplot
 }
 anData = Parallel(n_jobs = ncores, verbose = 11)(
 	delayed(analyze_field_of_view)(ii, **kwargs)

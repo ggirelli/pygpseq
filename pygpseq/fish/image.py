@@ -28,7 +28,7 @@ from .nucleus import build_nuclei, annotate_compartments
 
 def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 	maskdir, dilate_factor, aspect, t, main_mask_dir, main_mask_prefix,
-	doCompartments, plotCompartments, outdir):
+	doCompartments, plotCompartments, pole_fraction, outdir, noplot):
 	
 	# Logger for logpath
 	logger = iot.IOinterface()
@@ -100,7 +100,8 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 	# Save default mask
 	msg += "   - Saving default binary mask...\n"
 	outname = "%smask.%s.default.png" % (maskdir, os.path.splitext(impath)[0])
-	imt.export_mask_png(outname, imbin, impath, "Default mask.")
+	if not noplot:
+		plot.export_mask_png(outname, imbin, impath, "Default mask.")
 
 	# Export dilated mask
 	if not noplot and 0 != dilate_factor:
@@ -109,7 +110,7 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 		title = "Dilated mask, %d factor." % (dilate_factor,)
 		outname = "%smask.%s.dilated%d.png" % (maskdir,
 			os.path.splitext(impath)[0], dilate_factor)
-		imt.export_mask_png(outname, imbin_dil, impath, title)
+		plot.export_mask_png(outname, imbin_dil, impath, title)
 
 	# Identify nuclei
 	L = label(imbin)
@@ -119,7 +120,8 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 	msg += "   - Saving nuclear ID mask...\n"
 	title = 'Nuclei in "%s" [%d objects]' % (impath, L.max())
 	outpath = "%smask.%s.nuclei.png" % (maskdir, os.path.splitext(impath)[0])
-	imt.export_mask_png(outpath, L, impath, title)
+	if not noplot:
+		plot.export_mask_png(outpath, L, impath, title)
 
 	# Store nuclei -------------------------------------------------------------
 	msg, curnuclei = build_nuclei(msg, L, dilate_factor,
@@ -150,7 +152,8 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 				os.mkdir(compdir)
 
 		# Perform annotation
-		subt, tvcomp, msg = annotate_compartments(msg, subt, curnuclei, compdir)
+		subt, tvcomp, msg = annotate_compartments(
+			msg, subt, curnuclei, compdir, pole_fraction)
 	else:
 		msg += "    > Skipped compartments annotation.\n"
 

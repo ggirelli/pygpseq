@@ -122,7 +122,7 @@ def calc_density(data, **kwargs):
     Calculate the Gaussian KDE of the provided data series.
     
     Args:
-      sigma (float): standard deviation used for covariance calculation (opt).
+      sigma_density (float): standard deviation used for covariance calculation.
       nbins (int): #steps for the density curve calculation (opt, def: 1000).
 
     Returns:
@@ -130,10 +130,10 @@ def calc_density(data, **kwargs):
     """
 
     # Default values
-    if not 'sigma' in kwargs.keys():
-        sigma = .2
+    if not 'sigma_density' in kwargs.keys():
+        sigma_density = .1
     else:
-        sigma = kwargs['sigma']
+        sigma_density = kwargs['sigma_density']
 
     if not 'nbins' in kwargs.keys():
         nbins = 1000
@@ -154,7 +154,7 @@ def calc_density(data, **kwargs):
     density = stats.gaussian_kde(data)
 
     # Re-compute covariance
-    density.covariance_factor = lambda : sigma
+    density.covariance_factor = lambda : sigma_density
     density._compute_covariance()
 
     # Output
@@ -521,14 +521,14 @@ def round_unicode(n, nsig):
     # Re-join with the exponent and return
     return(unicode('e'.join(n)))
 
-def smooth_gaussian(x, y, sigma = None, nbins = None):
+def smooth_gaussian(x, y, sigma_smooth = None, nbins = None):
     """Smoothen a curve.
 
     Args:
       x (numeric): x coordinates.
       y (numeric): y coordinates.
       nbins (int): curve precision (opt, def: 500).
-      sigma (float): smoothing factor (opt, def: 0.01).
+      sigma_smooth (float): smoothing factor (opt, def: 0.01).
 
     Returns:
       np.array: smoothened curve.
@@ -539,8 +539,8 @@ def smooth_gaussian(x, y, sigma = None, nbins = None):
     if None == nbins:
         nbins = 500
 
-    if None == sigma:
-        sigma = .01
+    if None == sigma_smooth:
+        sigma_smooth = .1
 
     # SMOOTHEN =================================================================
 
@@ -553,14 +553,14 @@ def smooth_gaussian(x, y, sigma = None, nbins = None):
 
     # Weighted moving average
     for i in [i for i in range(len(x)) if not np.isnan(y[i])]:
-        norm = get_norm_pdf(x[i], sigma, xs)
+        norm = get_norm_pdf(x[i], sigma_smooth, xs)
         ynum += norm
         ysum += norm * y[i]
 
     # Output
     return(ysum / ynum)
 
-def smooth_sparse_gaussian(x, y, nbins = None, sigma = None,
+def smooth_sparse_gaussian(x, y, nbins = None, sigma_smooth = None,
     rescale_sigma = None, **kwargs):
     """Produce a smooth approximation of sparse data.
     Basically a smoothened binned distribution.
@@ -569,8 +569,8 @@ def smooth_sparse_gaussian(x, y, nbins = None, sigma = None,
       x (float): x coordinates.
       y (float): y coordinates.
       nbins (int): curve precision (opt, def: 200).
-      sigma (float): smoothing factor (opt, def: 0.01).
-      rescale_sigma (bool): whether to multiply sigma to max(x).
+      sigma_smooth (float): smoothing factor (opt, def: 0.01).
+      rescale_sigma (bool): whether to multiply sigma_smooth to max(x).
 
     Returns:
       dict: various metrics profiles (mean, median, mode, std).
@@ -578,13 +578,13 @@ def smooth_sparse_gaussian(x, y, nbins = None, sigma = None,
 
     if None == nbins:
         nbins = 200
-    if None == sigma:
-        sigma = .01
+    if None == sigma_smooth:
+        sigma_smooth = .01
     if None == rescale_sigma:
         rescale_sigma = True
 
     if rescale_sigma:
-        sigma *= max(x)
+        sigma_smooth *= max(x)
 
     # Bin data
     data = binned_profile(x, y, nbins)
@@ -599,7 +599,7 @@ def smooth_sparse_gaussian(x, y, nbins = None, sigma = None,
     for field in ['mean', 'median', 'mode', 'std', 'max']:
         out[field + '_raw'] = data[field]
         out[field] = smooth_gaussian(data['breaks'],
-            data[field], sigma, nbins)
+            data[field], sigma_smooth, nbins)
 
     # Output
     return(out)

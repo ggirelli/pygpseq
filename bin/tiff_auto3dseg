@@ -67,6 +67,8 @@ from skimage.measure import label
 from skimage.morphology import closing, cube, square
 from skimage.segmentation import clear_border
 
+from pygpseq import const
+from pygpseq.tools import Binarize
 from pygpseq.tools import image as imt
 from pygpseq.tools import path as pt
 from pygpseq.tools import plot
@@ -169,14 +171,14 @@ def run_segmentation(imgpath, imgdir):
     # Preparation --------------------------------------------------------------
 
     # Read image
-    img = tifffile.imread(os.path.join(imgdir, imgpath))
+    img = imt.read_tiff(os.path.join(imgdir, imgpath))
 
     # Re-slice
-    img = imt.autoselect_time_frame(img)
     img = imt.slice_k_d_img(img, 3)
 
     # Re-scale if deconvolved
-    img = (img / imt.get_rescaling_factor(imgpath, imgdir)).astype('float')
+    img = (img / imt.get_rescaling_factor(
+        os.path.join(imgdir,imgpath))).astype('float')
 
     # Pick first timeframe (also for 2D images)
     if 3 == len(img.shape) and 1 == img.shape[0]:
@@ -184,10 +186,10 @@ def run_segmentation(imgpath, imgdir):
 
     # binarize -----------------------------------------------------------------
     
-    binarization = Binarize(an_type = gp.const.AN_3D,
-        seg_type = gp.const.SEG_3D, verbose = False,
+    binarization = Binarize(an_type = const.AN_3D,
+        seg_type = const.SEG_3D, verbose = False,
         radius_interval = radius_interval, min_z_size = min_z_size)
-    (mask, thr, log) = binarization.run(im)
+    (mask, thr, log) = binarization.run(img)
 
     # Filter based on object size
     mask, tmp = binarization.filter_obj_XY_size(mask)

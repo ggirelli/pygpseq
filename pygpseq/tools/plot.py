@@ -340,7 +340,7 @@ def export_mask_png(outpath, im, name, title):
     set_font_size(8)
 
     # Export as png
-    if not noplot: export(outpath, 'png')
+    export(outpath, 'png')
 
     # Close plot figure
     plt.close(fig)
