@@ -10,16 +10,17 @@ from setuptools import setup, find_packages
 
 # To use a consistent encoding
 from codecs import open
-from os import path
+import os
 
-here = path.abspath(path.dirname(__file__))
+here = os.path.abspath(os.path.dirname(__file__))
+bindir = os.path.join(here, "bin/")
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 	long_description = f.read()
 
 setup(name='pygpseq',
-	version='1.1.0',
+	version='2.0.0',
 	description='A GPSeq image analysis package',
 	long_description=long_description,
 	url='https://github.com/ggirelli/gpseq-img-py',
@@ -27,17 +28,17 @@ setup(name='pygpseq',
 	author_email='gabriele.girelli@scilifelab.se',
 	license='MIT',
 	classifiers=[
-		'Development Status :: 5 - Production/Stable',
+		'Development Status :: 1 - Planning',
 		'Intended Audience :: Science/Research',
 		'Topic :: Scientific/Engineering :: Bio-Informatics',
 		'License :: OSI Approved :: MIT License',
-		'Programming Language :: Python :: 3'
+		'Programming Language :: Python :: 3 :: Only',
 	],
 	keywords='microscopy image analysis bioimaging biology cell DNA',
 	packages=["pygpseq"],
 	install_requires=['jinja2', 'joblib', 'matplotlib', 'numpy', 'pandas',
 	'scipy', 'scikit-image', 'tifffile', 'weasyprint'],
-	scripts=["bin/gpseq_anim"],
+	scripts=[os.path.join(bindir, fp) for fp in os.listdir(bindir)],
 	test_suite="nose.collector",
 	tests_require=["nose"],
 )

@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 
+'''
+@author: Gabriele Girelli
+@contact: gigi.ga90@gmail.com
+@description: contains Nucleus wrapper.
+'''
+
+# DEPENDENCIES =================================================================
+
 import numpy as np
 from scipy import ndimage as ndi
 from scipy.ndimage.morphology import distance_transform_edt
@@ -10,8 +18,10 @@ from .. import const
 from ..tools import io as iot, image as imt, stat as stt, string as st
 from ..tools import vector as vt
 
+# CLASSES ======================================================================
+
 class Nucleus(iot.IOinterface):
-	"""GPSeq nucleus.
+	"""Nucleus wrapper.
 
 	Attributes:
 		__version__ (string): package version.
@@ -52,19 +62,19 @@ class Nucleus(iot.IOinterface):
 		"""Run IOinterface __init__ method.
 
 		Args:
-			logpath (string): path to the log file.
-			n (int): nucleus id (1-indexed).
-			series_id (int): series id (1-indexed).
-			mask (numpy.array): binary image.
-			i (numpy.array): image.
-			thr (uint16): threshold obtained with Otsu's method.
-			offset (tuple[int]): dimensions box/square offset.
-			aspect (tuple[float]): pixel/voxel dimension proportion.
-			dna_bg (uint16): median background for DNA channel.
-			sig_bg (uint16): median background for Signal channel.
-			calc_n_surface (bool): True to calculate the nucleus
-				mesh surface (opt, def True).
-			**kwargs
+		logpath (string): path to the log file.
+		n (int): nucleus id (1-indexed).
+		series_id (int): series id (1-indexed).
+		mask (numpy.array): binary image.
+		i (numpy.array): image.
+		thr (uint16): threshold obtained with Otsu's method.
+		offset (tuple[int]): dimensions box/square offset.
+		aspect (tuple[float]): pixel/voxel dimension proportion.
+		dna_bg (uint16): median background for DNA channel.
+		sig_bg (uint16): median background for Signal channel.
+		calc_n_surface (bool): True to calculate the nucleus mesh surface.
+								 Optional, defaults to True.
+		**kwargs
 		"""
 		
 		# parent class __init__
@@ -102,45 +112,84 @@ class Nucleus(iot.IOinterface):
 		else:
 			self.surf = self.size
 
-	def get_bounding_box(self, mask, offset = None):
-		"""Return the bounding box (2d or 3d) of the object in mask.
+	def __getitem__(self, key):
+		""" Allow get item. """
+		if key in dir(self):
+			return(getattr(self, key))
+		else:
+			return(None)
+
+	def __setitem__(self, key, value):
+		""" Allow set item. """
+		if key in dir(self):
+			self.__setattr__(key, value)
+
+	def check_box_offset(self, shape, offset = None):
+		"""Check bounding box offset.
 
 		Note:
-			An offset can be specified for each dimension. If no offset is
-			specified, it defaults to 0. If only one offset is specified, it
-			will be used for every dimension. If the number of offsets
-			specified does not match the number of dimensions, onlyt the first
-			will be used for every dimension.
+		If no offset is specified, it defaults to 0. If only one offset is
+		specified, it will be used for every dimension. If the number of
+		offsets specified does not match the number of dimensions, onlyt the
+		first will be used for every dimension.
 
 		Args:
-			mask (np.array): thresholded image.
-			offset (tuple[int]): bounding box offset in px/vx [Z Y X].
+		shape (tuple[int]): image shape.
+		offset (tuple[int]): bounding box offset in px/vx [Z Y X].
 
 		Returns:
-			list[int]: bounding box corner coordinates.
+		tuple[int]: corrected box offset.
 		"""
 
-		if 2 == len(mask.shape):
-			return(self.get_2d_bounding_box(mask, offset))
-		elif 3 == len(mask.shape):
-			return(self.get_3d_bounding_box(mask, offset))
+		if None == offset:
+			offset = 0
+
+		# Make offset into a list
+		if type([]) != type(offset):
+			offset = list(offset)
+
+		# Identify the offset for every dimension
+		if len(offset) != len(shape):
+			offset = [offset[0] for d in shape]
+
+		# Output
+		return(offset)
+
+	def export(self, **kwargs):
+		"""Export nuclear data. """
+
+		# Set output suffix
+		if not 'suffix' in kwargs.keys():
+			suffix = ''
+		else:
+			suffix = st.add_leading_dot(kwargs['suffix'])
+
+		# Get nuclear data
+		data, log = self.get_data(**kwargs)
+
+		# Export as csv file
+		out_fname = kwargs['series_name'] + '.nucleus' + str(self.n)
+		out_fname += suffix + '.csv'
+		np.savetxt(kwargs['out_dir'] + fname, data,
+			header = ",".join([h for h in data.dtype.names]),
+			delimiter = ',', comments = '')
 
 	def get_2d_bounding_box(self, mask, offset = None):
 		"""Return the bounding box (2d) of the object in mask.
 
 		Note:
-			An offset can be specified for each dimension. If no offset is
-			specified, it defaults to 0. If only one offset is specified, it
-			will be used for every dimension. If the number of offsets specified
-			does not match the number of dimensions, onlyt the first will be
-			used for every dimension.
+		An offset can be specified for each dimension. If no offset is
+		specified, it defaults to 0. If only one offset is specified, it
+		will be used for every dimension. If the number of offsets specified
+		does not match the number of dimensions, onlyt the first will be
+		used for every dimension.
 
 		Args:
-			mask (np.array): thresholded image.
-			offset (tuple[int]): bounding box offset in px/vx [Z Y X].
+		mask (np.array): thresholded image.
+		offset (tuple[int]): bounding box offset in px/vx [Z Y X].
 
 		Returns:
-			list[int]: bounding square corner coordinates.
+		list[int]: bounding square corner coordinates.
 		"""
 
 		# Check provided offset
@@ -171,18 +220,18 @@ class Nucleus(iot.IOinterface):
 		"""Return the bounding box (3d) of the object in mask.
 
 		Note:
-			An offset can be specified for each dimension. If no offset is
-			specified, it defaults to 0. If only one offset is specified, it
-			will be used for every dimension. If the number of offsets specified
-			does not match the number of dimensions, onlyt the first will be
-			used for every dimension.
+		An offset can be specified for each dimension. If no offset is
+		specified, it defaults to 0. If only one offset is specified, it
+		will be used for every dimension. If the number of offsets specified
+		does not match the number of dimensions, onlyt the first will be
+		used for every dimension.
 
 		Args:
-			mask (np.array): thresholded image.
-			offset (tuple[int]): bounding box offset in px/vx [Z Y X].
+		mask (np.array): thresholded image.
+		offset (tuple[int]): bounding box offset in px/vx [Z Y X].
 
 		Returns:
-			list[int]: bounding box corner coordinates.
+		list[int]: bounding box corner coordinates.
 		"""
 
 		# Check provided offset
@@ -204,52 +253,44 @@ class Nucleus(iot.IOinterface):
 
 		return(box)
 
-	def check_box_offset(self, shape, offset = None):
-		"""Check bounding box offset.
+	def get_bounding_box(self, mask, offset = None):
+		"""Return the bounding box (2d or 3d) of the object in mask.
 
 		Note:
-			If no offset is specified, it defaults to 0. If only one offset is
-			specified, it will be used for every dimension. If the number of
-			offsets specified does not match the number of dimensions, onlyt the
-			first will be used for every dimension.
+		An offset can be specified for each dimension. If no offset is
+		specified, it defaults to 0. If only one offset is specified, it
+		will be used for every dimension. If the number of offsets
+		specified does not match the number of dimensions, onlyt the first
+		will be used for every dimension.
 
 		Args:
-			shape (tuple[int]): image shape.
-			offset (tuple[int]): bounding box offset in px/vx [Z Y X].
+		mask (np.array): thresholded image.
+		offset (tuple[int]): bounding box offset in px/vx [Z Y X].
 
 		Returns:
-			tuple[int]: corrected box offset.
+		list[int]: bounding box corner coordinates.
 		"""
 
-		if None == offset:
-			offset = 0
-
-		# Make offset into a list
-		if type([]) != type(offset):
-			offset = list(offset)
-
-		# Identify the offset for every dimension
-		if len(offset) != len(shape):
-			offset = [offset[0] for d in shape]
-
-		# Output
-		return(offset)
+		if 2 == len(mask.shape):
+			return(self.get_2d_bounding_box(mask, offset))
+		elif 3 == len(mask.shape):
+			return(self.get_3d_bounding_box(mask, offset))
 
 	def get_data(self, dna_ch, sig_ch, an_type, aspect, debugging,
 		part_n_erosion, **kwargs):
 		"""Get nuclear data.
 
 		Args:
-			dna_ch (np.array): image (dimensionality based on an_type).
-			sig_ch (np.array): image (dimensionality based on an_type).
-			an_type (int): analysis type according to pygpseq.const.
-			aspect (tuple[float]): pixel/voxel dimension proportion.
-			debugging (bool): True for debugging mode.
-			part_n_erosion (float): partial nucleus erosion distance threshold.
-			**kwargs
+		dna_ch (np.array): image (dimensionality based on an_type).
+		sig_ch (np.array): image (dimensionality based on an_type).
+		an_type (int): analysis type according to pygpseq.const.
+		aspect (tuple[float]): pixel/voxel dimension proportion.
+		debugging (bool): True for debugging mode.
+		part_n_erosion (float): partial nucleus erosion distance threshold.
+		**kwargs
 
 		Returns:
-			tuple: nuclear data and log string.
+		tuple: nuclear data and log string.
 		"""
 
 		# SET PARAMS ===========================================================
@@ -378,33 +419,6 @@ class Nucleus(iot.IOinterface):
 
 		return(data)
 
-	def export(self, **kwargs):
-		"""Export nuclear data. """
+# END ==========================================================================
 
-		# Set output suffix
-		if not 'suffix' in kwargs.keys():
-			suffix = ''
-		else:
-			suffix = st.add_leading_dot(kwargs['suffix'])
-
-		# Get nuclear data
-		data, log = self.get_data(**kwargs)
-
-		# Export as csv file
-		out_fname = kwargs['series_name'] + '.nucleus' + str(self.n)
-		out_fname += suffix + '.csv'
-		np.savetxt(kwargs['out_dir'] + fname, data,
-			header = ",".join([h for h in data.dtype.names]),
-			delimiter = ',', comments = '')
-
-	def __getitem__(self, key):
-		""" Allow get item. """
-		if key in dir(self):
-			return(getattr(self, key))
-		else:
-			return(None)
-
-	def __setitem__(self, key, value):
-		""" Allow set item. """
-		if key in dir(self):
-			self.__setattr__(key, value)
+################################################################################

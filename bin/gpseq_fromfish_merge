@@ -1,0 +1,361 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# ------------------------------------------------------------------------------
+# 
+# MIT License
+# 
+# Copyright (c) 2017 Gabriele Girelli
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# 
+# Author: Gabriele Girelli
+# Email: gigi.ga90@gmail.com
+# Version: 3.0.0
+# Description: script to merge multiple gpseq_fromfish outputs.
+# 
+# Changelog:
+#  v3.0.0 - 20180315: converted to python and merged to pygpseq.
+#  v2.1.1 - 20180312: added support to merge nuclear compartment data.
+#  					  Added parallelization for speed improvement.
+#  v2.1.0 - 20180209: changed terminology in output, copy instead of allele.
+#  v2.0.1 - fixed probe name assignment.
+#  v2.0.0 - requires only one metadata table.
+#  v1.1.0 - now supporting set/probe label columns in metadata.
+#  v1.0.0 - first implementation.
+# 
+# ------------------------------------------------------------------------------
+
+
+
+# DEPENDENCIES =================================================================
+
+import matplotlib
+matplotlib.use('ps')
+
+import argparse
+import datetime
+from joblib import Parallel, delayed
+import multiprocessing
+import numpy as np
+import os
+import pandas as pd
+import pygpseq as gp
+import sys
+
+from pygpseq.tools.io import printout
+
+# PARAMETERS ===================================================================
+
+# Add script description
+parser = argparse.ArgumentParser(description = """
+Merge gpseq_fromfish outputs, add dataset and cell type information. The script
+looks for the output in subfolders of the specified input directories. These
+subfolders must be named as dataset_series, with series being in XXX format with
+leading zeros (e.g., iJC001_001, iJC001_002, iJC002_001). Please, note that the
+channel is enforced as lower-case by the merge operation.
+
+Example 1: output in current directory.
+gpseq_fromfish_merge -m meta.tsv -i HAP1/dots_auto IMR90/dots_auto
+
+Example 2: output to "/home/user/out" directory.
+gpseq_fromfish_merge -m meta.tsv -i HAP1/dots_auto IMR90/dots_auto
+	-o /home/user/out
+""", formatter_class = argparse.RawDescriptionHelpFormatter)
+
+# Positional parameters
+parser.add_argument('-m', '--meta', metavar = "metadata", required = True,
+	type = str, nargs = 1, help = """Path to metadata table. Required columns:
+	dataset, series, channel, cell_line, set_label, probe_label.""")
+parser.add_argument('-i', '--indir', metavar = "indir", required = True,
+	type = str, nargs = "+", help = """List of space-separated input folder
+	paths with gpseq_fromfish output as subfolders.""")
+
+# Optional parameters
+parser.add_argument('-o', '--outdir', metavar = "outdir", type = str, nargs = 1,
+	help = """Path to output folder, created if missing. Defaults to current
+	position.""", default = ".")
+parser.add_argument('-a', '--aspect', type = float, nargs = 3,
+	help = """Physical size of Z, Y and X voxel sides.
+	Default: 300.0 216.6 216.6""",
+	metavar = ('Z', 'Y', 'X'), default = [300., 216.6, 216.6])
+parser.add_argument('-d', '--delimiter', metavar = "sep", type = str, nargs = 1,
+	help = """Column separator in input tables.""", default = "\t")
+parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
+	nargs = 1, default = [1],
+	help = """Number of threads to be used for parallelization. Increasing the
+	number of threads might increase the required amount of RAM.""")
+
+# Flag parameters
+parser.add_argument('-r', '--rescale-deconvolved', action = 'store_const',
+	help = """Perform rescaling of deconvolved images. Requires Huygens
+	Professional v4.5 log file for an image to be rescaled.""",
+	const = True, default = False)
+
+# Version flag
+version = "3.0.0"
+parser.add_argument('--version', action = 'version',
+	version = '%s v%s' % (sys.argv[0], version,))
+
+# Parse arguments
+args = parser.parse_args()
+
+# Assign arguments
+meta_path = args.meta[0]
+indirlist = args.indir[0]
+if type([]) != type(indirlist): indirlist = [indirlist]
+outdir = args.outdir[0]
+nthreads = args.threads[0]
+aspect = args.aspect
+delim = args.delimiter[0]
+
+# Additional checks
+if not os.path.isfile(meta_path):
+	printout("Metadata file not found: %s" % meta_path, -2)
+for idp in indirlist:
+	if not os.path.isdir(idp):
+		printout("Input folder not found: %s" % idp, -2)
+maxncores = multiprocessing.cpu_count()
+if maxncores < args.threads[0]:
+	printout("Lowered number of threads to maximum available: %d\n" % (
+		maxncores), -1)
+	args.threads[0] = maxncores
+if 0 >= args.threads[0]: args.threads[0] = 1
+
+# FUNCTION =====================================================================
+
+def look_for_data(d, flist, k, flag, dataset, ipath):
+	'''Look for tables in input folder.
+	If the table was not found, store np.nan.
+
+	Args:
+		d (dict): dictionary to update.
+		flist (list): possible file list.
+		k (str): dictionary key for storage.
+		flag (str): dataset_series flag.
+		dataset (str): dataset label.
+		ipath (str): input folder path.
+
+	Return
+		dict: updated dictionary.
+	'''
+	if 0 == len(flist):
+		d['error'] = "Warning: cannot find %s information in %s. %s" % (
+			k, flag, dataset, ipath, "Skipping %s. Folder: %s")
+		d['good'] = False
+		d['partial'] = True
+		d[k] = np.nan
+	else:
+		d[k] = pd.read_csv("%s/%s" % (ipath, flist[0]), delim)
+	return(d)
+
+def extract_data(did, sid):
+	# Subset metadata
+	sub_cond = np.logical_and(md['dataset'].values == did,
+		md['series'].values == sid)
+	subt = md.loc[sub_cond,]
+	subt.index = range(subt.shape[0])
+
+	# Extract dataset and series information -----------------------------------
+	dataset = did
+	series = "%03d" % sid
+	flag = "%s_%s" % (dataset, series)
+	cell_type = subt.loc[0, 'cell_line']
+	label = subt.loc[0, "set_label"]
+
+	# Log current status
+	print("Working on %s..." % flag)
+
+	# Identify input folder and skip if missing --------------------------------
+	outl = []
+	for indir in indirlist:
+		ipath = "%s/%s" % (indir, flag)
+
+		# Prepare flag output
+		out = {}
+		out['good'] = True
+		out['partial'] = False
+
+		if not os.path.isdir(ipath):
+			print("Warning! Cannot find folder for %s. Skipped. Folder: %s" % (
+				flag, ipath))
+			out['good'] = False
+			continue
+
+		# Identify input files -------------------------------------------------
+		flist = os.listdir(ipath)
+		nuclei = [x for x in flist if "nuclei.out" in x]
+		dots = [x for x in flist if "wCentr.out" in x and "noAllele" not in x]
+		comps = [x for x in flist if "nuclear_compartment.volume.tsv" in x]
+
+		out = look_for_data(out, nuclei, "nuclei", flag, dataset, ipath)
+		out = look_for_data(out, dots, "dots", flag, dataset, ipath)
+		out = look_for_data(out, comps, "compartments", flag, dataset, ipath)
+
+		outl.append(out)
+
+	# Check for completeness
+	if not any([d['good'] for d in outl]):
+		if any([d['partial'] for d in outl]):
+			# Print error due to partial information present
+			[print(d['error'] for d in outl if outl['partial'])]
+		else:
+			# Print error due to not-found information
+			print("Warning! Cannot find information on dataset %s %s" % (
+				dataset, "in any of the input directories."))
+		return(np.nan)
+
+	# Extract data
+	dots = [d['dots'] for d in outl if d['good']][0]
+	nuclei = [d['nuclei'] for d in outl if d['good']][0]
+	comps = [d['compartments'] for d in outl if d['good']][0]
+
+	# Add dataset, series and cell_type information ----------------------------
+	dots['dataset'] = dataset
+	dots['label'] = label
+	dch = {}
+	for i in subt.index:
+		dch[subt.loc[i, 'channel'].lower()] = subt.loc[i, 'probe_label']
+	dots['probe_label'] = np.nan
+	for i in dots.index :
+		c = dots.loc[i, 'Channel'].lower()
+		if c in dch.keys():
+			dots.loc[i, 'probe_label'] = dch[c]
+		else:
+			printout("Cannot find channel '%s' in %s." % (c, dataset), -2)
+	dots['cell_type'] = cell_type
+
+	nuclei['dataset'] = dataset
+	nuclei['cell_type'] = cell_type
+
+	comps['dataset'] = dataset
+	comps['cell_type'] = cell_type
+
+	# Prepare allele by channel table ------------------------------------------
+	aldata = dots.loc[np.logical_not(np.isnan(dots['Allele'].values)),]
+	aldata = aldata.loc[aldata['Allele'].values > 0,]
+
+	if 0 != aldata.shape[0]:
+		al_uniID = set(zip(aldata['File'],
+			aldata['Channel'], aldata['cell_ID']))
+
+		dl = []
+		cols = []
+
+		for (fid, chid, cid) in al_uniID:
+			al_cond = np.logical_and(np.logical_and(
+				aldata['File'].values == fid,
+				aldata['Channel'].values == chid),
+				aldata['cell_ID'].values == cid)
+			alt = aldata.loc[al_cond,]
+			alt.index = range(alt.shape[0])
+
+			d = alt.loc[:, ["File", "Channel", "cell_ID", "G1"]]
+
+			d_3d = alt.loc[0, ['x', 'y', 'z']].values
+			d_3d -= alt.loc[1, ['x', 'y', 'z']].values
+
+			d['d_3d'] = np.sqrt(np.sum(np.power(d_3d * aspect, 2)))
+			d['d_lamin'] = np.abs(np.diff(
+				alt['lamin_dist'].values))[0]
+			d['d_lamin_norm'] = np.abs(np.diff(
+				alt['lamin_dist_norm'].values))[0]
+			d['d_centr'] = np.abs(np.diff(
+				alt['centr_dist'].values))[0]
+			d['d_centr_norm'] = np.abs(np.diff(
+				alt['centr_dist_norm'].values))[0]
+			d['angle'] = alt['angle'].values[0]
+			d['dataset'] = dataset
+			d['label'] = label
+			d['probe_label'] = alt['probe_label'].values[0]
+			d['cell_type'] = cell_type
+
+			dl.append(d.loc[0, :])
+			cols = d.columns
+
+		alleles = pd.concat(dl, 1).transpose()
+		alleles.index = range(alleles.shape[0])
+		alleles.columns = cols
+	else:
+		print("Warning! No copy pairs found in %s.\n" % flag)
+		alleles = np.nan
+
+	dout = {
+		'dots' : dots,
+		'nuclei' : nuclei,
+		'comps' : comps,
+		'alleles' : alleles
+	}
+
+	return(dout)
+
+# RUN ==========================================================================
+
+# Read metadata table
+md = pd.read_csv(meta_path, delim)
+
+# Check that all mandatory metadata columns 
+req_col = ["dataset", "channel", "series", "cell_line", "set_label",
+	"probe_label"]
+for c in req_col:
+	if not c in md.columns:
+		printout("""Missing mandatory column '%s' in metadata table.
+Meta: %s\n""" % (c, meta_path), -2)
+
+# Iterate through Fields of View (FoVs)
+uniID = set(zip(md['dataset'].values, md['series'].values))
+l2 = Parallel(n_jobs = nthreads, verbose = 0)(
+	delayed(extract_data)(did, sid) for did, sid in uniID)
+
+# Remove skipped
+l2 = [x for x in l2 if type(x) == type({})]
+
+# Output
+alleles = pd.concat([d['alleles']
+	for d in l2 if type(d['alleles']) == type(pd.DataFrame())])
+alleles.index = range(alleles.shape[0])
+dots = pd.concat([d['dots']
+	for d in l2 if type(d['dots']) == type(pd.DataFrame())])
+dots.index = range(dots.shape[0])
+comps = pd.concat([d['comps']
+	for d in l2 if type(d['comps']) == type(pd.DataFrame())])
+comps.index = range(comps.shape[0])
+nuclei = pd.concat([d['nuclei']
+	for d in l2 if type(d['nuclei']) == type(pd.DataFrame())])
+nuclei.index = range(nuclei.shape[0])
+
+# Write output
+if not os.path.isdir(outdir): os.mkdir(outdir)
+curdate = datetime.datetime.now().isoformat().split("T")[0]
+dots.to_csv("%s/%s%s" % (outdir, curdate, "_dots.merged.tsv"), delim,
+	index = False, na_rep = "NA")
+alleles.to_csv("%s/%s%s" % (outdir, curdate, "_copies.merged.tsv"), delim,
+	index = False, na_rep = "NA")
+nuclei.to_csv("%s/%s%s" % (outdir, curdate, "_nuclei.merged.tsv"), delim,
+	index = False, na_rep = "NA")
+comps.to_csv("%s/%s%s" % (outdir, curdate, "_ncomps.merged.tsv"), delim,
+	index = False, na_rep = "NA")
+
+# End --------------------------------------------------------------------------
+
+################################################################################

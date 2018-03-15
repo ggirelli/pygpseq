@@ -1,6 +1,18 @@
 # -*- coding: utf-8 -*-
 
+# ------------------------------------------------------------------------------
+# 
+# Author: Gabriele Girelli
+# Email: gigi.ga90@gmail.com
+# Description: keeps constant values for the pygpseq package.
+# 
+# ------------------------------------------------------------------------------
+
+# DEPENDENCIES =================================================================
+
 import pkg_resources
+
+# FUNCTIONS ====================================================================
 
 # Taken from:
 # http://code.activestate.com/recipes/65207-constants-in-python/?in=user-97991
@@ -11,9 +23,32 @@ class _const:
 			raise(self.ConstError, "Can't rebind const(%s)" % name)
 		self.__dict__[name] = value
 
+# CONSTANTS ====================================================================
+
+# Package-related --------------------------------------------------------------
+
 # Package version
 _const.VERSION = pkg_resources.get_distribution('pygpseq').version
 _const.PACK_NAME = 'pygpseq'
+
+# Parameter-related ------------------------------------------------------------
+
+# kwargs automatic update
+_const.KWARGS_TYPELIST = (type([]), type(()), type(0), type(''),
+	type(True), type({}), type(0.0))
+_const.KWARGS_AVOIDLIST = ('conds')
+
+# Step-related main() class parameters
+_const.PARAM_STATIC = ('basedir', 'cdescr', 'debugging', 'font_size', 'logpath',
+	'ncores', 'notes', 'outdir', 'plotting', 'skip', 'suffix', 'verbose')
+_const.PARAM_SEG = ('adp_thr', 'calc_n_surface', 'dna_names', 'ext',
+	'min_z_size', 'seg_type', 'sig_names', 'offset', 'radius_interval', 'reg',
+	'rescale_deconvolved', 'rm_z_tips', 'seg_type', 'sig_names')
+_const.PARAM_AN = ('an_type', 'aspect', 'nbins', 'normalize_distance', 'nsf',
+	'part_n_erosion', 'sigma_smooth', 'sigma_density')
+_const.PARAM_PROPAGATE = ('logpath',)
+
+# Analysis-related -------------------------------------------------------------
 
 # Series regexp fields
 _const.REG_PATH = 'abs_path'
@@ -50,33 +85,33 @@ _const.MID_SEC_MAXSUMI = 2
 _const.MID_SEC_DEFAULT = _const.MID_SEC_LARGEST
 _const.MID_SEC_LABELS = ('central', 'largest', 'max intensity sum')
 
-# Colors
-_const.PALETTE = ('#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99',
-	'#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99', '#b15928')
+# Output-related ---------------------------------------------------------------
 
-# DTYPE export
+_const.DLAMIN_LABEL = "lamin_d"
+_const.DLAMIN_NORM_LABEL = "lamin_dnorm"
+
+# Nuclear summary
 _const.DTYPE_NUCLEAR_SUMMARY = [('s', 'u4'), ('n', 'u4'),
 	('flat_size', 'u8'), ('size', 'u8'),
 	('surf', 'f8'), ('sumI', 'f8'), ('meanI', 'f8'), ('shape', 'f8')]
-_const.LAMIN_LABEL = "lamin_d"
-_const.LAMIN_DNORM_LABEL = "lamin_dnorm"
+
+# Single pixel nuclear data
 _const.DTYPE_NUCLEAR_DATA = [('s', 'u4'), ('n', 'u4'), ('dna', 'u8'),
-	('sig', 'u8'), (_const.LAMIN_LABEL, 'f8'), ('centr_d', 'f8'),
-	(_const.LAMIN_DNORM_LABEL, 'f8'), ('part', 'b')]
-_const.DTYPE_NDATA_EXPORT = [('c', 'u4'), ('s', 'u4'), ('n', 'u4'),
-	('flat_size', 'u8'), ('size', 'u8'), ('surf', 'f8'), ('sumI', 'f8'),
-	('meanI', 'f8'), ('shape', 'f8')]
-_const.DTYPE_PROFILE_EXPORT = [
-	('condition', 'S100'), ('x', 'f'),
-	('dna_mean', 'f'), ('sig_mean', 'f'), ('ratio_mean', 'f'),
-	('dna_mean_raw', 'f'), ('sig_mean_raw', 'f'), ('ratio_mean_raw', 'f'),
-	('dna_median', 'f'), ('sig_median', 'f'), ('ratio_median', 'f'),
-	('dna_median_raw', 'f'), ('sig_median_raw', 'f'), ('ratio_median_raw', 'f'),
-	('dna_mode', 'f'), ('sig_mode', 'f'), ('ratio_mode', 'f'),
-	('dna_mode_raw', 'f'), ('sig_mode_raw', 'f'), ('ratio_mode_raw', 'f'),
-	('dna_std', 'f'), ('sig_std', 'f'), ('ratio_std', 'f'),
-	('dna_std_raw', 'f'), ('sig_std_raw', 'f'), ('ratio_std_raw', 'f'),
-	('n', 'u4')]
+	('sig', 'u8'), (_const.DLAMIN_LABEL, 'f8'), ('centr_d', 'f8'),
+	(_const.DLAMIN_NORM_LABEL, 'f8'), ('part', 'b')]
+
+# Nuclear data export
+_const.DTYPE_NDATA_EXPORT = [('c', 'u4')]
+_const.DTYPE_NDATA_EXPORT.extend(_const.DTYPE_NUCLEAR_SUMMARY)
+
+# Profile table
+_const.PROFILE_TYPES = ("mean", "median", "mode", "std", "max")
+_const.DATA_FOCUS = ("dna", "sig", "ratio")
+_const.DTYPE_PROFILE_EXPORT = [('condition', 'S100'), ('x', 'f'),('n', 'u4')]
+for df in _const.DATA_FOCUS:
+	for pt in _const.PROFILE_TYPES:
+		_const.DTYPE_PROFILE_EXPORT.append(("%s_%s" % (df, pt), "f"))
+		_const.DTYPE_PROFILE_EXPORT.append(("%s_%s_raw" % (df, pt), "f"))
 
 # Nuclear selection features
 _const.NSEL_SIZE = 0
@@ -86,8 +121,8 @@ _const.NSEL_SUMI = 3
 _const.NSEL_MEANI = 4
 _const.NSEL_FLAT_SIZE = 5
 _const.NSEL_FIELDS = ('size', 'surf', 'shape', 'sumI', 'meanI', 'flat_size')
-_const.NSEL_NAMES = ('Size', 'Surface', 'Shape', 'Intensity Sum',
-	'Mean Intensity', 'Area')
+_const.NSEL_NAMES = ('Size', 'Surface', 'Shape',
+	'Intensity Sum', 'Mean Intensity', 'Area')
 _const.NSEL_LABELS = ('auto', 'Surface [a.u.]', 'auto',
 	'Intensity Sum [a.u.]', 'Mean Intensity [a.u.]', 'Area [px]')
 
@@ -100,24 +135,21 @@ _const.OUTDIR_PNG_REPORT = _const.OUTDIR_PNG + 'report/'
 _const.OUTDIR_TIF = 'out_tif/'
 _const.OUTDIR_DEBUG = 'debugging/'
 
+# Plot-related------------------------------------------------------------------
+
+# Colors
+_const.PALETTE = ('#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99',
+	'#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99', '#b15928')
+
 # Plot constants
 _const.SCI_FORMAT = '%2.e'
 
-# kwargs automatic update
-_const.KWARGS_TYPELIST = (type([]), type(()), type(0), type(''),
-	type(True), type({}), type(0.0))
-_const.KWARGS_AVOIDLIST = ('conds')
-
-# Step-related main() class parameters
-_const.PARAM_STATIC = ('basedir', 'cdescr', 'debugging', 'font_size', 'logpath',
-	'ncores', 'notes', 'outdir', 'plotting', 'skip', 'suffix', 'verbose')
-_const.PARAM_SEG = ('adp_thr', 'calc_n_surface', 'dna_names', 'ext',
-	'min_z_size', 'seg_type', 'sig_names', 'offset', 'radius_interval', 'reg',
-	'rescale_deconvolved', 'rm_z_tips', 'seg_type', 'sig_names')
-_const.PARAM_AN = ('an_type', 'aspect', 'nbins', 'normalize_distance', 'nsf',
-	'part_n_erosion', 'sigma_smooth', 'sigma_density')
-_const.PARAM_PROPAGATE = ('logpath',)
+# RUN ==========================================================================
 
 # Save constants
 import sys
 sys.modules[__name__] = _const()
+
+# END ==========================================================================
+
+################################################################################

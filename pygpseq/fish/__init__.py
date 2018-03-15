@@ -3,15 +3,13 @@
 '''
 @author: Gabriele Girelli
 @email: gigi.ga90@gmail.com
-@module: pygpseq.tools
-@description: common tools for pygpseq package.
+@module: pygpseq.fish
+@description: methods for FISH data manipulation.
 '''
 
 # DEPENDENCIES =================================================================
 
-__all__ = ['matplotlib', 'numpy', 'scipy', 'skimage', 'tifffile']
-
-from .binarize import Binarize
+__all__ = ['matplotlib', 'numpy', 'pandas', 'skimage', 'tifffile']
 
 # END ==========================================================================
 

@@ -1,0 +1,438 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# ------------------------------------------------------------------------------
+# 
+# MIT License
+# 
+# Copyright (c) 2017 Gabriele Girelli
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# 
+# Author: Gabriele Girelli
+# Email: gigi.ga90@gmail.com
+# Version: 5.0.0
+# Date: 20170718
+# Project: GPSeq
+# Description: Calculate radial position of dots in cells
+# 
+# Changelog:
+#  v5.0.0 - 20180314: moved to pygpseq module.
+#  v4.1.4 - 20180313: compartment volume data exported separately.
+#  					  Fixed compartment assignment.
+#  					  Allowed for user-specifided pole compartment definition.
+#  v4.1.3 - 20180308: added compartment volume data.
+#  v4.1.2 - 20180306: fixed warning from pandas.
+#  					  Removed tiff format from png masks.
+#  v4.1.1 - 20180305: fixed NaN issue in cell IDs.
+#  v4.1.0 - 20180302: added compatibility to compressed tiff files.
+#  v4.0.1 - 20180301: fixed rotation order.
+#  v4.0.0 - 20180301: added compartmentalization for ellipsoidal nuclei.
+#                     Default cell values is now standardize to NaN.
+#  v3.4.2 - 20180226: now enforcing round integer coordinates.
+#  v3.4.1 - 20180226: fixed bug occurring when mask folder was not provided.
+#  v3.4.0 - 20180220: segmented cells as additional input.
+#  v3.3.0 - 20180219: input can now be already binarized.
+#  v3.2.2 - 20180207: set angle to 0 when one point overlaps to the nucleus CoM.
+#  v3.2.1 - 20180207: discarding rows from input table for skipped FoVs.
+#  v3.2.0 - 20171212: fixed G1 selection in output table.
+#  v3.1.1 - 20171206: fixed allele polarity, using correct center of mass.
+#  v3.1.0 - 20171204: fixed allele polarity including aspect ratio.
+#  v3.0.1 - 20171130: adjusted allele polarity, fixed selection,
+#                     also now allowing missing images.
+#  v3.0.0 - 20171120: changed dilation to allow anisotropic images.
+#  v2.3.1 - 20171120: fixed dilation factor (now corresponds to number of px).
+#  v2.3.0 - 20171120: fixed allele angle calculation and minor bug.
+#  v2.2.1 - 20171116: fixed series ID issue, added version column.
+#  v2.2.0 - 20171116: added polarity calculation between alleles.
+#  v2.1.0 - 20171115: fixed distance calculation and normalization.
+#  v2.0.0 - 20171114: fixed cell assignment and G1 selection.
+#  v1.2.0 - 20171105: dilation, allele labeling, parallelization.
+#  v1.1.1 - 20171020: fixed parameter description.
+#  v1.1.0 - 20170830: added G1 cells selection.
+#  v1.0.0 - 20170718: first implementation.
+# 
+# ------------------------------------------------------------------------------
+
+
+
+# DEPENDENCIES =================================================================
+
+import matplotlib
+matplotlib.use('ps')
+
+import argparse
+from joblib import Parallel, delayed
+import multiprocessing
+import numpy as np
+import os
+import pandas as pd
+import pickle
+import sys
+
+import pygpseq as gp
+import pygpseq.tools.image as imt
+from pygpseq.tools import stat as stt
+from pygpseq.fish.dot import add_allele
+from pygpseq.fish.nucleus import flag_G1_cells
+from pygpseq.fish.image import analyze_field_of_view
+
+# PARAMETERS ===================================================================
+
+# Add script description
+parser = argparse.ArgumentParser(description = '''
+Calculate radial position of FISH signals (dots) in nuclei.
+
+Images are expected to follow DOTTER filename notation: "channel_series.tif".
+Identified images are first re-scaled (if deconvolved with Huygens software),
+then a global (Otsu) and local (median) thresholds are combined to binarize the
+image in 3D. Then, holes are filled in 3D and a closing operation is performed
+to remove small objects. Objects are filtered based on volume and Z size, and
+those touching the XY contour of the image are discarded. If the --labeled
+option is used, the generated images have identified objects labeled with
+different intensity values. Both compressed and normal TIFF files are
+compatible as input/output. To produce compressed TIFF files as output use the
+--compressed option.
+
+If you previously segmented your images (i.e., produced masks), provide the path
+to the folder containing the masks using -m, and the prefix for the mask name
+with -m. For example, with '-m /ex/mask_dir/ -M mask_', in the case of the image
+file '1.tif', the script will look for the mask at "/ex/mask_dir/mask_1.tif".
+If the mask can be found, it will be used, otherwise it will be generated and
+then saved. This can be used also to export masks as tifs to the folder
+specified with -m.
+
+The G1 selection is actually a selection of the most represented cell sub-
+-population based on flatten area and integral of DNA stain intensity. In other
+words, it will selected the most represented cell cycle phase in your cell
+population (generally, G1).
+
+If your cells have ellipsoidal shape, you can use the --annotate-compartments
+flag to assign each dot to the poles (2), bottom center (1) or top center (0)
+compartments. The pole compartments are defined as the 25%% of the whole volume,
+by cutting perpendicularly to the major axis. Such definition can be changed
+with the -P (--pole) option specifying a different axis fraction. Information on
+goodnes of fit is reported and a plot is provided with each nucleus rotated and
+centered.
+
+Plotting can be turned off generally with the --noplot flag, and specifically
+with the --no-compartment-plot flag.
+''', formatter_class = argparse.RawDescriptionHelpFormatter)
+
+# Add mandatory arguments
+parser.add_argument('dotCoords', type = str, nargs = 1,
+	help = 'Dot coordinates table generated by DOTTER.')
+parser.add_argument('imgFolder', type = str, nargs = 1,
+	help = 'Path to folder containing deconvolved tiff images.')
+parser.add_argument('outFolder', type = str, nargs = 1,
+	help = 'Path to output folder (created if does not exist).')
+
+# Optional parameters
+parser.add_argument('-a', '--aspect', type = float, nargs = 3,
+	help = """Physical size of Z, Y and X voxel sides.
+	Default: 300.0 130.0 130.0""",
+	metavar = ('Z', 'Y', 'X'), default = [300., 130., 130.])
+parser.add_argument('-d', '--delim', metavar = "sep", type = str, nargs = 1,
+	help = """Input table delimiter. Default: ','""", default = [','])
+parser.add_argument('-D', '--dilate', metavar = "npx", type = int, nargs = 1,
+	help = """Number of pixels for nuclear mask dilation. It is automatically
+	scaled based on the specified aspect to be isotropic in 3D. Default: 0""",
+	default = [0])
+parser.add_argument('-t', '--threads', metavar = "nthreads", type = int,
+	help = """Number of threads for parallelization. Default: 1""",
+	default = [1], nargs = 1)
+parser.add_argument('-m', '--mask-folder', metavar = "folder", type = str,
+	help = """Path to folder containing binarized/labeled images.
+	Masks will be saved to this folder if missing.""",
+	default = [None], nargs = 1)
+parser.add_argument('-M', '--mask-prefix', metavar = "prefix", type = str,
+	help = """Prefix for mask selection. Default: 'mask_'.""",
+	default = ["mask_"], nargs = 1)
+parser.add_argument('-P', '--pole', metavar = "axis_fraction", type = int,
+	help = """Fraction of the major nuclear axis to identify a pole.
+	Should be in the [0, .5] interval. Default: .25.""",
+	default = [.25], nargs = 1)
+
+# Add flags
+parser.add_argument('--labeled',
+    action = 'store_const', dest = 'labeled',
+    const = True, default = False,
+    help = 'Export labeled masks instead of binary.')
+parser.add_argument('--compressed',
+    action = 'store_const', dest = 'compressed',
+    const = True, default = False,
+    help = 'Generate compressed TIF binary masks (not compatible with ImageJ.')
+parser.add_argument('--annotate-compart', action = 'store_const',
+	dest = 'do_annotate_compartments', const = True, default = False,
+	help = 'Assign dots to nuclear compartments, only for ellipsoidal nuclei.')
+parser.add_argument('--noplot',
+	action = 'store_const', dest = 'noplot',
+	const = True, default = False,
+	help = 'Do not produce any plots.')
+parser.add_argument('--no-compart-plot', action = 'store_const',
+	dest = 'no_compartment_plot', const = True, default = False,
+	help = 'Do not produce compartments-related plots.')
+
+# Version flag
+version = "5.0.0"
+parser.add_argument('--version', action = 'version',
+	version = '%s v%s' % (sys.argv[0], version,))
+
+# Parse arguments
+args = parser.parse_args()
+
+# Assign to in-script variables
+dot_table_name = args.dotCoords[0]
+dot_file_name = dot_table_name.split('/')[-1]
+
+imdir = args.imgFolder[0]
+outdir = args.outFolder[0]
+delim = args.delim[0]
+
+aspect = args.aspect
+(az, ay, ax) = aspect
+
+mask_iodir = args.mask_folder[0]
+maskpre = args.mask_prefix[0]
+
+doCompartments = args.do_annotate_compartments
+pole_fraction = args.pole[0]
+noplot = args.noplot
+noplot_compartments = args.no_compartment_plot
+
+labeled = args.labeled
+compressed = args.compressed
+
+dilate_factor = args.dilate[0]
+ncores = args.threads[0]
+
+# Params
+seg_type = gp.const.SEG_3D
+an_type = gp.const.AN_3D
+
+# Additional checks ------------------------------------------------------------
+if not outdir[-1] == "/":
+	while not os.path.isdir(outdir) and os.path.exists(outdir): outdir += "_"
+	outdir += "/"
+if not imdir[-1] in ['/\\']: imdir += "/"
+maxncores = multiprocessing.cpu_count()
+if maxncores < ncores:
+	print("Lowered number of threads to maximum available: %d" % (maxncores))
+	ncores = maxncores
+if 0 != dilate_factor and ax != ay:
+	print("Cannot apply dilation on images with different X/Y aspect.")
+	sys.exit()
+if 0 > pole_fraction: pole_fraction = 0
+if 0.5 < pole_fraction: pole_fraction = 0.5
+
+# RUN ==========================================================================
+
+# Create output folder
+if not os.path.isdir(outdir):
+	os.mkdir(outdir)
+
+# Create mask directory
+maskdir = outdir + "masks/"
+if not os.path.isdir(maskdir):
+	os.mkdir(maskdir)
+
+# Build 3D isotropic structuring element for dilation
+istruct = imt.mkIsoStruct(dilate_factor, (az, ay, ax))
+if az != ax:
+	t = np.array(istruct.shape) / 2
+	msg = "  Anisotropic dilation of "
+	msg += "(%d, %d, %d) px in ZYX, respectively." % tuple(t.tolist())
+	print(msg)
+
+# Input ------------------------------------------------------------------------
+
+# Read table
+t = pd.read_csv(dot_table_name, delim)
+
+# Add new empty columns
+t['cell_ID'] = np.nan
+t['lamin_dist'] = np.nan
+t['lamin_dist_norm'] = np.nan
+t['centr_dist'] = np.nan
+t['centr_dist_norm'] = np.nan
+t['com'] = np.nan
+t['angle'] = np.nan
+if doCompartments:
+	t['compartment'] = np.nan
+t['dilation'] = dilate_factor
+t['version'] = version
+
+# Identify images --------------------------------------------------------------
+
+# Extract FoV number
+t['File'] = [int(f.split('/')[-1].split('.')[0]) for f in t['File']]
+
+# Round up coordinates !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NEEDS TO BE CHANGED TO INTERPOLATE!
+t['x'] = np.round(t['x']).astype('i')
+t['y'] = np.round(t['y']).astype('i')
+t['z'] = np.round(t['z']).astype('i')
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+# Identify tiff images
+flist = []
+for (dirpath, dirnames, filenames) in os.walk(imdir):
+	flist.extend(filenames)
+	break
+imlist = [f for f in flist if 'tif' in f]
+
+# Assign field of views to images
+imfov = {}
+for i in set(t['File']):
+	imsel = [im for im in imlist if "%03d" % (i,) in im]
+	if not 0 == len(imsel):
+		imfov[i] = imsel[0]
+	else:
+		t = t.ix[t["File"] != i, :]
+		print("  Missing image for field #%d, skipped." % (i,))
+t.index = range(t.shape[0])
+
+# Start iteration --------------------------------------------------------------
+
+# Nuclei container
+nuclei = []
+
+# Cycle through
+print("> Analyzing fields of view... [n.threads=%d]" % (ncores,))
+kwargs = {
+	'imfov' : imfov, 'imdir' : imdir,
+	'an_type' : an_type, 'seg_type' : seg_type, 'maskdir' : maskdir,
+	'dilate_factor' : dilate_factor, 'aspect' : aspect, 't' : t,
+	'main_mask_dir' : mask_iodir, 'main_mask_prefix' : maskpre,
+	'doCompartments' : doCompartments, 'pole_fraction' : pole_fraction,
+	'plotCompartments' : not noplot_compartments, 'outdir' : outdir,
+	'noplot' : noplot
+}
+anData = Parallel(n_jobs = ncores, verbose = 11)(
+	delayed(analyze_field_of_view)(ii, **kwargs)
+	for ii in set(imfov.keys()))
+
+# Parse output and store log report --------------------------------------------
+
+hlog = open(os.path.join(outdir, "fov_analysis.log"), "w+")
+tvdata = []
+for (curnuclei, subt, subt_idx, tvcomp, msg) in anData:
+	nuclei.extend(curnuclei.values())
+	t.loc[subt_idx, :] = subt
+	hlog.write(msg)
+	if doCompartments:
+		tvdata.append(tvcomp)
+hlog.close()
+
+
+# Identify G1 cells ------------------------------------------------------------
+t = flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name)
+
+# Export -----------------------------------------------------------------------
+
+# Export compartment volume data
+if doCompartments:
+	tvdata = pd.concat(tvdata)
+	outname = "%s/nuclear_compartment.volume.tsv" % (outdir,)
+	tvdata.to_csv(outname, sep = '\t', index = False)
+
+# Export nuclei object vector
+f = open("%s/nuclei.pickle" % (outdir,), "wb+")
+pickle.dump(nuclei, f)
+f.close()
+
+# Export table before allele labeling
+outname = "%s/wCentr.out.noAllele.dilate%d.%s" % (
+	outdir, dilate_factor, dot_file_name)
+t.to_csv(outname, sep = '\t', index = False)
+
+# Add allele information -------------------------------------------------------
+print("  - Adding allele information...")
+t = add_allele(t)
+
+# Calculate angle on nucleus centroid between alleles --------------------------
+print("  - Adding allele polarity information...")
+
+# Assemble universal index
+t.loc[:, 'universalID'] = ["%s_%s_%s" % x for x in zip(
+	t['File'].values, t['Channel'].values, t['cell_ID'].values
+)]
+
+# Subset data
+subt = t.loc[t['Allele'] > 0,:]
+
+# Go through cells
+for uid in subt['universalID']:
+	idx = subt[subt['universalID'] == uid].index
+
+	# Retrieve allele coordinates
+	focus = subt.loc[subt['universalID'] == uid, ('x', 'y', 'z')]
+	if 0 == sum(focus.shape):
+		continue
+
+	# Identify nucleus
+	cell_ID = subt.loc[subt['universalID'] == uid, 'cell_ID'].values[0]
+	series_ID = subt.loc[subt['universalID'] == uid, 'File'].values[0]
+	if np.isnan(cell_ID) or np.isnan(series_ID):
+		continue
+
+	nucleus = [n for n in nuclei if n.s == series_ID and n.n == cell_ID]
+	if 0 == len(nucleus):
+		print("Nucleus not found for %s.%s" % (series_ID, cell_ID,))
+		continue
+	else:
+		nucleus = nucleus[0]
+
+	# Nucleus center of mass coordinates
+	centr_coords = (nucleus.box_mass_center + nucleus.box_origin).astype('i')
+	
+	# Re-order center of mass coordinates
+	centr_coords = centr_coords[[1, 2, 0]]
+
+	P1_coords = focus.loc[focus.index[0],:]
+	P2_coords = focus.loc[focus.index[1],:]
+
+	if all(P2_coords == centr_coords) or all(P1_coords == centr_coords):
+		t.loc[idx, 'angle'] = 0
+	else:
+		# Calculate angle
+		xyz_aspect = np.array((ax, ay, az))
+		t.loc[idx, 'angle'] = stt.angle_between_points(
+			P1_coords * xyz_aspect,
+			centr_coords * xyz_aspect,
+			P2_coords * xyz_aspect
+		)
+	t.loc[idx, 'com'] = "_".join([str(x) for x in centr_coords.tolist()])
+
+# Remove universal ID
+t = t.drop('universalID', 1)
+
+# Write output -----------------------------------------------------------------
+outname = "%s/wCentr.out.dilate%d.%s" % (
+	outdir, dilate_factor, dot_file_name)
+t.to_csv(outname, sep = '\t', index = False)
+
+# END ==========================================================================
+
+################################################################################

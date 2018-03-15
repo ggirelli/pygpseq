@@ -12,6 +12,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [2.0.0]
+### Changed
+- Cleaned up `const.py`.
+- `wraps` module renamed `anim`, will contain all wrappers for GPSeq standard image dataset analysis.
+- `main` library moved to `anim` module.
+- Cleaned up and re-structure comment style in all libraries and modules.
+
+### Added
+- License text in `bin/gpseq_anim`.
+- TIFF automatic 3D segmentation script from `tiff-tools-gg`.
+- TIFF (un)compress script from `tiff-tools-gg`.
+- Out Of Focus detection/plot scripts from `tiff-tools-gg`.
+- FISH lamin distance calculation script from `dotter2gpseq`.
+- `gpseq_fromfish` output merge from `dotter2gpseq`.
+
+
+
 ## [1.1.0] - 2018-03-13
 ### Added
 - Capturing TIFF read issues.
@@ -77,6 +94,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[2.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.0.0
 [1.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v1.1.0
 [1.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v1.0.0
 [0.1.3] https://github.com/ggirelli/gpseq-img-py/
