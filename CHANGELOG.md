@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - TIFF (un)compress script from `tiff-tools-gg`.
 - Out Of Focus detection/plot scripts from `tiff-tools-gg`.
 - FISH lamin distance calculation script from `dotter2gpseq`.
+- `gpseq_fromfish` output merge from `dotter2gpseq`.
 
 
 

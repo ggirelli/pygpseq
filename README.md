@@ -43,6 +43,10 @@ The `gpseq_anim` (**GPSeq** **an**alysis of **im**ages) analyzes a multi-conditi
 
 The `gpseq_fromfish` script characterizes FISH signals identified with `DOTTER` (or similar tools) by calculating: absolute/normalized distance from lamina and central region, nuclear compartment, allele status,... Run `gpseq_fromfish -h` for more details.
 
+#### Merge multiple FISH analyses using a metadata table
+
+Use the `gpseq_fromfish_merge` script to merge multiple FISH analysis output (generated with `gpseq_fromfish`). For more details run `gpseq_fromfish_merge -h`.
+
 #### Perform automatic 3D nuclei segmentation
 
 Run `tiff_auto3dseg -h` for more details on how to produce binary/labeled (compressed) masks of your nuclei staining channels

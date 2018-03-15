@@ -44,11 +44,14 @@ import matplotlib
 matplotlib.use('ps')
 
 import argparse
+import multiprocessing
 import numpy as np
 import os
 import pandas as pd
 import pygpseq as gp
 import sys
+
+from pygpseq.tools.io import printout
 
 # PARAMETERS ===================================================================
 
@@ -144,12 +147,19 @@ parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 	const = True, default = False)
 
 # Version flag
-version = gp.const.VERSION
+version = "1.0.0"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
 # Parse arguments
 args = parser.parse_args()
+
+# Additional checks
+maxncores = multiprocessing.cpu_count()
+if maxncores < args.threads[0]:
+	printout("Lowered number of threads to maximum available: %d" % (
+		maxncores), -1)
+	args.threads[0] = maxncores
 
 # FUNCTION =====================================================================
 
