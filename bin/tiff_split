@@ -1,0 +1,301 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# ------------------------------------------------------------------------------
+# 
+# MIT License
+# 
+# Copyright (c) 2017 Gabriele Girelli
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# 
+# Author: Gabriele Girelli
+# Email: gigi.ga90@gmail.com
+# Version: 1.0.0
+# Date: 20180316
+# Project: bioimaging
+# Description: split TIFF in smaller images.
+# Requires: 
+# 
+# Changelog:
+#  v1.0.0 - 20180316: converted from MATLAB to Python3 and merged with pygpseq.
+# 
+# ------------------------------------------------------------------------------
+
+
+
+# DEPENDENCIES =================================================================
+
+import argparse
+import numpy as np
+import os
+import sys
+from tqdm import tqdm
+
+from pygpseq.tools import image as imt
+from pygpseq.tools import plot
+from pygpseq.tools.io import printout
+
+# PARAMETERS ===================================================================
+
+# Add script description
+parser = argparse.ArgumentParser(description = '''
+Split a TIFF image in smaller square/cube TIFF images of the specified side.
+If the original dimensions are not multipliers of the specified side, a portion
+of the image is lost unless the --enlarge option is specified. In that case,
+the smaller images generated from the image border will contain empty pixels.
+
+Split images are generated left-to-right, top-to-bottom, e.g.,
+1 2 3
+4 5 6
+7 8 9
+
+Examples:
+tiff_split ...
+''', formatter_class = argparse.RawDescriptionHelpFormatter)
+
+# Add mandatory arguments
+parser.add_argument('input', type = str, nargs = 1,
+    help = '''Path to the TIFF image to split.''')
+parser.add_argument('outdir', type = str, nargs = 1,
+    help = '''Path to output TIFF output, created if missing.''')
+parser.add_argument('side', type = int, nargs = 1,
+    help = '''Square/Cube side in pixels/voxels.''')
+
+# Add flags
+parser.add_argument('-e', '--enlarge',
+    action = 'store_const', dest = 'enlarge',
+    const = True, default = False,
+    help = 'Expand to avoid pixel loss.')
+parser.add_argument('-2', '--2d',
+    action = 'store_const', dest = 'force2D',
+    const = True, default = False,
+    help = '''Enforce 2D split even if the image is a 3D stack.
+    In that case the first slice will be split.''')
+
+# Version flag
+version = "1.0.0"
+parser.add_argument('--version', action = 'version',
+    version = '%s %s' % (sys.argv[0], version,))
+
+# Parse arguments
+args = parser.parse_args()
+
+# Assign to in-script variables
+ipath = args.input[0]
+outdir = args.outdir[0]
+side = args.side[0]
+doEnlarge = args.enlarge
+force2D = args.force2D
+
+# Additional checks
+if not os.path.isfile(ipath):
+    printout("Input file not found: %s" % ipath, -2)
+if os.path.isfile(outdir):
+    printout("The specified output directory cannot be a file. Path: %s" % (
+        outdir,), -2)
+if not os.path.isdir(outdir): os.mkdir(outdir)
+
+# FUNCTIONS ====================================================================
+
+def tiff_enlarge(img, side):
+    '''Resize image to have dimensions that are multiple of side.
+
+    Args:
+        img (np.ndarray): image to resize.
+        side (int): size in px.
+
+    Returns:
+        np.ndarray: resized image.
+    '''
+    new_shape = np.ceil(np.array(img.shape) / float(side)) * side
+    new_shape = tuple([int(d) for d in new_shape])
+    new_img = img.copy()
+    new_img = np.zeros(new_shape)
+    new_img[np.ix_(*[range(img.shape[i]) for i in range(len(img.shape))])] = img
+    return(new_img)
+
+def calc_split_loss(img, side):
+    '''Calculates how many pixels/voxels would be lost if image split is
+    performed without enlarging.
+
+    Args:
+        img (np.ndarray): image to split.
+        side (int): size in px.
+
+    Returns:
+        int: number of pixels/voxels lost during split.
+    '''
+    
+    # Identify loss per dimension
+    missed = [d % side for d in img.shape]
+    
+    # Calculate overall loss
+    loss = []
+    for i in range(len(img.shape)):
+        otherd = [img.shape[j] for j in range(len(img.shape)) if not i == j]
+        otherd.append(img.shape[i] % side)
+        loss.append(np.prod(otherd))
+
+    # Remove portions counted multiple times
+    loss = np.sum(loss) - (len(img.shape) - 1) * np.prod(missed)
+    for i in range(len(missed)):
+        otherd = [missed[j] for j in range(len(missed)) if not i == j]
+        otherd.append(img.shape[i] - missed[i])
+        loss -= np.prod(otherd)
+    
+    return(loss)
+
+def tiff_split_2d(img, side, outdir, imgpath):
+    '''Split 2D image in sub-images of side x side. Output is saved to outdir
+    with the suffix .subN, where N is the sub-image index.
+
+    Args:
+        img (np.ndarray): image to split.
+        side (int): size in px.
+        outdir (str): path to output directory.
+        imgpath (str): path to input image.
+    '''
+ 
+    # Get output file name parts
+    prefix = os.path.splitext(os.path.basename(imgpath))[0]
+    ext = os.path.splitext(os.path.basename(imgpath))[1]
+
+    # Count cells to output
+    n = np.prod([int(d / side) for d in img.shape])
+    print("Output %d images." % n)
+    if 0 == n: return
+
+    # Iterate over sub image top-left corner positions
+    ic = 1
+    xs = [x for x in range(0, img.shape[0], side) if x+side < img.shape[0]]
+    ys = [y for y in range(0, img.shape[1], side) if y+side < img.shape[1]]
+    with tqdm(range(n)) as pbar:
+        for x_start in xs:
+            for y_start in ys:
+                # Identify sub-image
+                oimg = img[x_start:(x_start + side), y_start:(y_start + side)]
+
+                # Output image
+                opath = os.path.join(outdir, "%s.sub%d%s" % (prefix, ic, ext))
+                plot.save_tif(opath, oimg, imt.get_dtype(oimg.max()), False)
+
+                # Increase counter
+                ic += 1
+                pbar.update(1)
+
+def tiff_split_3d(img, side, outdir, imgpath):
+    '''Split 2D image in sub-images of side x side x side. Output is saved to
+    outdir with the suffix .subN, where N is the sub-image index.
+
+    Args:
+        img (np.ndarray): image to split.
+        side (int): size in px.
+        outdir (str): path to output directory.
+        imgpath (str): path to input image.
+    '''
+ 
+    # Get output file name parts
+    prefix = os.path.splitext(os.path.basename(imgpath))[0]
+    ext = os.path.splitext(os.path.basename(imgpath))[1]
+
+    # Count cells to output
+    n = np.prod([int(d / side) for d in img.shape])
+    print("Output %d images." % n)
+    if 0 == n: return
+
+    # Iterate over sub image top-left corner positions
+    ic = 1
+    zs = [z for z in range(0, img.shape[0], side) if z+side < img.shape[0]]
+    xs = [x for x in range(0, img.shape[1], side) if x+side < img.shape[1]]
+    ys = [y for y in range(0, img.shape[2], side) if y+side < img.shape[2]]
+    with tqdm(range(n)) as pbar:
+        for x_start in xs:
+            for y_start in ys:
+                for z_start in zs:
+                    # Identify sub-image
+                    oimg = img[
+                        z_start:(z_start + side),
+                        x_start:(x_start + side),
+                        y_start:(y_start + side)
+                    ]
+
+                    # Output image
+                    opath = os.path.join(
+                        outdir, "%s.sub%d%s" % (prefix, ic, ext))
+                    plot.save_tif(
+                        opath, oimg, imt.get_dtype(oimg.max()), False)
+
+                    # Increase counter
+                    ic += 1
+                    pbar.update(1)
+
+# RUN ==========================================================================
+
+# Read input image
+img = imt.read_tiff(ipath)
+
+# Check image shape and select appropriate analysis method ---------------------
+
+status = np.nan
+if 3 == len(img.shape):
+    print("3D stack found.")
+    if force2D:
+        print("Enforcing 2D split (extracting 1st slide only).")
+        status = "2D"
+        umes = "pixel"
+        img = img[0, :, :].copy()
+    else:
+        status = "3D"
+        umes = "voxel"
+elif 2 == len(img.shape):
+    print("2D image found.")
+    status = "2D"
+    umes = "pixel"
+else:
+    printout("Cannot split a 1D image. File: %s" % ipath, -2)
+
+# Enlarge or calculate pixel loss ----------------------------------------------
+
+if doEnlarge:
+    img = tiff_enlarge(img, side)
+    print("Image enlarged to %s" % str(img.shape))
+else:
+    loss = calc_split_loss(img, side)
+    print("%d %ss lost (%.2f%%). Use -e to avoid loss." % (
+        loss, umes, loss / np.prod(img.shape) * 100))
+
+# Split image ------------------------------------------------------------------
+
+if "2D" == status:
+    tiff_split_2d(img, side, outdir, ipath)
+elif "3D" == status:
+    tiff_split_3d(img, side, outdir, ipath)
+else:
+    printout("Unrecognized analysis mode.", -2)
+
+# END ==========================================================================
+
+print("DONE")
+
+################################################################################

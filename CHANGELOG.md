@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [2.0.1]
+### Added
+- `tiff_split` from `tiff-tools-gg`.
+
+
+
 ## [2.0.0]
 ### Changed
 - Cleaned up `const.py`.
@@ -94,6 +100,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[2.0.1] https://github.com/ggirelli/gpseq-img-py
 [2.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.0.0
 [1.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v1.1.0
 [1.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v1.0.0
