@@ -55,6 +55,10 @@ Run `tiff_auto3dseg -h` for more details on how to produce binary/labeled (compr
 
 Run `tiff_findoof -h` for more details on how to quickly identify out of focus fields of view. Also, the `tiff_plotoof` script (in R, requires `argparser` and `ggplot2`) can be used to produce an informative plot with the signal location over the Z stack.
 
+#### Split a tiff in smaller images
+
+To split a large tiff to smaller square images of size N x N pixels, run `tiff_split input_image output_folder N`. Use the `--enlarge` option to avoid pixel loss. If the input image is a 3D stack, then the output images will be of N x N x N voxels, use the `--2d` to apply the split only to the first slice of the stack. For more details, run `tiff_split -h`.
+
 #### (Un)compress a tiff
 
 To uncompress a set of tiff, use the `tiffcu -u` command. To compress them use the `tiffcu -c` command instead. Use `tiffcu -h` for more details.
