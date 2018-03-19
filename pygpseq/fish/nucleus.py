@@ -239,6 +239,8 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		'logpath' : logpath, 'i' : i
 	}
 
+	istruct = imt.mkIsoStruct(dilate_factor, aspect)
+
 	# Default nuclear ID list and empty dictionary
 	seq = range(1, L.max() + 1)
 	curnuclei = {}

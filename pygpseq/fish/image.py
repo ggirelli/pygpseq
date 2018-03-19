@@ -33,6 +33,8 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 	# Logger for logpath
 	logger = iot.IOinterface()
 
+	istruct = imt.mkIsoStruct(dilate_factor, aspect)
+
 	idx = ii
 	impath = imfov[ii]
 	msg = "> Job '%s'...\n" % (impath,)
