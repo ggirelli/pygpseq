@@ -71,14 +71,14 @@ Split images are generated left-to-right, top-to-bottom, e.g.,
 7 8 9
 
 Examples:
-tiff_split ...
+tiff_split big_image.tif split_out_dir 100 -e
 ''', formatter_class = argparse.RawDescriptionHelpFormatter)
 
 # Add mandatory arguments
 parser.add_argument('input', type = str, nargs = 1,
     help = '''Path to the TIFF image to split.''')
 parser.add_argument('outdir', type = str, nargs = 1,
-    help = '''Path to output TIFF output, created if missing.''')
+    help = '''Path to output TIFF folder, created if missing.''')
 parser.add_argument('side', type = int, nargs = 1,
     help = '''Square/Cube side in pixels/voxels.''')
 

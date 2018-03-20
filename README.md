@@ -63,6 +63,10 @@ To split a large tiff to smaller square images of size N x N pixels, run `tiff_s
 
 To uncompress a set of tiff, use the `tiffcu -u` command. To compress them use the `tiffcu -c` command instead. Use `tiffcu -h` for more details.
 
+#### Convert a nd2 file into single-channel tiff images
+
+Use the `nd2_to_tiff` tool to convert images bundled into a nd2 file into separate single-channel tiff images. Use `nd2_to_tiff -h` for the documentation.
+
 License
 ---
 

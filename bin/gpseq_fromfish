@@ -185,7 +185,7 @@ parser.add_argument('--labeled',
 parser.add_argument('--compressed',
     action = 'store_const', dest = 'compressed',
     const = True, default = False,
-    help = 'Generate compressed TIF binary masks (not compatible with ImageJ.')
+    help = 'Generate compressed TIF binary masks (not compatible with ImageJ).')
 parser.add_argument('--annotate-compart', action = 'store_const',
 	dest = 'do_annotate_compartments', const = True, default = False,
 	help = 'Assign dots to nuclear compartments, only for ellipsoidal nuclei.')
