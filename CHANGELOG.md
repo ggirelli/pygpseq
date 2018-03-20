@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fixed `gpseq_fromfish` missing `istruct` passing.
+- Input directory list issue in `gpseq_fromfish_merge`.
+- Allowed for only partial information in `gpseq_fromfish_merge` input.
 
 
 

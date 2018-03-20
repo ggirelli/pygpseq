@@ -31,10 +31,12 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 3.0.0
+# Version: 3.0.1
 # Description: script to merge multiple gpseq_fromfish outputs.
 # 
 # Changelog:
+#  v3.0.1 - 20180320: fixed input directory list issue.
+#  					  Fixed partial information merge.
 #  v3.0.0 - 20180315: converted to python and merged to pygpseq.
 #  v2.1.1 - 20180312: added support to merge nuclear compartment data.
 #  					  Added parallelization for speed improvement.
@@ -62,6 +64,7 @@ import os
 import pandas as pd
 import pygpseq as gp
 import sys
+import time
 
 from pygpseq.tools.io import printout
 
@@ -107,7 +110,7 @@ parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
 	number of threads might increase the required amount of RAM.""")
 
 # Version flag
-version = "3.0.0"
+version = "3.0.1"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -116,7 +119,7 @@ args = parser.parse_args()
 
 # Assign arguments
 meta_path = args.meta[0]
-indirlist = args.indir[0]
+indirlist = args.indir
 if type([]) != type(indirlist): indirlist = [indirlist]
 outdir = args.outdir[0]
 nthreads = args.threads[0]
@@ -154,8 +157,8 @@ def look_for_data(d, flist, k, flag, dataset, ipath):
 		dict: updated dictionary.
 	'''
 	if 0 == len(flist):
-		d['error'] = "Warning: cannot find %s information in %s. %s" % (
-			k, flag, dataset, ipath, "Skipping %s. Folder: %s")
+		d['error'] = "Warning! Cannot find %s information in %s. %s" % (
+			k, flag, "Dataset %s. Folder: %s" % (dataset, ipath))
 		d['good'] = False
 		d['partial'] = True
 		d[k] = np.nan
@@ -165,6 +168,8 @@ def look_for_data(d, flist, k, flag, dataset, ipath):
 
 def extract_data(did, sid):
 	# Subset metadata
+	time.sleep(1) # To avoid automatic batch resizing
+
 	sub_cond = np.logical_and(md['dataset'].values == did,
 		md['series'].values == sid)
 	subt = md.loc[sub_cond,]
@@ -212,88 +217,105 @@ def extract_data(did, sid):
 	if not any([d['good'] for d in outl]):
 		if any([d['partial'] for d in outl]):
 			# Print error due to partial information present
-			[print(d['error'] for d in outl if outl['partial'])]
+			[print(d['error']) for d in outl if d['partial']]
+			d = [d for d in outl if d['partial']][0]
 		else:
 			# Print error due to not-found information
-			print("Warning! Cannot find information on dataset %s %s" % (
-				dataset, "in any of the input directories."))
-		return(np.nan)
+			 print("Warning! Cannot find information on dataset %s %s" % (
+				 dataset, "in any of the input directories."))
+			print("Finished %s" % flag)
+			return(np.nan)
+	else:
+		d = [d for d in outl if d['good']][0]
 
-	# Extract data
-	dots = [d['dots'] for d in outl if d['good']][0]
-	nuclei = [d['nuclei'] for d in outl if d['good']][0]
-	comps = [d['compartments'] for d in outl if d['good']][0]
+	# Extract dot data ---------------------------------------------------------
+	if type(pd.DataFrame()) == type(d['dots']):
+		dots = d['dots']
+		dots['dataset'] = dataset
+		dots['label'] = label
+		dch = {}
+		for i in subt.index:
+			dch[subt.loc[i, 'channel'].lower()] = subt.loc[i, 'probe_label']
+		dots['probe_label'] = np.nan
+		for i in dots.index :
+			c = dots.loc[i, 'Channel'].lower()
+			if c in dch.keys():
+				dots.loc[i, 'probe_label'] = dch[c]
+		dots['cell_type'] = cell_type
+	else:
+		dots = np.nan
 
-	# Add dataset, series and cell_type information ----------------------------
-	dots['dataset'] = dataset
-	dots['label'] = label
-	dch = {}
-	for i in subt.index:
-		dch[subt.loc[i, 'channel'].lower()] = subt.loc[i, 'probe_label']
-	dots['probe_label'] = np.nan
-	for i in dots.index :
-		c = dots.loc[i, 'Channel'].lower()
-		if c in dch.keys():
-			dots.loc[i, 'probe_label'] = dch[c]
-		else:
-			printout("Cannot find channel '%s' in %s." % (c, dataset), -2)
-	dots['cell_type'] = cell_type
+	# Extract nuclei data ------------------------------------------------------
+	if type(pd.DataFrame()) == type(d['nuclei']):
+		nuclei = d['nuclei']
+		nuclei['dataset'] = dataset
+		nuclei['cell_type'] = cell_type
+	else:
+		nuclei = np.nan
 
-	nuclei['dataset'] = dataset
-	nuclei['cell_type'] = cell_type
-
-	comps['dataset'] = dataset
-	comps['cell_type'] = cell_type
+	# Extract compartments data ------------------------------------------------
+	if type(pd.DataFrame()) == type(d['compartments']):
+		comps = d['compartments']
+		comps['dataset'] = dataset
+		comps['cell_type'] = cell_type
+	else:
+		comps = np.nan
 
 	# Prepare allele by channel table ------------------------------------------
-	aldata = dots.loc[np.logical_not(np.isnan(dots['Allele'].values)),]
-	aldata = aldata.loc[aldata['Allele'].values > 0,]
+	if type(pd.DataFrame()) == type(dots):
+		aldata = dots.loc[np.logical_not(np.isnan(dots['Allele'].values)),]
+		aldata = aldata.loc[aldata['Allele'].values > 0,]
 
-	if 0 != aldata.shape[0]:
-		al_uniID = set(zip(aldata['File'],
-			aldata['Channel'], aldata['cell_ID']))
+		if 0 != aldata.shape[0]:
+			al_uniID = set(zip(aldata['File'],
+				aldata['Channel'], aldata['cell_ID']))
 
-		dl = []
-		cols = []
+			dl = []
+			cols = []
 
-		for (fid, chid, cid) in al_uniID:
-			al_cond = np.logical_and(np.logical_and(
-				aldata['File'].values == fid,
-				aldata['Channel'].values == chid),
-				aldata['cell_ID'].values == cid)
-			alt = aldata.loc[al_cond,]
-			alt.index = range(alt.shape[0])
+			for (fid, chid, cid) in al_uniID:
+				al_cond = np.logical_and(np.logical_and(
+					aldata['File'].values == fid,
+					aldata['Channel'].values == chid),
+					aldata['cell_ID'].values == cid)
+				alt = aldata.loc[al_cond,]
+				alt.index = range(alt.shape[0])
 
-			d = alt.loc[:, ["File", "Channel", "cell_ID", "G1"]]
+				d = alt.loc[:, ["File", "Channel", "cell_ID", "G1"]]
 
-			d_3d = alt.loc[0, ['x', 'y', 'z']].values
-			d_3d -= alt.loc[1, ['x', 'y', 'z']].values
+				d_3d = alt.loc[0, ['x', 'y', 'z']].values
+				d_3d -= alt.loc[1, ['x', 'y', 'z']].values
 
-			d['d_3d'] = np.sqrt(np.sum(np.power(d_3d * aspect, 2)))
-			d['d_lamin'] = np.abs(np.diff(
-				alt['lamin_dist'].values))[0]
-			d['d_lamin_norm'] = np.abs(np.diff(
-				alt['lamin_dist_norm'].values))[0]
-			d['d_centr'] = np.abs(np.diff(
-				alt['centr_dist'].values))[0]
-			d['d_centr_norm'] = np.abs(np.diff(
-				alt['centr_dist_norm'].values))[0]
-			d['angle'] = alt['angle'].values[0]
-			d['dataset'] = dataset
-			d['label'] = label
-			d['probe_label'] = alt['probe_label'].values[0]
-			d['cell_type'] = cell_type
+				d['d_3d'] = np.sqrt(np.sum(np.power(d_3d * aspect, 2)))
+				d['d_lamin'] = np.abs(np.diff(
+					alt['lamin_dist'].values))[0]
+				d['d_lamin_norm'] = np.abs(np.diff(
+					alt['lamin_dist_norm'].values))[0]
+				d['d_centr'] = np.abs(np.diff(
+					alt['centr_dist'].values))[0]
+				d['d_centr_norm'] = np.abs(np.diff(
+					alt['centr_dist_norm'].values))[0]
+				d['angle'] = alt['angle'].values[0]
+				d['dataset'] = dataset
+				d['label'] = label
+				d['probe_label'] = alt['probe_label'].values[0]
+				d['cell_type'] = cell_type
 
-			dl.append(d.loc[0, :])
-			cols = d.columns
+				dl.append(d.loc[0, :])
+				cols = d.columns
 
-		alleles = pd.concat(dl, 1).transpose()
-		alleles.index = range(alleles.shape[0])
-		alleles.columns = cols
+			alleles = pd.concat(dl, 1).transpose()
+			alleles.index = range(alleles.shape[0])
+			alleles.columns = cols
+		else:
+			print("Warning! No copy pairs found in %s.\n" % flag)
+			alleles = np.nan
 	else:
-		print("Warning! No copy pairs found in %s.\n" % flag)
+		print("Warning! No dots found in %s.\n" % flag)
+		dots = np.nan
 		alleles = np.nan
 
+	print("Finished %s" % flag)
 	dout = {
 		'dots' : dots,
 		'nuclei' : nuclei,
@@ -318,24 +340,48 @@ Meta: %s\n""" % (c, meta_path), -2)
 
 # Iterate through Fields of View (FoVs)
 uniID = set(zip(md['dataset'].values, md['series'].values))
-l2 = Parallel(n_jobs = nthreads, verbose = 0)(
+print("Start parallel")
+l2 = Parallel(n_jobs = nthreads, verbose = 11)(
 	delayed(extract_data)(did, sid) for did, sid in uniID)
+print("End parallel")
 
 # Remove skipped
 l2 = [x for x in l2 if type(x) == type({})]
 
-# Output
-alleles = pd.concat([d['alleles']
-	for d in l2 if type(d['alleles']) == type(pd.DataFrame())])
-alleles.index = range(alleles.shape[0])
-dots = pd.concat([d['dots']
-	for d in l2 if type(d['dots']) == type(pd.DataFrame())])
-dots.index = range(dots.shape[0])
-comps = pd.concat([d['comps']
-	for d in l2 if type(d['comps']) == type(pd.DataFrame())])
-comps.index = range(comps.shape[0])
+# Merge dataset outputs --------------------------------------------------------
+
+print("Merging copy information...")
+alleles = [d['alleles']
+	for d in l2 if type(d['alleles']) == type(pd.DataFrame())]
+if 0 == len(alleles):
+	alleles = pd.DataFrame()
+else:
+	alleles = pd.concat(alleles)
+	alleles.index = range(alleles.shape[0])
+
+print("Merging dot information...")
+dots = [d['dots']
+	for d in l2 if type(d['dots']) == type(pd.DataFrame())]
+if 0 == len(dots):
+	dots = pd.DataFrame()
+else:
+	dots = pd.concat(dots)
+	dots.index = range(dots.shape[0])
+
+print("Merging compartment information...")
+comps = [d['comps']
+	for d in l2 if type(d['comps']) == type(pd.DataFrame())]
+if 0 == len(comps):
+	comps = pd.DataFrame()
+else:
+	comps = pd.concat(comps)
+	comps.index = range(comps.shape[0])
+
+print("Merging nuclear information...")
 nuclei = pd.concat([d['nuclei']
 	for d in l2 if type(d['nuclei']) == type(pd.DataFrame())])
+if 0 == len(nuclei):
+	nuclei = [pd.DataFrame()]
 nuclei.index = range(nuclei.shape[0])
 
 # Write output
