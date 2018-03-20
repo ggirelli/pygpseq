@@ -106,12 +106,6 @@ parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
 	help = """Number of threads to be used for parallelization. Increasing the
 	number of threads might increase the required amount of RAM.""")
 
-# Flag parameters
-parser.add_argument('-r', '--rescale-deconvolved', action = 'store_const',
-	help = """Perform rescaling of deconvolved images. Requires Huygens
-	Professional v4.5 log file for an image to be rescaled.""",
-	const = True, default = False)
-
 # Version flag
 version = "3.0.0"
 parser.add_argument('--version', action = 'version',
