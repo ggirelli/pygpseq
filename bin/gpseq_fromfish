@@ -37,6 +37,7 @@
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v5.0.1 - 20180319: added --skip-channels option.
 #  v5.0.0 - 20180314: moved to pygpseq module.
 #  v4.1.4 - 20180313: compartment volume data exported separately.
 #  					  Fixed compartment assignment.
@@ -172,6 +173,9 @@ parser.add_argument('-P', '--pole', metavar = "axis_fraction", type = int,
 	help = """Fraction of the major nuclear axis to identify a pole.
 	Should be in the [0, .5] interval. Default: .25.""",
 	default = [.25], nargs = 1)
+parser.add_argument('-C', '--skip-channels', metavar = "channel", type = str,
+	help = """List of space-separated channels to skip. Example: 'a700 ir800'.
+	The channel names are forced to lower-case.""", nargs = '+')
 
 # Add flags
 parser.add_argument('--labeled',
@@ -226,6 +230,8 @@ compressed = args.compressed
 dilate_factor = args.dilate[0]
 ncores = args.threads[0]
 
+channels_to_skip = [c.lower() for c in args.skip_channels]
+
 # Params
 seg_type = gp.const.SEG_3D
 an_type = gp.const.AN_3D
@@ -268,6 +274,17 @@ if az != ax:
 
 # Read table
 t = pd.read_csv(dot_table_name, delim)
+
+# Remove channels to be skipped
+size = t.shape[0]
+if type(None) != type(channels_to_skip):
+	print("  Skipping channels: %s" % str(channels_to_skip))
+	skip_cond = np.repeat(True, t.shape[0])
+	for c in channels_to_skip:
+		if c in t['Channel'].values:
+			skip_cond = np.logical_and(skip_cond, t['Channel'].values != c)
+	t = t.loc[skip_cond,]
+	print("  >>> Reduced table from %d to %d rows." % (size, t.shape[0]))
 
 # Add new empty columns
 t['cell_ID'] = np.nan

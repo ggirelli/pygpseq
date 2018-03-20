@@ -10,26 +10,26 @@ Read the [documentation](https://github.com/ggirelli/gpseq-img-py/wiki) for more
 Installation
 -------------
 
+To **install**, run the following:
+
 ```
-git clone http://github.com/ggirelli/gpseq-seq-py
-cd gpseq-seq-py
+git clone http://github.com/ggirelli/gpseq-img-py
+cd gpseq-img-py
 sudo -H pip3 install -e .
 ```
 
-To update, run the following from within the repository folder.
+To **uninstall** run the following from within the repository folder:
 
 ```
 sudo -H python3 setup.py develop --uninstall
 for f in $(ls bin); do whereis $f | cut -f 2 -d " " | xargs sudo -H rm; done
+```
+
+To **update**, first uninstall, and then run the following from within the repository folder.
+
+```
 git pull
 sudo -H pip3 install -e .
-```
-
-To uninstall run the following from within the repository folder:
-
-```
-sudo -H python3 setup.py develop --uninstall
-for f in $(ls bin); do whereis $f | cut -f 2 -d " " | xargs sudo -H rm; done
 ```
 
 Usage
