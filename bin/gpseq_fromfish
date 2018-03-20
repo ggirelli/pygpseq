@@ -344,7 +344,7 @@ kwargs = {
 	'main_mask_dir' : mask_iodir, 'main_mask_prefix' : maskpre,
 	'doCompartments' : doCompartments, 'pole_fraction' : pole_fraction,
 	'plotCompartments' : not noplot_compartments, 'outdir' : outdir,
-	'noplot' : noplot, 'labeled': labeled
+	'noplot' : noplot, 'labeled' : labeled, 'compressed' : compressed
 }
 anData = Parallel(n_jobs = ncores, verbose = 11)(
 	delayed(analyze_field_of_view)(ii, **kwargs)

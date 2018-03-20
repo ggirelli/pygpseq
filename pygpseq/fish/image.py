@@ -28,7 +28,8 @@ from .nucleus import build_nuclei, annotate_compartments
 
 def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 	maskdir, dilate_factor, aspect, t, main_mask_dir, main_mask_prefix,
-	doCompartments, plotCompartments, pole_fraction, outdir, noplot, labeled):
+	doCompartments, plotCompartments, pole_fraction, outdir, noplot,
+	labeled, compressed):
 	
 	# Logger for logpath
 	logger = iot.IOinterface()
