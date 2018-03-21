@@ -31,10 +31,14 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 0.0.1
+# Version: 0.1.0
 # Date: 20171129
 # Project: bioimaginb
 # Description: extract intensity distribution on Z.
+# 
+# Changelog:
+#  v0.1.0 - 20180321: added progress bar.
+#  v0.0.1 - 20171129: first release.
 # 
 # ------------------------------------------------------------------------------
 
@@ -45,6 +49,7 @@
 import argparse
 import os
 import re
+from tqdm import tqdm
 
 from pygpseq.tools import image as imt
 
@@ -105,7 +110,9 @@ for (dirpath, dirnames, filenames) in os.walk(imdir):
 imlist = [f for f in flist if not type(None) == type(re.match(pattern, f))]
 
 # Iterate through fields of view
-for impath in imlist:
+t = tqdm(imlist)
+t.set_description(os.path.dirname(imdir))
+for impath in t:
     # Read image
     im = imt.read_tiff(imdir + impath)
     

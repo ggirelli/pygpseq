@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `tiff_split` from `tiff-tools-gg`.
 - `--skip-channels` option to `gpseq_fromfish`.
 - `nd2_to_tiff` conversion script.
+- Progress bar to `tiff_findoof`.
 
 ### Fixed
 - Fixed `gpseq_fromfish` missing `istruct` passing.
