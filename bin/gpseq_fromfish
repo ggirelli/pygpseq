@@ -31,12 +31,13 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 5.0.0
+# Version: 5.0.2
 # Date: 20170718
 # Project: GPSeq
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
+#  v5.0.2 - 20180321: fixed behaviour when not using --skip-channels.
 #  v5.0.1 - 20180319: added --skip-channels option.
 #  v5.0.0 - 20180314: moved to pygpseq module.
 #  v4.1.4 - 20180313: compartment volume data exported separately.
@@ -198,7 +199,7 @@ parser.add_argument('--no-compart-plot', action = 'store_const',
 	help = 'Do not produce compartments-related plots.')
 
 # Version flag
-version = "5.0.0"
+version = "5.0.2"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -230,7 +231,9 @@ compressed = args.compressed
 dilate_factor = args.dilate[0]
 ncores = args.threads[0]
 
-channels_to_skip = [c.lower() for c in args.skip_channels]
+channels_to_skip = args.skip_channels
+if not type(None) == type(channels_to_skip):
+	channels_to_skip = [c.lower() for c in args.skip_channels]
 
 # Params
 seg_type = gp.const.SEG_3D
