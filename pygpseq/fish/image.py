@@ -75,18 +75,11 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 	# Skip or binarize
 	if already_segmented:
 		msg += "   - Skipped binarization, using provided mask.\n"
-		imbin = tifffile.imread(mpath) != 0
+		imbin = imt.read_tiff(mpath) != 0
 		thr = 0
 	else:
 		msg += "   - Binarizing...\n"
 		(imbin, thr, log) = binarization.run(im)
-		if not type(None) == type(main_mask_dir):
-			if os.path.isdir(main_mask_dir):
-				msg += "   >>> Exporting mask as tif...\n"
-				if labeled:
-					plot.save_tif(mpath, label(imbin), 'uint8', compressed)
-				else:
-					plot.save_tif(mpath, imbin, 'uint8', compressed)
 		msg += log
 
 	# Find nuclei --------------------------------------------------------------
@@ -118,6 +111,18 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 	# Identify nuclei
 	L = label(imbin)
 	seq = range(1, L.max() + 1)
+
+	# Export binary mask
+	if not type(None) == type(main_mask_dir):
+		if not os.path.isdir(main_mask_dir):
+			os.mkdir(main_mask_dir)
+		msg += "   >>> Exporting mask as tif...\n"
+		if labeled:
+			plot.save_tif(mpath, L, 'uint8', compressed)
+		else:
+			L[np.nonzero(L)] = 255
+			plot.save_tif(mpath, L, 'uint8', compressed)
+			L = label(imbin)
 
 	# Save mask ----------------------------------------------------------------
 	msg += "   - Saving nuclear ID mask...\n"
