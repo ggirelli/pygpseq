@@ -113,7 +113,7 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 	seq = range(1, L.max() + 1)
 
 	# Export binary mask
-	if not type(None) == type(main_mask_dir):
+	if not type(None) == type(main_mask_dir) and not already_segmented:
 		if not os.path.isdir(main_mask_dir):
 			os.mkdir(main_mask_dir)
 		msg += "   >>> Exporting mask as tif...\n"
