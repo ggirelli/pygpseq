@@ -221,7 +221,7 @@ def extract_data(did, sid):
 			d = [d for d in outl if d['partial']][0]
 		else:
 			# Print error due to not-found information
-			 print("Warning! Cannot find information on dataset %s %s" % (
+			print("Warning! Cannot find information on dataset %s %s" % (
 				 dataset, "in any of the input directories."))
 			print("Finished %s" % flag)
 			return(np.nan)
