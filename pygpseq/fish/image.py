@@ -161,7 +161,7 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 
 		# Perform annotation
 		subt, tvcomp, msg = annotate_compartments(
-			msg, subt, curnuclei, compdir, pole_fraction)
+			msg, subt, curnuclei, compdir, pole_fraction, aspect)
 	else:
 		tvcomp = None
 		msg += "    > Skipped compartments annotation.\n"

@@ -27,7 +27,7 @@ from ..tools import stat as stt
 
 # FUNCTIONS ====================================================================
 
-def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
+def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 	'''
 	Add compartment status to dots table (by DOTTER).
 	For each nucleus: the major three axes are identified, the nucleus is
@@ -37,8 +37,9 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
 	can be extracted by grepping lines starting with "   >>>> GoF_ellipse:".
 
 	Args:
-	   t (pd.DataFrame): DOTTER output table.
 	   msg (string): log message, to be continued.
+	   t (pd.DataFrame): DOTTER output table.
+	   aspect (tuple): Z,Y,X voxel sides in real units.
 
 	Returns:
 
@@ -66,6 +67,9 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
 	vcomp_table['ndots_center_bot'] = np.nan
 	vcomp_table['ndots_center_top'] = np.nan
 	vcomp_table['ndots_poles'] = np.nan
+	vcomp_table['a'] = np.nan
+	vcomp_table['b'] = np.nan
+	vcomp_table['c'] = np.nan
 
 	for cid in range(int(subt['cell_ID'].max()) + 1):
 		if cid in nuclei.keys():
@@ -93,24 +97,24 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
 			xt, yt, zt = stt.rotate3d(coords, theta1, 2)
 			tcoords = np.vstack([xt, yt, zt])
 
-			# Third axis
-			xv, yv, zv = stt.extract_3ev(tcoords)
-			theta3 = stt.calc_theta(xv[2], zv[2])
-			if np.abs(theta3) > np.pi / 2.:
-				if theta3 > 0:
-					theta3 = -np.abs(theta3 - np.pi / 2.)
-				else:
-					theta3 = np.abs(theta3 + np.pi / 2.)
-			else:
-				theta3 = -np.abs(theta3 + np.pi / 2.)
-			xt, yt, zt = stt.rotate3d(tcoords, theta3, 1)
-			tcoords = np.vstack([xt, yt, zt])
+			# # Third axis
+			# xv, yv, zv = stt.extract_3ev(tcoords)
+			# theta3 = stt.calc_theta(xv[2], zv[2])
+			# if np.abs(theta3) > np.pi / 2.:
+			# 	if theta3 > 0:
+			# 		theta3 = -np.abs(theta3 - np.pi / 2.)
+			# 	else:
+			# 		theta3 = np.abs(theta3 + np.pi / 2.)
+			# else:
+			# 	theta3 = -np.abs(theta3 + np.pi / 2.)
+			# xt, yt, zt = stt.rotate3d(tcoords, theta3, 1)
+			# tcoords = np.vstack([xt, yt, zt])
 
-			# Second axis
-			xv, yv, zv = stt.extract_3ev(tcoords)
-			theta2 = stt.calc_theta(yv[1], zv[1])
-			xt, yt, zt = stt.rotate3d(tcoords, theta2, 0)
-			tcoords = np.vstack([xt, yt, zt])
+			# # Second axis
+			# xv, yv, zv = stt.extract_3ev(tcoords)
+			# theta2 = stt.calc_theta(yv[1], zv[1])
+			# xt, yt, zt = stt.rotate3d(tcoords, theta2, 0)
+			# tcoords = np.vstack([xt, yt, zt])
 
 			# Fit ellipsoid ----------------------------------------------------
 
@@ -123,10 +127,10 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
 			trbin[icoords[:, 2], icoords[:, 1], icoords[:, 0]] = 1
 
 			# Calculate axes size
-			zax_size, xax_size, yax_size = trbin.shape
+			zax_size, yax_size, xax_size = trbin.shape
 
-			el = draw.ellipsoid(zax_size / 2., xax_size / 2., yax_size / 2.)
-			el = el[2:(zax_size + 2), 1:(xax_size + 1), 1:(yax_size + 1)]
+			el = draw.ellipsoid(zax_size / 2., yax_size / 2., xax_size / 2.)
+			el = el[2:(zax_size + 2), 1:(yax_size + 1), 1:(xax_size + 1)]
 
 			# Calculate intersection with fitting ellipsoid
 			inter_size = np.logical_and(trbin, el).sum()
@@ -142,17 +146,17 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
 			msg += "".join(["   >>>> GoF_ellipse: %s\n" % (s,)
 				for s in comments])
 
-			# Identify ellipsoid foci
-			b = xax_size / 2.
-			a = yax_size / 2.
+			# Identify ellipse foci
+			b = yax_size / 2.
+			a = xax_size / 2.
 			c = np.sqrt(a**2 - b**2)
 			#ecc = c / a
 
 			# Rotate dots ------------------------------------------------------
 
 			dot_coords_t = np.vstack(stt.rotate3d(dot_coords, theta1, 2))
-			dot_coords_t = np.vstack(stt.rotate3d(dot_coords_t, theta2, 0))
-			dot_coords_t = np.vstack(stt.rotate3d(dot_coords_t, theta3, 1))
+			#dot_coords_t = np.vstack(stt.rotate3d(dot_coords_t, theta2, 0))
+			#dot_coords_t = np.vstack(stt.rotate3d(dot_coords_t, theta3, 1))
 
 			# Assign compartments ----------------------------------------------
 			# Compartment code:
@@ -166,6 +170,19 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
 			status[dot_coords_t[0] < -(cf * a)] = 2
 			subt.loc[cell_cond, 'compartment'] = status
 
+			# Rescale coords ---------------------------------------------------
+
+			dot_coords_t2 = dot_coords_t.copy()
+			dot_coords_t2[0] = dot_coords_t[0] / a
+			dot_coords_t2[1] = dot_coords_t[1] / b
+			dot_coords_t2[2] = dot_coords_t[2] / zax_size * 2
+
+			# Store rescaled coords --------------------------------------------
+
+			subt.loc[cell_cond, 'znorm'] = dot_coords_t2[2]
+			subt.loc[cell_cond, 'xnorm'] = dot_coords_t2[0]
+			subt.loc[cell_cond, 'ynorm'] = dot_coords_t2[1]
+
 			# Calculate compartment volume -------------------------------------
 
 			# Round up coordinates
@@ -177,13 +194,19 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
 			centr_cond = np.logical_and(xt < c, xt > -c)
 			vctop = np.logical_and(centr_cond, zt >= 0).sum()
 			vcbot = np.logical_and(centr_cond, zt < 0).sum()
-
 			vcomp_table.loc[cid, 'center_top'] = vctop
 			vcomp_table.loc[cid, 'center_bot'] = vcbot
 			vcomp_table.loc[cid, 'poles'] = vpole
+
+			# Count dots
 			vcomp_table.loc[cid, 'ndots_center_top'] = (status == 0).sum()
 			vcomp_table.loc[cid, 'ndots_center_bot'] = (status == 1).sum()
 			vcomp_table.loc[cid, 'ndots_poles'] = (status == 2).sum()
+
+			# Store nucleus dimensions
+			vcomp_table.loc[cid, 'a'] = xax_size / 2.
+			vcomp_table.loc[cid, 'b'] = yax_size / 2.
+			vcomp_table.loc[cid, 'c'] = zax_size / 2.
 
 			# Assign volume information
 			volume = np.zeros(dot_coords.shape[1])
@@ -199,7 +222,9 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction):
 				outpng = open(os.path.join(outdir,
 					"%s.%s.png" % (fid, cid,)), "wb")
 				plt.close("all")
-				plot.ortho_3d(tcoords, dot_coords = dot_coords_t, c = a * 0.6)
+				plot.ortho_3d(tcoords, dot_coords = dot_coords_t,
+					aspect = aspect, c = a * 0.6,
+					channels = subt.loc[cell_cond, 'Channel'].values)
 				plt.suptitle("\n".join(comments))
 				plt.savefig(outpng, format = "png")
 				plt.close("all")

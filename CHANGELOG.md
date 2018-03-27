@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
-### ...
-- ...
+### Changed
+- In 3-ortho-view plot nuclei are now occupying as much space as possible.
+- In 3-ortho-view plot are now colored based on the channel.
+
+### Fixed
+- Now rotating only on XY plane for nuclear compartmentalization.
 
 
 

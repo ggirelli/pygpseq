@@ -299,6 +299,9 @@ t['com'] = np.nan
 t['angle'] = np.nan
 if doCompartments:
 	t['compartment'] = np.nan
+	t['xnorm'] = np.nan
+	t['ynorm'] = np.nan
+	t['znorm'] = np.nan
 t['dilation'] = dilate_factor
 t['version'] = version
 

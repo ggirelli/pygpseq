@@ -558,7 +558,8 @@ def multi_condition_single_boxplot(profiles, data, data_field,
     export(fname, 'png')
     plt.close(fig)
 
-def ortho_3d(coords, scale = None, dot_coords = None, c = None):
+def ortho_3d(coords, scale = None, dot_coords = None, c = None, aspect = None,
+    channels = None):
     '''
     Plot orthogonal projections with 3 major eigenvectors.
 
@@ -567,14 +568,28 @@ def ortho_3d(coords, scale = None, dot_coords = None, c = None):
         scale (int): size of plotted eigenvectors.
     '''
 
+    # Set defaults -------------------------------------------------------------
     if type(None) == type(scale):
         scale = 100
+    if type(None) == type(aspect):
+        aspect = (1, 1, 1)
+    az, ay, ax = aspect
+    if type(None) == type(channels):
+        channels = np.repeat("b", coords.shape[0])
 
+    # Plot ---------------------------------------------------------------------
     plt.figure(figsize = (10, 10))
 
+    # Extract coordinates
     x, y, z = coords
     xv, yv, zv = stt.extract_3ev(coords)
 
+    # Prepare colors
+    cmap = plt.get_cmap('rainbow')
+    channel_names = list(set(channels))
+    channel_colors = cmap(np.linspace(0, 1, len(channel_names)))
+
+    # XY plot
     plt.subplot(2, 2, 1)
     plt.plot([xv[0]*-scale*3, xv[0]*scale*3],
              [yv[0]*-scale*3, yv[0]*scale*3], color='r')
@@ -583,17 +598,22 @@ def ortho_3d(coords, scale = None, dot_coords = None, c = None):
     plt.plot([xv[2]*-scale, xv[2]*scale],
              [yv[2]*-scale, yv[2]*scale], color='g')
     plt.plot(x, y, 'k.', alpha = .05)
-    plt.xlim(-300, 300)
-    plt.ylim(-300, 300)
+    plt.xlim(coords.min()-10, coords.max()+10)
+    plt.ylim((coords.min()-10)*(ax/ay), (coords.max()+10)*(ax/ay))
     plt.xlabel("X")
     plt.ylabel("Y")
 
     if not type(None) == type(dot_coords):
-        plt.plot(dot_coords[0], dot_coords[1], 'r.')
+        for i in range(len(channel_names)):
+            plt.plot(
+                dot_coords[0][channels == channel_names[i]],
+                dot_coords[1][channels == channel_names[i]],
+                '.', color = channel_colors[i])
     if not type(None) == type(c):
         plt.axvline(c, color = 'g', linestyle = ":")
         plt.axvline(-c, color = 'g', linestyle = ":")
 
+    # ZY plot
     plt.subplot(2, 2, 2)
     plt.plot([zv[0]*-scale*3, zv[0]*scale*3],
              [yv[0]*-scale*3, yv[0]*scale*3], color='r')
@@ -602,16 +622,21 @@ def ortho_3d(coords, scale = None, dot_coords = None, c = None):
     plt.plot([zv[2]*-scale, zv[2]*scale],
              [yv[2]*-scale, yv[2]*scale], color='g')
     plt.plot(z, y, 'k.', alpha = .05)
-    plt.xlim(-300, 300)
-    plt.ylim(-300, 300)
+    plt.xlim((coords.min()-10)*(ay/az), (coords.max()+10)*(ay/az))
+    plt.ylim(coords.min()-10, coords.max()+10)
     plt.xlabel("Z")
     plt.ylabel("Y")
 
     if not type(None) == type(dot_coords):
-        plt.plot(dot_coords[2], dot_coords[1], 'r.')
+        for i in range(len(channel_names)):
+            plt.plot(
+                dot_coords[2][channels == channel_names[i]],
+                dot_coords[1][channels == channel_names[i]],
+                '.', color = channel_colors[i])
     if not type(None) == type(c):
         plt.axvline(0, color = 'b', linestyle = ":")
 
+    # XZ plot
     plt.subplot(2, 2, 3)
     plt.plot([xv[0]*-scale*3, xv[0]*scale*3],
              [zv[0]*-scale*3, zv[0]*scale*3], color='r')
@@ -620,22 +645,33 @@ def ortho_3d(coords, scale = None, dot_coords = None, c = None):
     plt.plot([xv[2]*-scale, xv[2]*scale],
              [zv[2]*-scale, zv[2]*scale], color='g')
     plt.plot(x, z, 'k.', alpha = .05)
-    plt.xlim(-300, 300)
-    plt.ylim(-300, 300)
+    plt.xlim(coords.min()-10, coords.max()+10)
+    plt.ylim((coords.min()-10)*(ax/az), (coords.max()+10)*(ax/az))
     plt.xlabel("X")
     plt.ylabel("Z")
 
     if not type(None) == type(dot_coords):
-        plt.plot(dot_coords[0], dot_coords[2], 'r.')
+        for i in range(len(channel_names)):
+            plt.plot(
+                dot_coords[0][channels == channel_names[i]],
+                dot_coords[2][channels == channel_names[i]],
+                '.', color = channel_colors[i])
     if not type(None) == type(c):
         plt.axhline(0, color = 'b', linestyle = ":")
         plt.axvline(c, color = 'g', linestyle = ":")
         plt.axvline(-c, color = 'g', linestyle = ":")
 
-    gline = mlines.Line2D([], [], color='g', label='ev3')
-    bline = mlines.Line2D([], [], color='b', label='ev2')
-    rline = mlines.Line2D([], [], color='r', label='ev1')
-    plt.legend(handles = [gline, bline, rline])
+    # Legend
+    plt.subplot(2, 2, 4)
+    plt.plot()
+    plt.xlim(coords.min()-10, coords.max()+10)
+    plt.ylim((coords.min()-10)*(ax/az), (coords.max()+10)*(ax/az))
+    plt.xlabel("")
+    plt.ylabel("")
+    channel_handles = [mlines.Line2D([], [], color = "white",
+        marker = "o", markerfacecolor = channel_colors[i],
+        label = channel_names[i]) for i in range(len(channel_names))]
+    plt.legend(handles = channel_handles)
 
 def profile_density_scatterplot(pp, field_label, nbins, xyrange,
     profile, new_figure = None, dlabel = None):
