@@ -15,12 +15,12 @@ from scipy import ndimage as ndi
 from skimage.filters import threshold_otsu
 from skimage.measure import label
 
-from .. import const
+from pygpseq import const
 
-from . import image as imt
-from . import io as iot
-from . import stat as stt
-from . import vector as vt
+from pygpseq.tools import image as imt
+from pygpseq.tools import io as iot
+from pygpseq.tools import stat as stt
+from pygpseq.tools import vector as vt
 
 # CLASSES ======================================================================
 

@@ -9,9 +9,9 @@
 
 # DEPENDENCIES =================================================================
 
-from .. import const
-from ..tools import path as pt
-from ..tools import io as iot
+from pygpseq import const
+from pygpseq.tools import path as pt
+from pygpseq.tools import io as iot
 
 # CLASSES ======================================================================
 

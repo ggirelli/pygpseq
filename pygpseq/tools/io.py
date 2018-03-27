@@ -13,9 +13,9 @@ import numpy as np
 import os, sys, tempfile
 from time import time
 
-from .. import const
+from pygpseq import const
 
-from . import path as pt, string as st
+from pygpseq.tools import path as pt, string as st
 
 # FUNCTIONS ====================================================================
 

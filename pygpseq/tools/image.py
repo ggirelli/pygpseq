@@ -20,9 +20,9 @@ from skimage.morphology import closing, convex_hull_image, cube
 from skimage.morphology import square
 from skimage.segmentation import clear_border
 
-from . import vector as vt
-from .. import const
-from .io import printout
+from pygpseq import const
+from pygpseq.tools import vector as vt
+from pygpseq.tools.io import printout
 
 # FUNCTIONS ====================================================================
 

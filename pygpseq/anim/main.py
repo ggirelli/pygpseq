@@ -25,17 +25,17 @@ from numpy.lib.recfunctions import append_fields
 import pandas as pd
 from weasyprint import HTML, CSS
 
-from .. import const
+from pygpseq import const
 
-from ..tools import io as iot
-from ..tools import path as pt
-from ..tools import plot
-from ..tools import stat as stt
-from ..tools import string as st
-from ..tools import vector as vt
+from pygpseq.tools import io as iot
+from pygpseq.tools import path as pt
+from pygpseq.tools import plot
+from pygpseq.tools import stat as stt
+from pygpseq.tools import string as st
+from pygpseq.tools import vector as vt
 
-from .analysis import Analyzer
-from .condition import Condition
+from pygpseq.anim.analysis import Analyzer
+from pygpseq.anim.condition import Condition
 
 # CLASSES ======================================================================
 

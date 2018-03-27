@@ -11,7 +11,7 @@
 import os
 import re
 
-from .. import const
+from pygpseq import const
 
 # FUNCTIONS ====================================================================
 

@@ -16,13 +16,13 @@ import tifffile
 from skimage.measure import label
 from skimage.morphology import dilation
 
-from ..tools import Binarize
-from ..tools import image as imt
-from ..tools import io as iot
-from ..tools import plot
+from pygpseq.tools import Binarize
+from pygpseq.tools import image as imt
+from pygpseq.tools import io as iot
+from pygpseq.tools import plot
 
-from .dot import dots2cells, calc_dot_distances
-from .nucleus import build_nuclei, annotate_compartments
+from pygpseq.fish.dot import dots2cells, calc_dot_distances
+from pygpseq.fish.nucleus import build_nuclei, annotate_compartments
 
 # FUNCTIONS ====================================================================
 

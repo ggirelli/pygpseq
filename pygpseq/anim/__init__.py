@@ -12,11 +12,11 @@
 __all__ = ['joblib', 'logging', 'matplotlib', 'multiprocessing', 'numpy',
 	'pandas', 'scipy', 'skimage', 'weasyprint']
 
-from .main import Main
-from .analysis import Analyzer
-from .nucleus import Nucleus
-from .series import Series
-from .condition import Condition
+from pygpseq.anim.main import Main
+from pygpseq.anim.analysis import Analyzer
+from pygpseq.anim.nucleus import Nucleus
+from pygpseq.anim.series import Series
+from pygpseq.anim.condition import Condition
 
 # END ==========================================================================
 

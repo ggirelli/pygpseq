@@ -15,17 +15,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from skimage.measure import label
 
-from .. import const
+from pygpseq import const
 
-from ..tools.binarize import Binarize
-from ..tools import io as iot
-from ..tools import image as imt
-from ..tools import plot
-from ..tools import stat as stt
-from ..tools import string as st
-from ..tools import vector as vt
+from pygpseq.tools.binarize import Binarize
+from pygpseq.tools import io as iot
+from pygpseq.tools import image as imt
+from pygpseq.tools import plot
+from pygpseq.tools import stat as stt
+from pygpseq.tools import string as st
+from pygpseq.tools import vector as vt
 
-from .nucleus import Nucleus
+from pygpseq.anim.nucleus import Nucleus
 
 # CLASSES ======================================================================
 

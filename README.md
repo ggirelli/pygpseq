@@ -15,21 +15,20 @@ To **install**, run the following:
 ```
 git clone http://github.com/ggirelli/gpseq-img-py
 cd gpseq-img-py
-sudo -H pip3 install -e .
+sudo -H pip3 install .
 ```
 
 To **uninstall** run the following from within the repository folder:
 
 ```
-sudo -H python3 setup.py develop --uninstall
-for f in $(ls bin); do whereis $f | cut -f 2 -d " " | xargs sudo -H rm; done
+sudo -H pip3 uninstall pygpseq
 ```
 
 To **update**, first uninstall, and then run the following from within the repository folder.
 
 ```
 git pull
-sudo -H pip3 install -e .
+sudo -H pip3 install .
 ```
 
 Usage

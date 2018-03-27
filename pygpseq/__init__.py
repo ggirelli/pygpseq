@@ -16,7 +16,7 @@ import time
 
 from joblib import Parallel, delayed
 
-from . import const, tools, anim, fish
+from pygpseq import anim, const, fish, tools
 
 # END ==========================================================================
 

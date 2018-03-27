@@ -1,2 +1,2 @@
-include README.rst
-include docs/*.txt
+include README.*
+include CHANGELOG.md

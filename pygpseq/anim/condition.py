@@ -17,10 +17,10 @@ from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
 
-from .. import const
-from ..tools import path as pt, io as iot, plot, stat as stt, string as st
+from pygpseq import const
+from pygpseq.tools import path as pt, io as iot, plot, stat as stt, string as st
 
-from .series import Series
+from pygpseq.anim.series import Series
 
 # CLASSES ======================================================================
 

@@ -11,7 +11,8 @@
 
 __all__ = ['matplotlib', 'numpy', 'scipy', 'skimage', 'tifffile']
 
-from .binarize import Binarize
+from pygpseq.tools.binarize import Binarize
+from pygpseq.tools import chromab, image, io, path, plot, stat, string, vector
 
 # END ==========================================================================
 

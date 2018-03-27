@@ -21,9 +21,9 @@ import numpy as np
 import scipy
 import tifffile
 
-from .. import const
+from pygpseq import const
 
-from . import path as pt, stat as stt
+from pygpseq.tools import path as pt, stat as stt
 
 # FUNCTIONS ====================================================================
 

@@ -13,8 +13,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
 
-from .. import const
-from . import vector as vt
+from pygpseq import const
+
+from pygpseq.tools import vector as vt
 
 # FUNCTIONS ====================================================================
 

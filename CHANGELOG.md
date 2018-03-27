@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [2.0.1]
+### Fixed
+- Fixed sub packages import.
+- Now possible to install not in development status.
+
+
+
+## [2.0.1]
 ### Added
 - `tiff_split` from `tiff-tools-gg`.
 - `--skip-channels` option to `gpseq_fromfish`.

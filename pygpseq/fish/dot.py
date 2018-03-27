@@ -13,7 +13,7 @@ import pandas as pd
 
 from scipy.ndimage.morphology import distance_transform_edt
 
-from ..tools import image as imt
+from pygpseq.tools import image as imt
 
 # FUNCTIONS ====================================================================
 
