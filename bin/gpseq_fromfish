@@ -416,7 +416,8 @@ if not noplot_compartments:
 			coords[:, t['Channel'].values == channel],
 			channels = t['Channel'].values[t['Channel'].values == channel],
 			aspect = aspect, fold = True, title = title,
-			outpng = os.path.join(outdir, "aggregated.%s.folded.png" % channel))
+			outpng = os.path.join(outdir,
+				"aggregated.%s.all.folded.png" % channel))
 
 # Identify G1 cells ------------------------------------------------------------
 t = flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name)

@@ -7,11 +7,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [2.1.1] - 2018-03-28
 ### Changed
 - Z dilation is now turned off by default.
 
 ### Fixed
 - Compartment assignment.
+- Fixed colors in aggregated visualization.
+
+
 
 ## [2.1.0] - 2018-03-28
 ### Added

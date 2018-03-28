@@ -717,6 +717,7 @@ def ortho_3d(coords, scale = None, dot_coords = None, c = None, aspect = None,
     # Prepare colors
     cmap = plt.get_cmap('rainbow')
     channel_names = list(set(channels))
+    channel_names.sort()
     channel_colors = cmap(np.linspace(0, 1, len(channel_names)))
 
     # XY plot
