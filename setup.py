@@ -20,9 +20,10 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 	long_description = f.read()
 
 setup(name='pygpseq',
-	version='2.0.2',
+	version='2.1.0',
 	description='A GPSeq image analysis package',
 	long_description=long_description,
+	long_description_content_type='text/markdown',
 	url='https://github.com/ggirelli/gpseq-img-py',
 	author='Gabriele Girelli',
 	author_email='gabriele.girelli@scilifelab.se',

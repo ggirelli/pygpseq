@@ -28,13 +28,11 @@ from pygpseq.fish.nucleus import build_nuclei, annotate_compartments
 
 def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 	maskdir, dilate_factor, aspect, t, main_mask_dir, main_mask_prefix,
-	doCompartments, plotCompartments, pole_fraction, outdir, noplot,
-	labeled, compressed):
+	plotCompartments, pole_fraction, outdir, noplot,
+	labeled, compressed, istruct):
 	
 	# Logger for logpath
 	logger = iot.IOinterface()
-
-	istruct = imt.mkIsoStruct(dilate_factor, aspect)
 
 	idx = ii
 	impath = imfov[ii]
@@ -136,7 +134,7 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 		series_id = ii, thr = thr,
 		dna_bg = dna_bg, sig_bg = 0,
 		aspect = aspect, offset = (1, 1, 1),
-		logpath = logger.logpath, i = im)
+		logpath = logger.logpath, i = im, istruct = istruct)
 
 	# Assign dots to cells -----------------------------------------------------
 	msg += "   - Analysis...\n"
@@ -149,22 +147,18 @@ def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
 
 	# Compartments -------------------------------------------------------------
 
-	if doCompartments:
-		msg += "    > Annotating compartments...\n"
-		compdir = None
+	msg += "    > Annotating compartments...\n"
+	compdir = None
 
-		if plotCompartments:
-			# Create compartments output directory
-			compdir = os.path.join(outdir, 'compartments/')
-			if not os.path.isdir(compdir):
-				os.mkdir(compdir)
+	if plotCompartments:
+		# Create compartments output directory
+		compdir = os.path.join(outdir, 'compartments/')
+		if not os.path.isdir(compdir):
+			os.mkdir(compdir)
 
-		# Perform annotation
-		subt, tvcomp, msg = annotate_compartments(
-			msg, subt, curnuclei, compdir, pole_fraction, aspect)
-	else:
-		tvcomp = None
-		msg += "    > Skipped compartments annotation.\n"
+	# Perform annotation
+	subt, tvcomp, msg = annotate_compartments(
+		msg, subt, curnuclei, compdir, pole_fraction, aspect)
 
 	# Clean and output ---------------------------------------------------------
 

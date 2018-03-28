@@ -7,12 +7,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+## [2.1.0] - 2018-03-28
+### Added
+- Aggregated visualization per field of view and for the whole dataset, per channel and for all channels.
+- Dilation can be enforced to XY dimensions only (`--no-Z-dilation`).
+
 ### Changed
 - In 3-ortho-view plot nuclei are now occupying as much space as possible.
 - In 3-ortho-view plot are now colored based on the channel.
 
 ### Fixed
 - Now rotating only on XY plane for nuclear compartmentalization.
+
+### Removed
+- Option `--annotate-compart` is now the default behaviour.
 
 
 
@@ -120,7 +131,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
-[2.0.1] https://github.com/ggirelli/gpseq-img-py
+[2.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.0
+[2.0.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.0.1
 [2.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.0.0
 [1.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v1.1.0
 [1.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v1.0.0

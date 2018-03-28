@@ -494,9 +494,18 @@ def mkIsoStruct(dilate_factor, aspect):
     Returns:
       np.ndarray: structureing element for 3D anisotropic dilation.
     '''
-    
-    # Dilation factors
+
+    # XY dilation factor
     df_xy = int(dilate_factor * 2 + 1)
+    if 0 == aspect[0]:
+        se = cube(df_xy)
+        se = se[0]
+        new_shape = [1]
+        [new_shape.append(d) for d in se.shape]
+        se = se.reshape(new_shape)
+        return(se)
+    
+    # Z dilation factor
     df_z = int(dilate_factor * aspect[1] / aspect[0] * 2 + 1)
 
     if df_z == df_xy:

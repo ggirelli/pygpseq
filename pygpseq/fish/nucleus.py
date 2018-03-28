@@ -232,10 +232,56 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 
 			t.loc[np.logical_not(nan_cond), :] = subt
 
+	# Make aggregated visualization --------------------------------------------
+	
+	# Calculate median a/b/c
+	a = np.median(vcomp_table['a'].values)
+	b = np.median(vcomp_table['b'].values)
+	c = np.median(vcomp_table['c'].values)
+
+	coords = np.vstack([t['xnorm'].values * a, t['ynorm'].values * b,
+			t['znorm'].values * c])
+
+	# Plot
+	if not type(None) == type(outdir):
+		# All-channels visualization
+		plot.dots_in_ellipsoid(a, b, c, coords, aspect = aspect,
+			channels = t['Channel'].values,
+			title = "[f%d] Aggregated FISH visualization" % fid,
+			outpng = os.path.join(outdir, "%d.aggregated.all.png" % fid))
+
+		# Single channel visualization
+		for channel in set(t['Channel'].values.tolist()):
+			title = "[f%d] Aggregated FISH visualization" % fid
+			title += " for channel '%s'" % channel
+			plot.dots_in_ellipsoid(a, b, c,
+				coords[:, t['Channel'].values == channel], aspect = aspect,
+				channels = t['Channel'].values[t['Channel'].values == channel],
+				title = title, outpng = os.path.join(outdir,
+					"%d.aggregated.%s.png" % (fid, channel)))
+
+		# All-channels folded visualization
+		plot.dots_in_ellipsoid(a, b, c, coords, aspect = aspect,
+			channels = t['Channel'].values, fold = True,
+			title = "[f%d] Aggregated-folded FISH visualization" % fid,
+			outpng = os.path.join(outdir,
+				"%d.aggregated.all.folded.png" % fid))
+
+		# Single channel folded visualization
+		for channel in set(t['Channel'].values.tolist()):
+			title = "[f%d] Aggregated-folded FISH visualization" % fid
+			title += " for channel '%s'" % channel
+			plot.dots_in_ellipsoid(a, b, c,
+				coords[:, t['Channel'].values == channel],
+				channels = t['Channel'].values[t['Channel'].values == channel],
+				aspect = aspect, fold = True, title = title,
+				outpng = os.path.join(outdir,
+					"%d.aggregated.%s.folded.png" % (fid, channel)))
+
 	return((t, vcomp_table, msg))
 
 def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
-	aspect, offset, logpath, i):
+	aspect, offset, logpath, i, istruct):
 	'''
 	Build nuclei objects
 	
@@ -263,8 +309,6 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		'aspect' : aspect, 'offset' : offset,
 		'logpath' : logpath, 'i' : i
 	}
-
-	istruct = imt.mkIsoStruct(dilate_factor, aspect)
 
 	# Default nuclear ID list and empty dictionary
 	seq = range(1, L.max() + 1)
