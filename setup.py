@@ -20,7 +20,7 @@ with open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 	long_description = f.read()
 
 setup(name='pygpseq',
-	version='2.1.0.post0',
+	version='2.1.0',
 	description='A GPSeq image analysis package',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
