@@ -146,12 +146,6 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 			msg += "".join(["   >>>> GoF_ellipse: %s\n" % (s,)
 				for s in comments])
 
-			# Identify ellipse foci
-			b = yax_size / 2.
-			a = xax_size / 2.
-			c = np.sqrt(a**2 - b**2)
-			#ecc = c / a
-
 			# Rotate dots ------------------------------------------------------
 
 			dot_coords_t = np.vstack(stt.rotate3d(dot_coords, theta1, 2))
@@ -163,6 +157,9 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 			# 0 = center-top
 			# 1 = center-bottom
 			# 2 = pole
+			c = zax_size / 2.
+			b = yax_size / 2.
+			a = xax_size / 2.
 			cf = 1 - 2 * pole_fraction
 			status = np.zeros(dot_coords.shape[1])
 			status[dot_coords_t[2] < 0] = 1
@@ -190,8 +187,8 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 			zt = zt.astype('i')
 
 			# Count voxels in compartments
-			vpole = sum(xt > c) + sum(xt < -c)
-			centr_cond = np.logical_and(xt < c, xt > -c)
+			vpole = sum(xt > cf * a) + sum(xt < -(cf * a))
+			centr_cond = np.logical_and(xt < (cf * a), xt > -(cf * a))
 			vctop = np.logical_and(centr_cond, zt >= 0).sum()
 			vcbot = np.logical_and(centr_cond, zt < 0).sum()
 			vcomp_table.loc[cid, 'center_top'] = vctop
@@ -212,8 +209,8 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 			volume = np.zeros(dot_coords.shape[1])
 			volume[:] = vctop
 			volume[dot_coords_t[2] < 0] = vcbot
-			volume[dot_coords_t[1] > 2 * c - a] = vpole
-			volume[dot_coords_t[1] < -(2 * c - a)] = vpole
+			volume[dot_coords_t[1] > cf * a] = vpole
+			volume[dot_coords_t[1] < -(cf * a)] = vpole
 			subt.loc[cell_cond, 'compartment_volume'] = volume
 
 			# Generate compartment plot with dots ------------------------------
@@ -223,7 +220,7 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 					"%s.%s.png" % (fid, cid,)), "wb")
 				plt.close("all")
 				plot.ortho_3d(tcoords, dot_coords = dot_coords_t,
-					aspect = aspect, c = a * 0.6,
+					aspect = aspect, c = a * cf,
 					channels = subt.loc[cell_cond, 'Channel'].values)
 				plt.suptitle("\n".join(comments))
 				plt.savefig(outpng, format = "png")
