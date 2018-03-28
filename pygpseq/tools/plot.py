@@ -281,6 +281,134 @@ def density_with_range(density, fwhm_range,
     if new_figure and close:
         plt.close(fig)
 
+def dots_in_ellipsoid(a, b, c, coords, aspect = None, fold = None,
+    channels = None, title = None, outpng = None):
+    '''Plot coords in an ellipsoid, 3 orthogonal views (XT, YZ, XZ).
+
+    Args:
+        a, b, c (float): ellipsoid semi-axes.
+        coords (np.ndarray): X/Y/Z coordinates array.
+        fold (bool): whether to fold X/Y dimensions.
+        aspect (tuple): Z/Y/X aspect ratio.
+        channels (list): list of channel names for each dot in coords.
+        title (str): title of the full image.
+        outpng (str): path to output png file (optional).
+    '''
+
+    # Set defaults -------------------------------------------------------------
+    if type(None) == type(title): title = ""
+    if type(None) == type(fold): fold = False
+    if type(None) == type(channels): channels = np.repeat("b", coords.shape[1])
+    if type(None) == type(aspect): aspect = (1, 1, 1)
+    az, ay, ax = aspect
+
+    if not type(None) == type(outpng):
+        outpng = open(outpng, "wb")
+        plt.close("all")
+
+    # Plot ---------------------------------------------------------------------
+    plt.figure(figsize = (10, 10))
+
+    # Extract coordinates
+    x, y, z = coords
+
+    # Calculate general axes limits
+    dlim = np.array([a*1.1, b*1.1, c*1.1]).max()
+
+    # Prepare colors
+    cmap = plt.get_cmap('rainbow')
+    channel_names = list(set(channels))
+    channel_names.sort()
+    channel_colors = cmap(np.linspace(0, 1, len(channel_names)))
+
+    # XY plot
+    st = plt.subplot(2, 2, 1)
+    e = Ellipse((0, 0), 2*a, 2*b, facecolor = "none", edgecolor = "k")
+    st.add_artist(e)
+    if fold:
+        for i in range(len(channel_names)):
+            plt.plot(abs(x)[channels == channel_names[i]],
+                abs(y)[channels == channel_names[i]],
+                '.', color = channel_colors[i])
+        plt.xlim(0, dlim)
+        plt.ylim(0, dlim * ax/ay)
+    else:
+        for i in range(len(channel_names)):
+            plt.plot(x[channels == channel_names[i]],
+                y[channels == channel_names[i]],
+                '.', color = channel_colors[i])
+        plt.xlim(-dlim, dlim)
+        plt.ylim(-dlim, dlim)
+    plt.xlabel("X")
+    plt.ylabel("Y")
+
+    # ZY plot
+    st = plt.subplot(2, 2, 2)
+    e = Ellipse((0, 0), 2*c, 2*b, facecolor = "none", edgecolor = "k")
+    st.add_artist(e)
+    if fold:
+        for i in range(len(channel_names)):
+            plt.plot(z[channels == channel_names[i]],
+                abs(y)[channels == channel_names[i]],
+                '.', color = channel_colors[i])
+        plt.xlim(-dlim * ay/az, dlim * ay/az)
+        plt.ylim(0, dlim)
+    else:
+        for i in range(len(channel_names)):
+            plt.plot(z[channels == channel_names[i]],
+                y[channels == channel_names[i]],
+                '.', color = channel_colors[i])
+        plt.xlim(-dlim * ay/az, dlim * ay/az)
+        plt.ylim(-dlim, dlim)
+    plt.xlabel("Z")
+    plt.ylabel("Y")
+
+    # XZ plot
+    st = plt.subplot(2, 2, 3)
+    e = Ellipse((0, 0), 2*a, 2*c, facecolor = "none", edgecolor = "k")
+    st.add_artist(e)
+    if fold:
+        for i in range(len(channel_names)):
+            plt.plot(abs(x)[channels == channel_names[i]],
+                z[channels == channel_names[i]],
+                '.', color = channel_colors[i])
+        plt.xlim(0, dlim)
+        plt.ylim(-dlim * ax/az, dlim * ax/az)
+    else:
+        for i in range(len(channel_names)):
+            plt.plot(x[channels == channel_names[i]],
+                z[channels == channel_names[i]],
+                '.', color = channel_colors[i])
+        plt.xlim(-dlim, dlim)
+        plt.ylim(-dlim * ax/az, dlim * ax/az)
+    plt.xlabel("X")
+    plt.ylabel("Z")
+
+    # Legend
+    plt.subplot(2, 2, 4)
+    plt.plot()
+    if fold:
+        plt.xlim(0, dlim)
+        plt.ylim(0, dlim * ax/ay)
+    else:
+        plt.xlim(-dlim, dlim)
+        plt.ylim(-dlim, dlim)
+    plt.xlabel("")
+    plt.ylabel("")
+    channel_handles = [mlines.Line2D([], [], color = "white",
+        marker = "o", markerfacecolor = channel_colors[i],
+        label = channel_names[i]) for i in range(len(channel_names))]
+    plt.legend(handles = channel_handles)
+
+    # Figure title
+    plt.suptitle(title)
+
+    # Save output
+    if not type(None) == type(outpng):
+        plt.savefig(outpng, format = "png")
+        plt.close("all")
+        outpng.close()
+
 def export(path, exp_format = None):
     """Export the current plot to the provided path.
 
@@ -674,133 +802,6 @@ def ortho_3d(coords, scale = None, dot_coords = None, c = None, aspect = None,
         marker = "o", markerfacecolor = channel_colors[i],
         label = channel_names[i]) for i in range(len(channel_names))]
     plt.legend(handles = channel_handles)
-
-def dots_in_ellipsoid(a, b, c, coords, aspect = None, fold = None,
-    channels = None, title = None, outpng = None):
-    '''Plot coords in an ellipsoid, 3 orthogonal views (XT, YZ, XZ).
-
-    Args:
-        a, b, c (float): ellipsoid semi-axes.
-        coords (np.ndarray): X/Y/Z coordinates array.
-        fold (bool): whether to fold X/Y dimensions.
-        aspect (tuple): Z/Y/X aspect ratio.
-        channels (list): list of channel names for each dot in coords.
-        title (str): title of the full image.
-        outpng (str): path to output png file (optional).
-    '''
-
-    # Set defaults -------------------------------------------------------------
-    if type(None) == type(title): title = ""
-    if type(None) == type(fold): fold = False
-    if type(None) == type(channels): channels = np.repeat("b", coords.shape[1])
-    if type(None) == type(aspect): aspect = (1, 1, 1)
-    az, ay, ax = aspect
-
-    if not type(None) == type(outpng):
-        outpng = open(outpng, "wb")
-        plt.close("all")
-
-    # Plot ---------------------------------------------------------------------
-    plt.figure(figsize = (10, 10))
-
-    # Extract coordinates
-    x, y, z = coords
-
-    # Calculate general axes limits
-    dlim = np.array([a*1.1, b*1.1, c*1.1]).max()
-
-    # Prepare colors
-    cmap = plt.get_cmap('rainbow')
-    channel_names = list(set(channels))
-    channel_colors = cmap(np.linspace(0, 1, len(channel_names)))
-
-    # XY plot
-    st = plt.subplot(2, 2, 1)
-    e = Ellipse((0, 0), 2*a, 2*b, facecolor = "none", edgecolor = "k")
-    st.add_artist(e)
-    if fold:
-        for i in range(len(channel_names)):
-            plt.plot(abs(x)[channels == channel_names[i]],
-                abs(y)[channels == channel_names[i]],
-                '.', color = channel_colors[i])
-        plt.xlim(0, dlim)
-        plt.ylim(0, dlim * ax/ay)
-    else:
-        for i in range(len(channel_names)):
-            plt.plot(x[channels == channel_names[i]],
-                y[channels == channel_names[i]],
-                '.', color = channel_colors[i])
-        plt.xlim(-dlim, dlim)
-        plt.ylim(-dlim, dlim)
-    plt.xlabel("X")
-    plt.ylabel("Y")
-
-    # ZY plot
-    st = plt.subplot(2, 2, 2)
-    e = Ellipse((0, 0), 2*c, 2*b, facecolor = "none", edgecolor = "k")
-    st.add_artist(e)
-    if fold:
-        for i in range(len(channel_names)):
-            plt.plot(z[channels == channel_names[i]],
-                abs(y)[channels == channel_names[i]],
-                '.', color = channel_colors[i])
-        plt.xlim(-dlim * ay/az, dlim * ay/az)
-        plt.ylim(0, dlim)
-    else:
-        for i in range(len(channel_names)):
-            plt.plot(z[channels == channel_names[i]],
-                y[channels == channel_names[i]],
-                '.', color = channel_colors[i])
-        plt.xlim(-dlim * ay/az, dlim * ay/az)
-        plt.ylim(-dlim, dlim)
-    plt.xlabel("Z")
-    plt.ylabel("Y")
-
-    # XZ plot
-    st = plt.subplot(2, 2, 3)
-    e = Ellipse((0, 0), 2*a, 2*c, facecolor = "none", edgecolor = "k")
-    st.add_artist(e)
-    if fold:
-        for i in range(len(channel_names)):
-            plt.plot(abs(x)[channels == channel_names[i]],
-                z[channels == channel_names[i]],
-                '.', color = channel_colors[i])
-        plt.xlim(0, dlim)
-        plt.ylim(-dlim * ax/az, dlim * ax/az)
-    else:
-        for i in range(len(channel_names)):
-            plt.plot(x[channels == channel_names[i]],
-                z[channels == channel_names[i]],
-                '.', color = channel_colors[i])
-        plt.xlim(-dlim, dlim)
-        plt.ylim(-dlim * ax/az, dlim * ax/az)
-    plt.xlabel("X")
-    plt.ylabel("Z")
-
-    # Legend
-    plt.subplot(2, 2, 4)
-    plt.plot()
-    if fold:
-        plt.xlim(0, dlim)
-        plt.ylim(0, dlim * ax/ay)
-    else:
-        plt.xlim(-dlim, dlim)
-        plt.ylim(-dlim, dlim)
-    plt.xlabel("")
-    plt.ylabel("")
-    channel_handles = [mlines.Line2D([], [], color = "white",
-        marker = "o", markerfacecolor = channel_colors[i],
-        label = channel_names[i]) for i in range(len(channel_names))]
-    plt.legend(handles = channel_handles)
-
-    # Figure title
-    plt.suptitle(title)
-
-    # Save output
-    if not type(None) == type(outpng):
-        plt.savefig(outpng, format = "png")
-        plt.close("all")
-        outpng.close()
 
 def profile_density_scatterplot(pp, field_label, nbins, xyrange,
     profile, new_figure = None, dlabel = None):
