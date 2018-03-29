@@ -406,7 +406,7 @@ if not noplot_compartments:
 	plot.dots_in_ellipsoid(a, b, c, coords, aspect = aspect, fold = True,
 		channels = t['Channel'].values,
 		title = "Aggregated-folded FISH visualization",
-		outpng = os.path.join(outdir, "aggregated.folded.png"))
+		outpng = os.path.join(outdir, "aggregated.all.folded.png"))
 
 	# Single channel folded visualization
 	for channel in set(t['Channel'].values.tolist()):
@@ -417,7 +417,7 @@ if not noplot_compartments:
 			channels = t['Channel'].values[t['Channel'].values == channel],
 			aspect = aspect, fold = True, title = title,
 			outpng = os.path.join(outdir,
-				"aggregated.%s.all.folded.png" % channel))
+				"aggregated.%s.folded.png" % channel))
 
 # Identify G1 cells ------------------------------------------------------------
 t = flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name)
