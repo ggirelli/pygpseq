@@ -34,7 +34,6 @@
 # Date: 20180302
 # Project: bioimaging
 # Description: Uncompress compressed tiff.
-# Requires: 
 # 
 # Changelog:
 #  v1.0.0 - 20180314: merged with pygpseq.

@@ -34,7 +34,6 @@
 # Date: 20171205
 # Project: bioimaging
 # Description: automatic 3D segmentation of nuclear staining.
-# Requires: 
 # 
 # Changelog:
 #  v2.0.0 - 20180314: merged with pygpseq.

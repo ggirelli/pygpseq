@@ -32,6 +32,7 @@
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
 # Version: 1.0.0
+# Project: GPSeq
 # Description: script to interface with the pygpseq.anim package.
 # 
 # ------------------------------------------------------------------------------

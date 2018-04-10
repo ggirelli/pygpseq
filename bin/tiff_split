@@ -34,7 +34,6 @@
 # Date: 20180316
 # Project: bioimaging
 # Description: split TIFF in smaller images.
-# Requires: 
 # 
 # Changelog:
 #  v1.0.0 - 20180316: converted from MATLAB to Python3 and merged with pygpseq.

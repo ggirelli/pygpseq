@@ -34,7 +34,6 @@
 # Date: 20180316
 # Project: bioimaging
 # Description: convert nd2 images to tiff.
-# Requires: 
 # 
 # Changelog:
 #  v1.0.1 - 20180410: added extension to output tif.
