@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [2.1.2] - 2018-04-10
 ### Fixed
 - Fixed dataset aggregated view file names.
 - Extension now present in `nd2_to_tiff` output.
@@ -144,6 +150,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[2.1.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.2
 [2.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.0
 [2.0.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.0.1
 [2.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.0.0
