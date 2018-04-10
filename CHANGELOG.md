@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
-### ...
-- ...
+### Added
+- Plotting option to `tiff_findoof` script.
 
 
 

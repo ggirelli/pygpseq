@@ -32,10 +32,12 @@
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
 # Date: 20171129
-# Project: bioimaginb
+# Project: bioimaging
 # Description: extract intensity distribution on Z.
 # 
 # Changelog:
+#  v0.2.0 - 20180410: added plotting option.
+#  v0.1.1 - 20180410: redundancy fix.
 #  v0.1.0 - 20180321: added progress bar.
 #  v0.0.1 - 20171129: first release.
 # 
@@ -45,15 +47,19 @@
 
 # DEPENDENCIES =================================================================
 
+import matplotlib
+matplotlib.use('ps')
+import matplotlib.pyplot as plt
+
 import argparse
 import os
 import re
+import sys
 from tqdm import tqdm
 
-from pygpseq.tools import image as imt
+from pygpseq.tools import image as imt, plot
 
 # PARAMETERS ===================================================================
-
 
 # Add script description
 parser = argparse.ArgumentParser(description = '''
@@ -68,61 +74,101 @@ parser.add_argument('output', type = str, nargs = 1,
     help = 'Path to output table file.')
 
 # Add arguments with default value
-parser.add_argument('--range', type = float, nargs = 1, metavar = 'range',
+parser.add_argument('-r', '--range', type = float, nargs = 1, metavar = 'range',
     help = '''Specify %% of stack where the maximum of intensity distribution
     over Z is expected for an in-focus field of view. Default: 50%%''',
     default = [.5])
-parser.add_argument('--pattern', type = str, nargs = 1, metavar = 'regexp',
+parser.add_argument('-p', '--pattern', type = str, nargs = 1, metavar = 'regexp',
     help = '''Provide a regular expression pattern matching the images in the
     image folder that you want to check. Default: "^.*\.tif$"''',
     default = ["^.*\.tif$"])
 
+# Flag arguments
+parser.add_argument('-P', '--plot', action = 'store_const',
+    help = """Generate pdf plot of intensity sum per Z-slice.""",
+    const = True, default = False)
+
 # Version flag
-version = "0.1.0"
+version = "0.2.0"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
 # Parse arguments
 args = parser.parse_args()
 
-# Assign to in-script variables
-imdir = args.imdir[0]
-fout_path = args.output[0]
-prange = args.range[0]
-pattern = args.pattern[0]
-
 # FUNCTIONS ====================================================================
+
+def mkPlot(pdata, path):
+    '''Generate pdf plot of sum intensity per Z slice.
+
+    Args:
+        pdata (dict): for each FoV, a dict with 'x' and 'y' paired coordinates.
+        path (string): path to pdf output file.
+
+    Returns:
+        None: writes to disk.
+    '''
+    
+    plt.figure(figsize = [12, 8])
+
+    xmax = max([max(f['x']) for f in pdata.values()])
+    ymax = max([max(f['y']) for f in pdata.values()])
+
+    for (f, data) in pdata.items():
+        plt.plot(data['x'], data['y'], linewidth = .5)
+
+    plt.xlabel("Z-slice index")
+    plt.ylabel("Intensity sum [a.u.]")
+    plt.title("Out-of-focus study")
+
+    plt.legend(list(pdata.keys()),
+        bbox_to_anchor = (1.04, 1), loc = "upper left",
+        prop = {'size' : 6})
+    plt.subplots_adjust(right = 0.75)
+
+    plt.gca().axvline(x = xmax * args.range[0] / 2, ymax = ymax,
+        linestyle = "--", color = "k")
+    plt.gca().axvline(x = xmax - xmax * args.range[0] / 2, ymax = ymax,
+        linestyle = "--", color = "k")
+
+    plot.export(path)
+
+    plt.show()
 
 # RUN ==========================================================================
 
 # Add trailing slash to image folder path
-if not "/" == imdir[-1]:
-    imdir += "/"
+if not "/" == args.imdir[0][-1]:
+    args.imdir[0] += "/"
 
 # Check that image folder path exists
-if not os.path.isdir(imdir):
-    sys.exit("!ERROR: specified imdir does not exist.\n%s" % (imdir,))
+if not os.path.isdir(args.imdir[0]):
+    sys.exit("!ERROR: specified imdir does not exist.\n%s" % (args.imdir[0],))
 
 # Open buffer to output file
-fout = open(fout_path, "w+")
+fout = open(args.output[0], "w+")
+lout = open(os.path.splitext(args.output[0])[0] + ".log", "w+")
+
+# If plot is required, prepare plot_data
+if args.plot: profile_data = {}
 
 # Identify tiff images
 flist = []
-for (dirpath, dirnames, filenames) in os.walk(imdir):
+for (dirpath, dirnames, filenames) in os.walk(args.imdir[0]):
     flist.extend(filenames)
     break
-imlist = [f for f in flist if not type(None) == type(re.match(pattern, f))]
+immatch = lambda f: not type(None) == type(re.match(args.pattern[0], f))
+imlist = [f for f in flist if immatch(f)]
 
 # Iterate through fields of view
 t = tqdm(imlist)
-t.set_description(os.path.dirname(imdir))
+t.set_description(os.path.dirname(args.imdir[0]))
 for impath in t:
     # Read image
-    im = imt.read_tiff(imdir + impath)
+    im = imt.read_tiff(args.imdir[0] + impath)
     
     # Select first time frame
-    while 3 < len(im.shape):
-        im = im[0]
+    while 3 < len(im.shape): im = im[0]
 
     # Iterate through slices
     intlist = []
@@ -133,23 +179,30 @@ for impath in t:
         # Write output table
         fout.write("%s\t%d\t%f\n" % (impath, zi + 1, intlist[zi]))
 
+        # If plot is required, update profile data
+        if args.plot:
+            if impath in profile_data.keys():
+                profile_data[impath]['x'].append(zi + 1)
+                profile_data[impath]['y'].append(intlist[zi])
+            else:
+                profile_data[impath] = {'x' : [zi + 1], 'y' : [intlist[zi]]}
 
     # Identify maximum slice
     maxid = intlist.index(max(intlist))
-    hrange = im.shape[0] * prange / 2.
+    hrange = im.shape[0] * args.range[0] / 2.
     hstack = im.shape[0] / 2.
     if maxid >= (hstack - hrange) and maxid <= (hstack + hrange):
-        print("%s is in-focus." % (impath,))
+        lout.write("%s is in-focus.\n" % (impath,))
     else:
-        print("%s is out-of-focus." % (impath,))
+        lout.write("%s is out-of-focus.\n" % (impath,))
 
 # Close buffer to output file
+lout.close()
 fout.close()
 
-print("""
-NOTE: use tiff_plotoof to generate a PDF of the distributions. Simply run:
-      tiff_plotoof %s %s.pdf
-""" % (fout_path, fout_path))
+# Generate plot
+outpath = os.path.splitext(args.output[0])[0] + ".pdf"
+if args.plot: mkPlot(profile_data, outpath)
 
 # END ==========================================================================
 
