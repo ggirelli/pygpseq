@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Fixed
 - Fixed dataset aggregated view file names.
+- Extension now present in `nd2_to_tiff` output.
 
 
 

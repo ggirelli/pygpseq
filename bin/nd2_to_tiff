@@ -31,13 +31,13 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 1.0.0
 # Date: 20180316
 # Project: bioimaging
 # Description: convert nd2 images to tiff.
 # Requires: 
 # 
 # Changelog:
+#  v1.0.1 - 20180410: added extension to output tif.
 #  v1.0.0 - 20180320: first release.
 # 
 # ------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ parser.add_argument('--compressed',
     help = 'Force compressed TIFF as output (not compatible with ImageJ).')
 
 # Version flag
-version = "1.0.0"
+version = "1.0.1"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
@@ -129,10 +129,10 @@ def export_fov(fov, metadata, fid):
 
         # Identify ouytput file name notation
         if "GPSeq" == mode:
-            outpath = "%s.channel%03d.series%03d" % (
+            outpath = "%s.channel%03d.series%03d.tif" % (
                 metadata['channels'][cid].lower(), cid + 1, fid + 1)
         elif "DOTTER" == mode:
-            outpath = "%s_%03d" % (
+            outpath = "%s_%03d.tif" % (
                 metadata['channels'][cid].lower(), fid + 1)
         else: return()
 
