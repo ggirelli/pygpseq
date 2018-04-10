@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Plotting option to `tiff_findoof` script.
 
+### Fixed
+- Axes order in `nd2_to_tiff`.
+
 
 
 ## [2.1.2] - 2018-04-10

@@ -36,6 +36,7 @@
 # Description: convert nd2 images to tiff.
 # 
 # Changelog:
+#  v1.1.0 - 20180410: fixed axes order.
 #  v1.0.1 - 20180410: added extension to output tif.
 #  v1.0.0 - 20180320: first release.
 # 
@@ -88,7 +89,7 @@ parser.add_argument('--compressed',
     help = 'Force compressed TIFF as output (not compatible with ImageJ).')
 
 # Version flag
-version = "1.0.1"
+version = "1.1.0"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
@@ -125,6 +126,7 @@ def export_fov(fov, metadata, fid):
     # Iterate over channels
     for cid in range(fov.shape[3]):
         ch = fov[:, :, :, cid]
+        print(ch.shape)
 
         # Identify ouytput file name notation
         if "GPSeq" == mode:
@@ -149,14 +151,14 @@ if 'v' not in images.axes:
     print("Single field of view found.")
 
     # Export single field of view
-    images.bundle_axes = 'xyzc'
+    images.bundle_axes = 'zyxc'
     export_fov(images[0], images.metadata, 0)
 else:
     print("Multiple fields of view found (%d)." % images.sizes['v'])
 
     # Export multiple fields of view
     images.iter_axes = 'v'
-    images.bundle_axes = 'xyzc'
+    images.bundle_axes = 'zyxc'
     for fid in range(images.sizes['v']):
         fov = images[fid]
         export_fov(fov, images.metadata, fid)
