@@ -54,8 +54,7 @@ def analyze_field_of_view(sid, data, im2fov,
 	im = imt.slice_k_d_img(im, 3)
 
 	# Get DNA scaling factor and rescale
-	sf = imt.get_rescaling_factor([im2fov[sid]],
-		basedir = os.path.dirname(im2fov[sid]))
+	sf = imt.get_rescaling_factor(im2fov[sid])
 	msg += printout("Re-scaling with factor %f..." % (sf,), 2, v)
 	im = (im / sf).astype('float')
 
@@ -119,19 +118,19 @@ def analyze_field_of_view(sid, data, im2fov,
 		# Save default mask
 		msg += printout("Saving default binary mask...", 3, v)
 		plot.export_mask_png( "%smask.%s.default.png" % (maskdir,
-		imbname), imbin, im2fov[sid], "Default mask.")
+		imbname), imbin, "Default mask.")
 
 		# Export dilated mask
 		if 0 != dilate_factor:
 			msg += printout("Saving dilated mask...", 3, v)
 			plot.export_mask_png("%smask.%s.dilated%d.png" % (maskdir,
-				imbname, dilate_factor), dilation(imbin, istruct), im2fov[sid],
+				imbname, dilate_factor), dilation(imbin, istruct),
 				"Dilated mask, %d factor." % (dilate_factor,))
 
 		# Export labeled mask
 		msg += printout("Saving nuclear ID mask...", 3, v)
 		plot.export_mask_png("%smask.%s.nuclei.png" % ( maskdir, imbname),
-			L, im2fov[sid], 'Nuclei in "%s" [%d objects]' % (
+			L, 'Nuclei in "%s" [%d objects]' % (
 			os.path.basename(im2fov[sid]), L.max()))
 
 	# Store nuclei -------------------------------------------------------------
