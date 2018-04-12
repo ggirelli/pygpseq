@@ -361,8 +361,9 @@ if 1 != args.threads[0]:
 		delayed(analyze_field_of_view)(ii, **kwargs)
 		for ii in im2fov.keys())
 else:
-	anData = [analyze_field_of_view(list(im2fov.keys())[0],
-			verbose = True, **kwargs)]
+	anData = []
+	for k in im2fov.keys(): anData.append(analyze_field_of_view(k,
+		verbose = True, **kwargs))
 
 # Parse output and store log report --------------------------------------------
 
