@@ -405,34 +405,28 @@ def get_rescaling_factor(path, **kwargs):
 
     # Set basedir if not provided
     if not 'basedir' in kwargs.keys():
-        kwargs['basedir'] = './'
+        kwargs['basedir'] = os.path.dirname(path)
+
 
     # Build proper path to the deconvolution log file
-    path = kwargs['basedir'] + path[0]
-    path = path.split('.')
-    path[len(path) - 2] = path[len(path) - 2] + '_history'
-    path[len(path) - 1] = 'txt'
-    path = '.'.join(path)
+    path = os.path.join(kwargs['basedir'], os.path.basename(path))
+    path = list(os.path.splitext(path))
+    path[0] = path[0] + '_history'
+    path[-1] = '.txt'
+    path = ''.join(path)
     
-    if not os.path.exists(path):
-        # Means that the image was not deconvolved
-        factor = 1
+    # Means that the image was not deconvolved
+    if not os.path.exists(path): factor = 1
     else:
         # Identify line with scaling factor
-        fhistory = open(path, 'r')
-        frows = fhistory.readlines()
-        fhistory.close()
+        with open(path, 'r') as fhistory:
+            frows = fhistory.readlines()
 
         # Retrieve factor
         needle = 'Stretched to Integer type'
         factor = [x for x in frows if needle in x]
-        if 0 == len(factor):
-            factor = 1
-        else:
-            factor = factor[0]
-            factor = factor.strip()
-            factor = factor.split(' ')
-            factor = float(factor[len(factor) - 1])
+        if 0 == len(factor): factor = 1
+        else: factor = float(factor[0].strip().split(' ')[-1])
 
     # Output
     return(factor)
