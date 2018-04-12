@@ -215,8 +215,7 @@ def printout(s, lvl, verbose = True):
         s = '    >>> ' + s
 
     # Log
-    if verbose:
-        print(s)
+    if verbose: print(s)
     return(st.add_trailing_new_line(s))
 
 # END ==========================================================================

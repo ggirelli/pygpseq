@@ -554,8 +554,7 @@ def read_tiff(impath):
         printout("%s:\n%s\n" % (msg, impath), -2)
 
     # Read TIFF (capture any parsing issues)
-    try:
-        imch = imread(impath)
+    try: imch = imread(impath)
     except ValueError as e:
         msg = "Something went wrong while trying to read a file"
         printout("%s (possibly corrupt):\n%s\n" % (msg, impath), -2)
