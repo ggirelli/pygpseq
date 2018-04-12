@@ -10,166 +10,172 @@
 
 import numpy as np
 import os
-import pandas as pd
-import tifffile
 
 from skimage.measure import label
 from skimage.morphology import dilation
 
+from pygpseq.fish import dot
+from pygpseq.fish import nucleus
+
 from pygpseq.tools import Binarize
 from pygpseq.tools import image as imt
-from pygpseq.tools import io as iot
+from pygpseq.tools.io import IOinterface, printout
 from pygpseq.tools import plot
-
-from pygpseq.fish.dot import dots2cells, calc_dot_distances
-from pygpseq.fish.nucleus import build_nuclei, annotate_compartments
 
 # FUNCTIONS ====================================================================
 
-def analyze_field_of_view(ii, imfov, imdir, an_type, seg_type,
-	maskdir, dilate_factor, aspect, t, main_mask_dir, main_mask_prefix,
+def analyze_field_of_view(sid, data, im2fov,
+	dilate_factor, aspect,
+	mask_dir, mask_prefix,
 	plotCompartments, pole_fraction, outdir, noplot,
-	labeled, compressed, istruct):
-	
-	# Logger for logpath
-	logger = iot.IOinterface()
+	labeled, compressed, istruct,
+	an_type, seg_type, # Required by the Binarize class
+	verbose = False):
+	'''
 
-	idx = ii
-	impath = imfov[ii]
-	msg = "> Job '%s'...\n" % (impath,)
-	subt_idx = np.where(t['File'] == idx)[0]
+	Args:
+		sid (int): series ID.
+		data (pd.DataFrame): FISH data table.
+		im2fov (dict): sid-to-absPath dictionary.
+	'''
+
+	v = verbose
+	msg = printout("Job '%s'..." % (im2fov[sid],), 1, v)
+	subt = data.loc[np.where(data['File'] == sid)[0], :]
+
+	# INPUT ====================================================================
 
 	# Read image
-	msg += "   - Reading ...\n"
-	im = tifffile.imread(os.path.join(imdir, impath))
-	if 1 == im.shape[0]:
-		im = im[0]
+	msg += printout("Reading image ...", 2, v)
+	im = imt.read_tiff(im2fov[sid])
 
 	# Re-slice
-	msg += "    > Re-slicing ...\n"
-	im = imt.autoselect_time_frame(im)
+	msg += printout("Re-slicing ...", 2, v)
 	im = imt.slice_k_d_img(im, 3)
 
 	# Get DNA scaling factor and rescale
-	sf = imt.get_rescaling_factor([impath], basedir = imdir)
+	sf = imt.get_rescaling_factor([im2fov[sid]],
+		basedir = os.path.dirname(im2fov[sid]))
+	msg += printout("Re-scaling with factor %f..." % (sf,), 2, v)
 	im = (im / sf).astype('float')
-	msg += "    > Re-scaling with factor %f...\n" % (sf,)
 
-	# Pick first timeframe
-	if 3 == len(im.shape) and 1 == im.shape[0]:
-		im = im[0]
+	# Pick first XY plane
+	if 3 == len(im.shape) and 1 == im.shape[0]: im = im[0]
 
-	# Binarize image -----------------------------------------------------------
-	binarization = Binarize(
-		an_type = an_type, seg_type = seg_type, verbose = False)
+	# SEGMENTATION =============================================================
+	
+	Segmenter = Binarize(an_type = an_type, seg_type = seg_type,
+		verbose = verbose)
 	
 	# Check if already segmented
 	already_segmented = False
-	if not type(None) == type(main_mask_dir):
-		mpath = os.path.join(main_mask_dir, main_mask_prefix + impath)
-		if os.path.isfile(mpath):
-			already_segmented = True
+	if not type(None) == type(mask_dir):
+		mpath = os.path.join(mask_dir, mask_prefix + im2fov[sid])
+		already_segmented = os.path.isfile(mpath)
 
 	# Skip or binarize
 	if already_segmented:
-		msg += "   - Skipped binarization, using provided mask.\n"
-		imbin = imt.read_tiff(mpath) != 0
+		msg += printout("Skipped binarization, using provided mask.", 3, v)
+		imbin = imt.read_tiff(mpath) != 0 # Read and binarize
 		thr = 0
 	else:
-		msg += "   - Binarizing...\n"
-		(imbin, thr, log) = binarization.run(im)
+		msg += printout("Binarizing...", 2, v)
+		(imbin, thr, log) = Segmenter.run(im)
 		msg += log
-
-	# Find nuclei --------------------------------------------------------------
-	msg += "   - Retrieving nuclei...\n"
 
 	# Estimate background
 	dna_bg = imt.estimate_background(im, imbin, seg_type)
-	msg += "    > Estimated background: %.2f a.u.\n" % (dna_bg,)
+	msg += printout("Estimated background: %.2f a.u." % (dna_bg,), 3, v)
 
-	# Filter object size
-	imbin, tmp = binarization.filter_obj_XY_size(imbin)
-	imbin, tmp = binarization.filter_obj_Z_size(imbin)
+	# Filter based on object size
+	imbin, tmp = Segmenter.filter_obj_XY_size(imbin)
+	imbin, tmp = Segmenter.filter_obj_Z_size(imbin)
 
-	# Save default mask
-	msg += "   - Saving default binary mask...\n"
-	outname = "%smask.%s.default.png" % (maskdir, os.path.splitext(impath)[0])
-	if not noplot:
-		plot.export_mask_png(outname, imbin, impath, "Default mask.")
-
-	# Export dilated mask
-	if not noplot and 0 != dilate_factor:
-		msg += "   - Saving dilated mask...\n"
-		imbin_dil = dilation(imbin, istruct)
-		title = "Dilated mask, %d factor." % (dilate_factor,)
-		outname = "%smask.%s.dilated%d.png" % (maskdir,
-			os.path.splitext(impath)[0], dilate_factor)
-		plot.export_mask_png(outname, imbin_dil, impath, title)
-
-	# Identify nuclei
+	# NUCLEI ===================================================================
+	
+	msg += printout("Retrieving nuclei...", 2, v)
 	L = label(imbin)
-	seq = range(1, L.max() + 1)
 
-	# Export binary mask
-	if not type(None) == type(main_mask_dir) and not already_segmented:
-		if not os.path.isdir(main_mask_dir):
-			os.mkdir(main_mask_dir)
-		msg += "   >>> Exporting mask as tif...\n"
-		if labeled:
+	# Save mask ----------------------------------------------------------------
+	
+	# Export binary mask as TIF
+	if not type(None) == type(mask_dir) and not already_segmented:
+		msg += printout("Exporting mask as tif...", 4, v)
+		if not os.path.isdir(mask_dir): os.mkdir(mask_dir)
+		if labeled: # Export labeled mask
 			plot.save_tif(mpath, L, 'uint8', compressed)
-		else:
+		else: # Export binary mask (min/max)
 			L[np.nonzero(L)] = 255
 			plot.save_tif(mpath, L, 'uint8', compressed)
 			L = label(imbin)
 
-	# Save mask ----------------------------------------------------------------
-	msg += "   - Saving nuclear ID mask...\n"
-	title = 'Nuclei in "%s" [%d objects]' % (impath, L.max())
-	outpath = "%smask.%s.nuclei.png" % (maskdir, os.path.splitext(impath)[0])
+	# Export mask as PNG
 	if not noplot:
-		plot.export_mask_png(outpath, L, impath, title)
+		# Create png masks output directory
+		maskdir = os.path.join(outdir, 'masks/')
+		if not os.path.isdir(maskdir): os.mkdir(maskdir)
+		imbname = os.path.splitext(os.path.basename(im2fov[sid]))[0]
+
+		# Save default mask
+		msg += printout("Saving default binary mask...", 3, v)
+		plot.export_mask_png( "%smask.%s.default.png" % (maskdir,
+		imbname), imbin, im2fov[sid], "Default mask.")
+
+		# Export dilated mask
+		if 0 != dilate_factor:
+			msg += printout("Saving dilated mask...", 3, v)
+			plot.export_mask_png("%smask.%s.dilated%d.png" % (maskdir,
+				imbname, dilate_factor), dilation(imbin, istruct), im2fov[sid],
+				"Dilated mask, %d factor." % (dilate_factor,))
+
+		# Export labeled mask
+		msg += printout("Saving nuclear ID mask...", 3, v)
+		plot.export_mask_png("%smask.%s.nuclei.png" % ( maskdir, imbname),
+			L, im2fov[sid], 'Nuclei in "%s" [%d objects]' % (
+			os.path.basename(im2fov[sid]), L.max()))
 
 	# Store nuclei -------------------------------------------------------------
-	msg, curnuclei = build_nuclei(msg, L, dilate_factor,
-		series_id = ii, thr = thr,
+	msg, curnuclei = nucleus.build_nuclei(msg, L, dilate_factor,
+		series_id = sid, thr = thr,
 		dna_bg = dna_bg, sig_bg = 0,
 		aspect = aspect, offset = (1, 1, 1),
-		logpath = logger.logpath, i = im, istruct = istruct)
+		logpath = IOinterface().logpath, i = im, istruct = istruct)
+
+	# ANALYSIS =================================================================
+	
+	msg += printout("Analyzing...", 2, v)
 
 	# Assign dots to cells -----------------------------------------------------
-	msg += "   - Analysis...\n"
-	msg += "    > Assigning dots to cells...\n"
-	subt = dots2cells(t.loc[subt_idx, :], curnuclei, dilate_factor)
+	
+	msg += printout("Assigning dots to cells...", 3, v)
+	subt = dot.dots2cells(subt, curnuclei, dilate_factor)
 
 	# Distances ----------------------------------------------------------------
-	msg += "    > Calculating lamina distance...\n"
-	subt, msg = calc_dot_distances(msg, subt, curnuclei, aspect)
+	
+	msg += printout("Calculating lamina distance...", 3, v)
+	subt, msg = dot.calc_dot_distances(msg, subt, curnuclei, aspect)
 
 	# Compartments -------------------------------------------------------------
 
-	msg += "    > Annotating compartments...\n"
+	msg += printout("Annotating compartments...", 3, v)
 	compdir = None
 
-	if plotCompartments:
-		# Create compartments output directory
+	if plotCompartments: # Create compartments output directory
 		compdir = os.path.join(outdir, 'compartments/')
-		if not os.path.isdir(compdir):
-			os.mkdir(compdir)
+		if not os.path.isdir(compdir): os.mkdir(compdir)
 
 	# Perform annotation
-	subt, tvcomp, msg = annotate_compartments(
+	subt, tvcomp, msg = nucleus.annotate_compartments(
 		msg, subt, curnuclei, compdir, pole_fraction, aspect)
 
-	# Clean and output ---------------------------------------------------------
+	# CONCLUDE =================================================================
 
-	# Remove masks from curnuclei
-	for k in curnuclei.keys():
-		del curnuclei[k].mask
+	# Remove masks from curnuclei to free some memory
+	for k in curnuclei.keys(): del curnuclei[k].mask
 
 	# Output
-	msg += "< Finished job.\n"
-	#print(msg)
-	return((curnuclei, subt, subt_idx, tvcomp, msg))
+	msg += printout("< Finished job.", 0, v)
+	return((curnuclei, subt, tvcomp, msg))
 
 # END ==========================================================================
 
