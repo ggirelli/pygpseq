@@ -24,19 +24,35 @@ from pygpseq.tools import plot
 
 # FUNCTIONS ====================================================================
 
-def analyze_field_of_view(sid, data, im2fov,
-	dilate_factor, aspect,
-	mask_dir, mask_prefix,
-	plotCompartments, pole_fraction, outdir, noplot,
-	labeled, compressed, istruct,
+def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
+	mask_dir, mask_prefix, plotCompartments, pole_fraction,
+	outdir, noplot, labeled, compressed,
 	an_type, seg_type, # Required by the Binarize class
 	verbose = False):
-	'''
+	'''Given a table with FISH data, add information on:
+		- lamin/center absolute/normalized distance
+		- angle between homogue pairs
+		- compartment assignment
+		- dots coordinates in normalized ellipsoid
 
 	Args:
 		sid (int): series ID.
 		data (pd.DataFrame): FISH data table.
 		im2fov (dict): sid-to-absPath dictionary.
+		dilate_factor (int): number of pixels for dilation
+		istruct (tuple): 3D isotropic structuring element for dilation.
+		aspect (tuple): ZYX voxel aspect.
+		mask_dir (string): path to folder for TIFF masks import/export.
+		mask_prefix (string): prefix for TIFF masks.
+		plotCompartments (bool): generate compartment plots.
+		pole_fraction (float):.
+		outdir (str): path to analysis output folder.
+		noplot (bool): turn plotting off.
+		labeled (bool): import/export masks as labeled.
+		compressed (bool): export masks as compressed TIFFs.
+		an_type
+		seg_type
+		verbose (bool): display action log.
 	'''
 
 	v = verbose
@@ -101,8 +117,9 @@ def analyze_field_of_view(sid, data, im2fov,
 	if not type(None) == type(mask_dir) and not already_segmented:
 		msg += printout("Exporting mask as tif...", 4, v)
 		if not os.path.isdir(mask_dir): os.mkdir(mask_dir)
-		if labeled: # Export labeled mask
-			plot.save_tif(mpath, L, 'uint8', compressed)
+
+		# Export labeled mask
+		if labeled: plot.save_tif(mpath, L, 'uint8', compressed)
 		else: # Export binary mask (min/max)
 			L[np.nonzero(L)] = 255
 			plot.save_tif(mpath, L, 'uint8', compressed)
@@ -157,9 +174,10 @@ def analyze_field_of_view(sid, data, im2fov,
 	# Compartments -------------------------------------------------------------
 
 	msg += printout("Annotating compartments...", 3, v)
-	compdir = None
 
-	if plotCompartments: # Create compartments output directory
+	# Setup condition for compartment plotting
+	compdir = None
+	if plotCompartments and not noplot:
 		compdir = os.path.join(outdir, 'compartments/')
 		if not os.path.isdir(compdir): os.mkdir(compdir)
 

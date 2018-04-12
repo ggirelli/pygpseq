@@ -281,6 +281,11 @@ if az != ax or not args.doZdilation:
 # Read table
 t = pd.read_csv(args.dotCoords[0], delim)
 
+# Check that all required columns are present
+req_col = ['File', 'Channel', 'x', 'y', 'z']
+misscols = [cn for cn in req_col if cn not in t.columns]
+assert 0 == len(misscols), "missing required column(s): %s" % str(misscols)
+
 # Remove channels to be skipped from the table
 old_size = t.shape[0]
 if type(None) != type(args.skip_channels):
@@ -341,21 +346,15 @@ t.index = range(t.shape[0])
 
 print("  > Analyzing fields of view... [n.threads=%d]" % (args.threads[0],))
 kwargs = {
-	'data' : t,
-	'im2fov' : im2fov,
-	'an_type' : an_type,
-	'seg_type' : seg_type,
+	'data' : t, 'im2fov' : im2fov,
 	'dilate_factor' : args.dilate[0],
-	'aspect' : args.aspect,
-	'mask_dir' : args.mask_folder[0],
-	'mask_prefix' : args.mask_prefix[0],
-	'pole_fraction' : args.pole[0],
+	'istruct' : istruct 'aspect' : args.aspect,
+	'mask_dir' : args.mask_folder[0], 'mask_prefix' : args.mask_prefix[0],
 	'plotCompartments' : not args.no_compartment_plot,
-	'outdir' : args.outdir[0],
-	'noplot' : args.noplot,
-	'labeled' : args.labeled,
-	'compressed' : args.compressed,
-	'istruct' : istruct
+	'pole_fraction' : args.pole[0],
+	'outdir' : args.outdir[0], 'noplot' : args.noplot,
+	'labeled' : args.labeled, 'compressed' : args.compressed,
+	'an_type' : an_type, 'seg_type' : seg_type,
 }
 if 1 != args.threads[0]:
 	anData = Parallel(n_jobs = args.threads[0], verbose = 11)(
