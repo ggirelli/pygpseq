@@ -127,11 +127,11 @@ def calc_dot_distances(msg, t, nuclei, aspect):
 	'''
 
 	# Skip if no cells are present
-	if ( np.all(np.isnan(t['cell_ID'])) ):
+	if ( np.all(np.isnan(t['cell_ID'].values)) ):
 		return((t, msg))
 
 	# Calculate distances ------------------------------------------------------
-	for cid in range(int(np.nanmax(t['cell_ID'])) + 1):
+	for cid in range(int(np.nanmax(t['cell_ID'].values)) + 1):
 		if cid in nuclei.keys():
 				msg += "    >>> Working on cell #%d...\n" % (cid,)
 				cell_cond = cid == t['cell_ID']

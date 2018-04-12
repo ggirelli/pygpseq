@@ -85,7 +85,8 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	# Check if already segmented
 	already_segmented = False
 	if not type(None) == type(mask_dir):
-		mpath = os.path.join(mask_dir, mask_prefix + im2fov[sid])
+		mpath = os.path.join(mask_dir,
+			mask_prefix + os.path.basename(im2fov[sid]))
 		already_segmented = os.path.isfile(mpath)
 
 	# Skip or binarize
@@ -98,13 +99,13 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		(imbin, thr, log) = Segmenter.run(im)
 		msg += log
 
+		# Filter based on object size
+		imbin, tmp = Segmenter.filter_obj_XY_size(imbin)
+		imbin, tmp = Segmenter.filter_obj_Z_size(imbin)
+
 	# Estimate background
 	dna_bg = imt.estimate_background(im, imbin, seg_type)
 	msg += printout("Estimated background: %.2f a.u." % (dna_bg,), 3, v)
-
-	# Filter based on object size
-	imbin, tmp = Segmenter.filter_obj_XY_size(imbin)
-	imbin, tmp = Segmenter.filter_obj_Z_size(imbin)
 
 	# NUCLEI ===================================================================
 	
