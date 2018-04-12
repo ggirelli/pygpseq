@@ -441,7 +441,7 @@ def export(path, exp_format = None):
         else:
             plt.savefig(path, format = exp_format)
 
-def export_mask_png(outpath, im, name, title):
+def export_mask_png(outpath, im, title):
     '''
     Export png of an image, max projected.
 
@@ -451,9 +451,6 @@ def export_mask_png(outpath, im, name, title):
 
     # Create new plot figure
     fig = plt.figure()
-
-    # Make mask
-    im = im != 0
 
     # Plot projection
     if 3 == len(im.shape):
