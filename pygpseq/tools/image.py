@@ -464,7 +464,12 @@ def in_3d_box(box, coords):
     return(cx and cy and cz)
 
 def in_mask(coords, imbin):
-    '''Check if a pixel in a mask is foreground.'''
+    '''Check if a pixel in a binary mask is foreground.
+
+    Args:
+        coords (tuple): coordinates.
+        imbin (np.ndarray): binary image.
+    '''
     
     # Check the pixel is inside the image boundaries
     inbound = imbin.shape[0] > coords[0]

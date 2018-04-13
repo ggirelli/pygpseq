@@ -308,26 +308,22 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 	}
 
 	# Default nuclear ID list and empty dictionary
-	seq = range(1, L.max() + 1)
 	curnuclei = {}
 
 	# Log operation
-	if 0 != dilate_factor:
-		msg += "   - Saving %d nuclei with dilation [%d]...\n" % (
-			L.max(), dilate_factor)
-	else:
-		msg += "   - Saving %d nuclei...\n" % (L.max(),)
+	msg += "   - Saving %d nuclei" % L.max()
+	if 0 != dilate_factor: msg += " with dilation [%d]" % dilate_factor
+	msg += "...\n"
 
 	# Iterate through nuclei
-	for n in seq:
+	for n in range(1, L.max() + 1):
 		# Make nucleus
 		if 0 != dilate_factor:
 			# With dilated mask
 			mask = dilation(L == n, istruct)
-			nucleus = Nucleus(n = n, mask = mask, **kwargs)
 		else:
 			mask = L == n
-			nucleus = Nucleus(n = n, mask = mask, **kwargs)
+		nucleus = Nucleus(n = n, mask = mask, **kwargs)
 
 		# Apply box
 		msg += "    > Applying nuclear box [%d]...\n" % (n,)
@@ -363,8 +359,7 @@ def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
 
 	# Retrieve nuclei summaries ------------------------------------------------
 	print('   > Retrieving nuclear summary...')
-	summary = np.zeros(len(nuclei),
-		dtype = const.DTYPE_NUCLEAR_SUMMARY)
+	summary = np.zeros(len(nuclei), dtype = const.DTYPE_NUCLEAR_SUMMARY)
 	for i in range(len(nuclei)):
 		summary[i] = nuclei[i].get_summary()
 
@@ -421,20 +416,17 @@ def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
 	sub_data = np.array(summary[selected])
 
 	# Identify selected nuclei objects
-	sel_nuclei_labels = ["_%d.%d_" % (n, s)
-		for (n, s) in sub_data[['s', 'n']]]
-	sel_nucl = [n for n in nuclei
-		if "_%d.%d_" % (n.s, n.n) in sel_nuclei_labels]
+	sel_nuclei_labs = ["_%d.%d_" % (n, s) for (n, s) in sub_data[['s', 'n']]]
+	sel_nucl = [n for n in nuclei if "_%d.%d_" % (n.s, n.n) in sel_nuclei_labs]
 
 	# Check which dots are in which nucleus and update flag --------------------
 	print("   > Matching DOTTER cells with GPSeq cells...")
 	t['G1'] = 0
 	t.loc[np.where(np.isnan(t['cell_ID']))[0], 'G1'] = np.nan
-	t['universalID'] =  ["_%s.%s_" % x for x in zip(
-		t['File'].values, t['cell_ID'].values
-	)]
+	t['universalID'] =  ["_%s.%s_" % x
+		for x in zip(t['File'].values, t['cell_ID'].values)]
 	g1ids = [i for i in range(t.shape[0])
-		if t.loc[i, 'universalID'] in sel_nuclei_labels]
+		if t.loc[i, 'universalID'] in sel_nuclei_labs]
 	t.loc[g1ids, 'G1'] = 1
 	t = t.drop('universalID', 1)
 
@@ -455,12 +447,8 @@ def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
 	# Export -------------------------------------------------------------------
 
 	# Export feature ranges
-	s = ""
-	for (k, v) in ranges.items():
-		s += "%s\t%f\t%f\n" % (k, v[0], v[1])
-	f = open("%s/feature_ranges.txt" % (outdir,), "w+")
-	f.write(s)
-	f.close()
+	s = "".join(["%s\t%f\t%f\n" % (k, v[0], v[1]) for (k, v) in ranges.items()])
+	with open("%s/feature_ranges.txt" % (outdir,), "w+") as f: f.write(s)
 
 	# Export summary
 	outname = "%s/nuclei.out.dilate%d.%s" % (

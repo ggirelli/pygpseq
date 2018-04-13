@@ -39,18 +39,15 @@ def add_allele(data):
 	# Initial checks -----------------------------------------------------------
 
 	# Check that the format corresponds
-	if not type(data) == type(pd.DataFrame()):
-		print("Input should be a DataFrame from the pandas library.")
-		return(data)
+	assert_msg = "input should be a DataFrame from the pandas library."
+	assert type(data) == type(pd.DataFrame()), assert_msg
 
 	# Check that required columns are present
 	req_cols = ['cell_ID', 'lamin_dist_norm', 'File', 'Channel']
 	check_cols = [True for c in req_cols if c in data.columns.tolist()]
-	if not all(check_cols):
-		miss_cols = [req_cols[i]
-			for i in range(len(req_cols)) if not check_cols[i]]
-		print("Some required columns are missing: %s" % (", ".join(miss_cols),))
-		return(data)
+	miss_cols = [req_cols[i] for i in range(len(req_cols)) if not check_cols[i]]
+	assert 0 == len(miss_cols), "Some required columns are missing: %s" % (
+		", ".join(miss_cols),)
 
 	# Universal index and dots in cells ----------------------------------------
 
@@ -75,20 +72,17 @@ def add_allele(data):
 	IDmap = np.array(list(IDmap))
 	
 	# Stop if no dots are inside a cell
-	if 0 == sum(IDmap.shape):
-		return(data)
+	if 0 == sum(IDmap.shape): return(data)
 
 	# Fill Allele column -------------------------------------------------------
 
 	# -1 if more than 2 dots
 	cond = IDmap[:,1].astype('i') > 2
-	if 0 != sum(cond):
-		subt.loc[validIdx[cond], 'Allele'] = -1
+	if 0 != sum(cond): subt.loc[validIdx[cond], 'Allele'] = -1
 
 	#  0 if less than 2 dots
 	cond = IDmap[:,1].astype('i') == 1
-	if 0 != sum(cond):
-		subt.loc[validIdx[cond], 'Allele'] = 0
+	if 0 != sum(cond): subt.loc[validIdx[cond], 'Allele'] = 0
 
 	# Iterate over 2-dots cases
 	cond = IDmap[:,1].astype('i') == 2
@@ -97,10 +91,11 @@ def add_allele(data):
 		for ID in uID:
 			dotPair = subt.loc[subt['universalID'] == ID, :]
 			ldn = dotPair['lamin_dist_norm'].tolist()
-			if ldn[0] == ldn[1]:
-				# Same centrality
-				subt.loc[dotPair.index[0], 'Allele'] = 1 # Central
-				subt.loc[dotPair.index[1], 'Allele'] = 2 # Peripheral
+			if ldn[0] == ldn[1]: # Same centrality
+				# Central
+				subt.loc[dotPair.index[0], 'Allele'] = 1
+				# Peripheral
+				subt.loc[dotPair.index[1], 'Allele'] = 2
 			else: # Different centrality
 				# Peripheral
 				subt.loc[dotPair['lamin_dist_norm'].idxmin(), 'Allele'] = 2
@@ -127,30 +122,29 @@ def calc_dot_distances(msg, t, nuclei, aspect):
 	'''
 
 	# Skip if no cells are present
-	if ( np.all(np.isnan(t['cell_ID'].values)) ):
-		return((t, msg))
+	if ( np.all(np.isnan(t['cell_ID'].values)) ): return((t, msg))
 
 	# Calculate distances ------------------------------------------------------
-	for cid in range(int(np.nanmax(t['cell_ID'].values)) + 1):
-		if cid in nuclei.keys():
-				msg += "    >>> Working on cell #%d...\n" % (cid,)
-				cell_cond = cid == t['cell_ID']
+	max_cell_ID = int(np.nanmax(t['cell_ID'].values))
+	for cid in (i in range(max_cell_ID + 1) if i in nuclei.keys()):
+			msg += "    >>> Working on cell #%d...\n" % (cid,)
+			cell_cond = cid == t['cell_ID']
 
-				# Distance from lamina and center
-				laminD = distance_transform_edt(nuclei[cid].mask, aspect)
-				centrD = distance_transform_edt(laminD != laminD.max(), aspect)
+			# Distance from lamina and center
+			laminD = distance_transform_edt(nuclei[cid].mask, aspect)
+			centrD = distance_transform_edt(laminD != laminD.max(), aspect)
 
-				t.loc[cell_cond, 'lamin_dist'] = laminD[
-					t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
-					t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
-					t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
-				]
+			t.loc[cell_cond, 'lamin_dist'] = laminD[
+				t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
+				t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
+				t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
+			]
 
-				t.loc[cell_cond, 'centr_dist'] = centrD[
-					t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
-					t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
-					t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
-				]
+			t.loc[cell_cond, 'centr_dist'] = centrD[
+				t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
+				t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
+				t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
+			]
 
 	# Normalize distances ------------------------------------------------------
 
