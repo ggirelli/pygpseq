@@ -891,6 +891,8 @@ class Main(Analyzer):
 
         # Check analysis/segmentation types
         self.check_anseg_types()
+        kwargs['seg_type'] = self.seg_type
+        kwargs['an_type'] = self.an_type
 
         # Identify nuclei
         self.printout('* Looking for nuclei *', 0)

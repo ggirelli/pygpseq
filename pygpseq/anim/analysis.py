@@ -257,9 +257,19 @@ class Analyzer(iot.IOinterface):
         if no3d_cond:
             # Revert analysis to default
             msg = '3D analysis is not available for 2D segmentation.\n'
-            msg += 'Using sum z-projection analysis instead...'
+            msg += 'Using sum z-projection analysis instead...\n'
             self.printout(msg, -1)
-            self.an_type = const.SEG_SUM_PROJ
+            self.an_type = const.AN_SUM_PROJ
+
+        # 3D segmentation does not allow 2D analysis
+        no3d_cond = not self.an_type in [const.AN_3D, const.AN_MID]
+        no3d_cond = no3d_cond and self.seg_type == const.SEG_3D
+        if no3d_cond:
+            # Revert analysis to default
+            msg = '3D segmentation is not available for 2D analysis.\n'
+            msg += 'Using sum z-projection segmentation instead...\n'
+            self.printout(msg, -1)
+            self.seg_type = const.SEG_SUM_PROJ
 
         # 2D segmentation does not allow mid-section analysis
         nomid_cond = self.an_type == const.AN_MID
@@ -267,7 +277,7 @@ class Analyzer(iot.IOinterface):
         if nomid_cond:
             # Revert analysis to default
             msg = 'Mid-section analysis is not available for 2D segmentation.\n'
-            msg += 'Using sum z-projection analysis instead...'
+            msg += 'Using sum z-projection analysis instead...\n'
             self.printout(msg, -1)
             self.an_type = const.SEG_SUM_PROJ
 
