@@ -61,21 +61,13 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 
 	# INPUT ====================================================================
 
-	# Read image
-	msg += printout("Reading image ...", 2, v)
-	im = imt.read_tiff(im2fov[sid])
-
-	# Re-slice
-	msg += printout("Re-slicing ...", 2, v)
-	im = imt.slice_k_d_img(im, 3)
-
 	# Get DNA scaling factor and rescale
 	sf = imt.get_rescaling_factor(im2fov[sid])
-	msg += printout("Re-scaling with factor %f..." % (sf,), 2, v)
-	im = (im / sf).astype('float')
+	msg += printout("Re-scaling factor: %f" % sf, 2, v)
 
-	# Pick first XY plane
-	if 3 == len(im.shape) and 1 == im.shape[0]: im = im[0]
+	# Read image
+	msg += printout("Reading image ...", 2, v)
+	im = imt.read_tiff(im2fov[sid], k = 3, rescale = sf)
 
 	# SEGMENTATION =============================================================
 	

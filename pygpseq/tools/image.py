@@ -535,28 +535,35 @@ def mk_z_projection(i, p_type):
         i = i.max(0).astype(i.dtype)
     return(i)
 
-def read_tiff(impath):
+def read_tiff(impath, k = None, noSelection = False, rescale = 1):
     '''Read tiff image.
 
     Args:
-      impath (string): path to tiff image.
+      impath (str): path to tiff image.
+      k (int): number of dimensions in output image for re-slicing.
+      noSelection (bool): whether to discard empty dimensions.
+      rescale (float): scaling factor.
+    
+    Returns:
+      np.ndarray: image.
     '''
 
-    # Check that the file exists
-    if not os.path.isfile(impath):
-        msg = "Trying to read missing file"
-        printout("%s:\n%s\n" % (msg, impath), -2)
+    assert os.path.isfile(impath), "trying to read missing file"
 
     # Read TIFF (capture any parsing issues)
-    try: imch = imread(impath)
+    try: im = imread(impath)
     except ValueError as e:
         msg = "Something went wrong while trying to read a file"
         printout("%s (possibly corrupt):\n%s\n" % (msg, impath), -2)
 
-    # Reshape
-    imch = autoselect_time_frame(imch)
+    # Reshape and re-slice
+    if not noSelection: while 0 == im.shape[0]: im = im[0]
+    if type(0) == type(k): im = slice_k_d_img(im, k)
 
-    return(imch)
+    # Rescale
+    if 1 != rescale: im = (im / rescale).astype('float')
+
+    return(im)
 
 def rm_from_mask(L, torm):
     # Remove elements from a mask.
