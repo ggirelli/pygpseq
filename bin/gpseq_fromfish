@@ -372,22 +372,20 @@ else:
 # Parse output and store log report --------------------------------------------
 
 # Nuclei container
-nuclei = []
+with open(os.path.join(args.outdir[0], "fov_analysis.log"), "w+") as hlog:
+	nuclei = []
+	tvdata = []
+	t = []
+	for (curnuclei, subt, tvcomp, msg) in anData:
+		hlog.write(msg)
+		nuclei.extend(curnuclei.values())
+		tvdata.append(tvcomp)
+		t.append(subt)
+	t = pd.concat(t)
+	tvdata = pd.concat(tvdata)
+	tvdata.index = range(tvdata.shape[0])
 
-hlog = open(os.path.join(args.outdir[0], "fov_analysis.log"), "w+")
-tvdata = []
-t = []
-for (curnuclei, subt, tvcomp, msg) in anData:
-	nuclei.extend(curnuclei.values())
-	t.append(subt)
-	hlog.write(msg)
-	tvdata.append(tvcomp)
-t = pd.concat(t)
-tvdata = pd.concat(tvdata)
-tvdata.index = range(tvdata.shape[0])
-hlog.close()
-
-# Plot aggregated FISH view ----------------------------------------------------
+# Plot aggregated FISH view ---------------------------------------------------- # <<<<----- Move to separate function
 if not args.no_compartment_plot:
 	# Calculate median a/b/c
 	a = np.median(tvdata['a'].values)
@@ -442,9 +440,7 @@ outname = "%s/nuclear_compartment.volume.tsv" % (args.outdir[0],)
 tvdata.to_csv(outname, sep = '\t', index = False)
 
 # Export nuclei object vector
-f = open("%s/nuclei.pickle" % (args.outdir[0],), "wb+")
-pickle.dump(nuclei, f)
-f.close()
+with open("%s/nuclei.pickle"%args.outdir[0], "wb+") as f: pickle.dump(nuclei, f)
 
 # Export table before allele labeling
 outname = "%s/wCentr.out.noAllele.dilate%d.%s" % (
@@ -455,7 +451,7 @@ t.to_csv(outname, sep = '\t', index = False)
 print("  - Adding allele information...")
 t = add_allele(t)
 
-# Calculate angle on nucleus centroid between alleles --------------------------
+# Calculate angle on nucleus centroid between alleles -------------------------- # <<<--- Move to separate function
 print("  - Adding allele polarity information...")
 
 # Assemble universal index
