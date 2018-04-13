@@ -66,7 +66,8 @@ class Binarize(iot.IOinterface):
 
         # Store provided kwargs in the current instance.
         excluded = ['logpath']
-        for k in kwargs.keys(): if not k == excluded: self[k] = kwargs[k]
+        for k in kwargs.keys():
+            if not k == excluded: self[k] = kwargs[k]
 
     def __getitem__(self, key):
         """ Allow get item. """
@@ -76,8 +77,7 @@ class Binarize(iot.IOinterface):
     def __setattr__(self, name, value):
         """ Check the attribute and set it. """
         Binarize.check_attr(name, value)
-        if True == check: return(super(Binarize, self).__setattr__(name, value))
-        else: return(None)
+        return(super(Binarize, self).__setattr__(name, value))
 
     def __setitem__(self, key, value):
         """ Allow set item. """

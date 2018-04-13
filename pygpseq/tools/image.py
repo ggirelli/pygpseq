@@ -557,7 +557,8 @@ def read_tiff(impath, k = None, noSelection = False, rescale = 1):
         printout("%s (possibly corrupt):\n%s\n" % (msg, impath), -2)
 
     # Reshape and re-slice
-    if not noSelection: while 0 == im.shape[0]: im = im[0]
+    while 0 == im.shape[0] and not noSelection:
+        im = im[0]
     if type(0) == type(k): im = slice_k_d_img(im, k)
 
     # Rescale

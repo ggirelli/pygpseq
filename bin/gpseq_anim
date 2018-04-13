@@ -31,9 +31,12 @@
 # 
 # Author: Gabriele Girelli
 # Email: gigi.ga90@gmail.com
-# Version: 1.0.0
 # Project: GPSeq
 # Description: script to interface with the pygpseq.anim package.
+# 
+# Changelog:
+#   v1.1.0dev
+#   v1.0.0 - first release.
 # 
 # ------------------------------------------------------------------------------
 
@@ -148,7 +151,7 @@ parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 	const = True, default = False)
 
 # Version flag
-version = "1.0.0"
+version = "1.1.0dev"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 

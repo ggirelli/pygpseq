@@ -317,7 +317,7 @@ class Series(iot.IOinterface):
         if 'rescale_deconvolved' in kwargs.keys():
             if kwargs['rescale_deconvolved']:
                 # Get DNA scaling factor and rescale
-                sf = imt.get_rescaling_factor(f, **kwargs)
+                sf = imt.get_rescaling_factor(f[0], **kwargs)
                 imch = (imch / sf).astype('float')
                 msg = 'Rescaling "' + f[0] + '" [' + str(sf) + ']...'
                 log += self.printout(msg, 3)
