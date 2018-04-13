@@ -37,7 +37,7 @@ class Binarize(iot.IOinterface):
       seg_type (int): segmentation type accordin to `pygpseq.const`.
       do_global_thr (bool): True to apply global threshol (Otsu).
       do_adaptive_thr (bool): True to apply local (adaptive) threshold.
-      adaptive_neighbourhood (int): neighbourhood square side for local thr.
+      adp_neigh (int): neighbourhood square side for local thr.
       do_clear_borders (bool): True to remove objects touching the borders.
       do_clear_Z_borders (bool): True to remove objects touching Z borders.
       do_fill_holes (bool): True to fill holes (both 2D and 3D).
@@ -49,7 +49,7 @@ class Binarize(iot.IOinterface):
     seg_type = 0
     do_global_thr = True
     do_adaptive_thr = True
-    adaptive_neighbourhood = 101
+    adp_neigh = 101
     do_clear_borders = True
     do_clear_Z_borders = False
     do_fill_holes = True
@@ -62,100 +62,62 @@ class Binarize(iot.IOinterface):
         Args:
           **kwargs: arbitrary keyword arguments stored in the class.
         """
-
-        # Run IOinterface __init__ method
         super(Binarize, self).__init__()
 
         # Store provided kwargs in the current instance.
-        for k in kwargs.keys():
-            if not k == 'logpath':
-                self[k] = kwargs[k]
+        excluded = ['logpath']
+        for k in kwargs.keys(): if not k == excluded: self[k] = kwargs[k]
 
     def __getitem__(self, key):
         """ Allow get item. """
-        if key in dir(self):
-            return(getattr(self, key))
-        else:
-            return(None)
+        if key in dir(self): return(getattr(self, key))
+        else: return(None)
 
     def __setattr__(self, name, value):
         """ Check the attribute and set it. """
-
-        # Check the attribute
-        check = self.check_attr(name, value)
-
-        if True == check:
-            # Set the attribute
-            return(super(Binarize, self).__setattr__(name, value))
-        else:
-            # Don't set the attribute
-            return(None)
+        Binarize.check_attr(name, value)
+        if True == check: return(super(Binarize, self).__setattr__(name, value))
+        else: return(None)
 
     def __setitem__(self, key, value):
         """ Allow set item. """
         if key in dir(self):
             self.__setattr__(key, value)
     
-    def check_attr(self, name, value):
-        """Check attribute format and value.
+    def check_attr(name, value):
+        """Run attribute assertions.
 
         Args:
           name (string): attribute name
           value: attribute value
 
         Returns:
-          bool: whether the provided (name,value) couple passed its
-                name-specific test
+          None: no assert error is triggered if the attribute checks out.
         """
-
-        # Default answer
-        checked = True
 
         if name in ['do_global_thr', 'do_adaptive_thr', 'do_clear_borders',
             'do_clear_Z_borders', 'do_fill_holes']:
             # Require boolean
-            if not type(True) == type(value):
-                checked = False
-            
-                msg = '"' + name + '" must be a Boolean.\n'
-                msg += 'Keeping previous value [' + str(self[name]) + '].'
-                self.printout(msg, -1)
+            assert_msg = 'boolean expected, got "%s".' % type(value)
+            assert type(True) == type(value), assert_msg
 
-        elif name == 'adaptive_neighbourhood':
-            # Require boolean
-            if not type(0) == type(value):
-                checked = False
-            
-                msg = '"' + name + '" must be an integer.\n'
-                msg += 'Keeping previous value [' + str(self[name]) + '].'
-                self.printout(msg, -1)
+        elif name == 'adp_neigh':
+            # Require int
+            assert_msg = 'int expected, got "%s".' % type(value)
+            assert type(True) == type(value), assert_msg
 
         elif 'an_type' == name:
             # Check that it is one of the allowed constants
             an_types = [const.AN_SUM_PROJ, const.AN_MAX_PROJ,
                 const.AN_3D, const.AN_MID]
-            if not value in an_types:
-                checked = False
-
-            if not checked:
-                msg = '"' + name + '" must be one of the following values:\n'
-                msg += str(an_types) + '\n'
-                msg += 'Keeping previous value [' + str(self[name]) + '].'
-                self.printout(msg, -1)
+            assert value in an_types, "got '%s', expected one of %s." % (
+                str(value), str(an_types))
 
         elif 'seg_type' == name:
             # Check that it is one of the allowed constants
             seg_types = [const.SEG_SUM_PROJ, const.SEG_MAX_PROJ, const.SEG_3D]
-            if not value in seg_types:
-                checked = False
-
-            if not checked:
-                msg = '"' + name + '" must be one of the following values:\n'
-                msg += str(seg_types) + '\n'
-                msg += 'Keeping previous value [' + str(self[name]) + '].'
-                self.printout(msg, -1)
-
-        return(checked)
+            assert value in seg_types, "got '%s', expected one of %s." % (
+                str(value), str(seg_types))
     
     def filter_obj_XY_size(self, mask):
         """Filter objects XY size.
@@ -175,25 +137,22 @@ class Binarize(iot.IOinterface):
 
         # From radius to size
         sinter = stt.r_to_size(self.radius_interval, self.seg_type)
-        msg = 'Allowed size interval: '
-        msg += '[' + str(round(sinter[0])) + ', '
-        msg += str(round(sinter[1])) + '] [' + imt.get_unit(mask.shape) + ']'
-        log += self.printout(msg, 3)
+        log += self.printout('Allowed size interval: [%.2f, %.2f] [%s]' % (
+            sinter[0], sinter[1], imt.get_unit(mask.shape)), 3)
 
         # Identify objects XY size
         log += self.printout('Retrieving objects XY size...', 3)
         L = label(mask)
         xysizes = imt.get_objects_xysize(L)
-        log += self.printout('Found ' + str(L.max()) + ' objects.', 3)
+        log += self.printout('Found %d objects.' % L.max(), 4)
         
         # Select objects to be discarded
         torm = np.logical_or(xysizes < sinter[0], xysizes > sinter[1])
         torm = [ii for ii, x in enumerate(torm) if x]
-        log += self.printout('Discarding ' + str(len(torm)) + ' objects.', 3)
+        log += self.printout('Discarding %d objects.' % len(torm), 3)
 
         # Remove objects outside of size interval
         mask = vt.rm_from_mask(L, torm)
-        L = label(mask)
 
         # Output
         return((mask, log))
@@ -214,14 +173,12 @@ class Binarize(iot.IOinterface):
         log += self.printout('Filtering objects Z size...', 2)
 
         # If not a stack, return the mask
-        if 3 > len(mask.shape):
-            return((mask, log))
+        if 3 > len(mask.shape): return((mask, log))
 
         # Check provided conditions
         doFilterZsize = 0 != int(math.ceil(self.min_z_size))
         doFilterZsize = doFilterZsize and self.an_type == const.AN_3D
-        if not doFilterZsize:
-            return((mask, log))
+        if not doFilterZsize: return((mask, log))
 
         # From size to number of slices
         if self.min_z_size > 1:
@@ -229,30 +186,31 @@ class Binarize(iot.IOinterface):
         else:
             self.min_z_size = self.min_z_size * mask.shape[0]
             self.min_z_size = int(math.ceil(self.min_z_size))
-        msg = 'Minimum ' + str(self.min_z_size) + ' slices.'
-        log += self.printout(msg, 3)
+        log += self.printout('Minimum %d slices.' % self.min_z_size, 3)
 
         # Identify objects Z size
         log += self.printout('Retrieving objects Z size...', 3)
         L = label(mask)
-        zsizes = imt.get_objects_zsize(L)
-        log += self.printout('Found ' + str(L.max()) + ' objects.', 3)
+        log += self.printout('Found %d objects.' % L.max(), 4)
         
         # Select objects to be discarded
-        torm = np.array(zsizes) < self.min_z_size
+        torm = np.array(imt.get_objects_zsize(L)) < self.min_z_size
         torm = [ii for ii, x in enumerate(torm) if x]
-        msg = 'Discarding ' + str(len(torm)) + ' objects.'
-        log += self.printout(msg, 3)
+        log += self.printout('Discarding %d objects.' % len(torm), 3)
 
         # Remove objects lower than minimum size
         mask = vt.rm_from_mask(L, torm)
-        L = label(mask)
 
         # Output
         return((mask, log))
 
     def run(self, im):
         """Binarize image with current instance settings.
+        Perform, if requested, the following actions in this order:
+        - Make Z projection
+        - Apply global/local thresholds (and combine them)
+        - Clear XY/Z borders
+        Fill holes
 
         Args:
           im (np.array): image to be thresholded
@@ -265,16 +223,13 @@ class Binarize(iot.IOinterface):
 
         # If no threshold is requested, return the image
         if not self.do_global_thr and not self.do_adaptive_thr:
-            msg = 'No threshold applied.'
-            log += self.printout(msg, -1)
-
+            log += self.printout('No threshold applied.', -1)
             return((im, log))
 
         # Make Z-projection ----------------------------------------------------
         if const.SEG_3D != self.seg_type and 2 != len(im.shape):
-            msg = 'Generating Z-projection ['
-            msg += const.SEG_LABELS[self.seg_type] + ']...'
-            log += self.printout(msg, 2)
+            log += self.printout('Generating Z-projection [%d]...' % (
+                const.SEG_LABELS[self.seg_type],), 2)
             im = imt.mk_z_projection(im, self.seg_type)
 
         # Binarize images ------------------------------------------------------
@@ -283,22 +238,19 @@ class Binarize(iot.IOinterface):
         # Perform global threshold
         if self.do_global_thr:
             thr = threshold_otsu(im)
-            msg = 'Thresholding image, global thr: ' + str(thr)
-            log += self.printout(msg, 2)
+            log += self.printout('Thresholding image, global thr: %f' % thr, 2)
             mask.append(imt.binarize(im, thr))
 
         # Perform adaptive threshold
-        if self.do_adaptive_thr and 1 < self.adaptive_neighbourhood:
-            msg = 'Applying adaptive threshold to neighbourhood: '
-            msg += str(self.adaptive_neighbourhood)
+        if self.do_adaptive_thr and 1 < self.adp_neigh:
+            msg = 'Applying adaptive threshold to neighbourhood: %d' % (
+                self.adp_neigh,)
             log += self.printout(msg, 2)
-            mask.append(imt.threshold_adaptive(im, self.adaptive_neighbourhood))
+            mask.append(imt.threshold_adaptive(im, self.adp_neigh))
 
         # Combine masks
-        if len(mask) == 2:
-            mask = np.logical_and(mask[0], mask[1])
-        else:
-            mask = mask[0]
+        if len(mask) == 2: mask = np.logical_and(mask[0], mask[1])
+        else: mask = mask[0]
 
         # Remove objects touching borders --------------------------------------
         if self.do_clear_borders:
@@ -312,8 +264,8 @@ class Binarize(iot.IOinterface):
             log += self.printout('Filling holes...', 2)
             mask = ndi.binary_fill_holes(mask)
 
+            # Single slice filling
             if 3 == len(mask.shape):
-                # Single slice filling
                 for sliceid in range(mask.shape[0]):
                     slide = mask[sliceid, :, :]
                     mask[sliceid, :, :] = ndi.binary_fill_holes(slide)
