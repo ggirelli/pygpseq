@@ -82,171 +82,83 @@ class Analyzer(iot.IOinterface):
 
     def __setattr__(self, name, value):
         """Check the attribute and set it. """
-
-        # Check the attribute
-        check = self.check_attr(name, value)
-
-        if True == check:
-            # Set the attribute
-            return(super(Analyzer, self).__setattr__(name, value))
-        else:
-            # Don't set the attribute
-            return(None)
+        self.check_attr(name, value)
+        return(super(Analyzer, self).__setattr__(name, value))
 
     def check_attr(self, name, value):
-        """Check attribute format and value.
+        """Run attribute format and value asserts.
 
         Args:
           name (string): attribute name
           value: attribute value
-
-        Returns:
-          bool: whether the provided (name,value) couple passed its
-                name-specific test
         """
 
         # Default answer
         checked = True
 
         if name in ['dna_names', 'sig_names']:
-            # Require tuple
-            if not type(()) == type(value):
-                checked = False
-            # Require non-empty tuple
-            elif 0 == len(value):
-                checked = False
-            else:
-                # Require tuple of strings
-                types = [type('') == type(s) for s in value]
-                types = all(types)
-                if not types:
-                    checked = False
+            assert_msg = '"%s" must be a non-empty tuple of strings.' % name
+            assert type(()) == type(value), assert_msg
+            assert 0 != len(value), assert_msg
+            assert all([type('') == type(s) for s in value]), assert_msg
 
-            if not checked:
-                msg = '"' + name + '" must be a non-empty tuple of strings.\n'
-                msg += 'Keeping previous value. [' + str(self[name]) + ']'
-                self.printout(msg, -1)
         elif name in ['aspect', 'radius_interval']:
-            # Require tuple
-            if not type(()) == type(value):
-                checked = False
-            # Require non-empty tuple
-            elif 0 == len(value):
-                checked = False
-            else:
-                # Require tuple of floats
-                types = [type(1.) == type(s) for s in value]
-                types = all(types)
-                if not types:
-                    checked = False
+            assert_msg = '"%s" must be a non-empty tuple of floats.' % name
+            assert type(()) == type(value), assert_msg
+            assert 0 != len(value), assert_msg
+            assert all([type(.0) == type(s) for s in value]), assert_msg
 
-            if not checked:
-                msg = '"' + name + '" must be a non-empty tuple of floats.\n'
-                msg += 'Keeping previous value. [' + str(self[name]) + ']'
-                self.printout(msg, -1)
         elif 'min_z_size' == name:
-            # Allow float or integer
-            if not type(value) in [type(0), type(0.)]:
-                checked = False
+            assert_msg = '"%s" must be a float lower than 1 or' % name
+            assert_msg += ' an integer greater than 1.'
+            assert type(value) in [type(0), type(.0)], assert_msg
+            if type(0) == type(value):
+                assert value >= 1, assert_msg
+            elif type(.0) == type(value):
+                assert value <= 1 and value >= 0, assert_msg
 
-            if not checked:
-                msg = '"' + name + '" must be a float lower than 1 or'
-                msg += ' an integer greater than 1.\n'
-                msg += 'Keeping previous value. [' + str(self[name]) + ']'
-                self.printout(msg, -1)
         elif 'seg_type' == name:
             # Check that it is one of the allowed constants
             seg_types = [const.SEG_SUM_PROJ, const.SEG_MAX_PROJ, const.SEG_3D]
-            if not value in seg_types:
-                checked = False
+            assert_msg = '"%s" must be one of the following values: ' % name
+            assert_msg += str(seg_types)
+            assert value in seg_types, assert_msg
 
-            if not checked:
-                msg = '"' + name + '" must be one of the following values:\n'
-                msg += str(seg_types) + '\n'
-                msg += 'Keeping previous value. [' + str(self[name]) + ']'
-                self.printout(msg, -1)
         elif 'an_type' == name:
             # Check that it is one of the allowed constants
             an_types = [const.AN_SUM_PROJ, const.AN_MAX_PROJ,
                 const.AN_3D, const.AN_MID]
-            if not value in an_types:
-                checked = False
+            assert_msg = '"%s" must be one of the following values: ' % name
+            assert_msg += str(an_types)
+            assert value in an_types, assert_msg
 
-            if not checked:
-                msg = '"' + name + '" must be one of the following values:\n'
-                msg += str(an_types) + '\n'
-                msg += 'Keeping previous value. [' + str(self[name]) + ']'
-                self.printout(msg, -1)
         elif 'nsf' == name:
-            # Require tuple
-            if not type(()) == type(value):
-                checked = False
-            # Check that it is one of the allowed constants
-            elif not all([v in range(len(const.NSEL_FIELDS)) for v in value]):
-                    checked = False
+            assert_msg = '"%s" must be a tuple of the following values: %s' % (
+                name, str(range(len(const.NSEL_FIELDS))))
+            assert type(()) == type(value), assert_msg
+            assertc = all([v in range(len(const.NSEL_FIELDS)) for v in value])
+            assert assertc, assert_msg
 
-            if not checked:
-                msg = '"' + name + '" must be a tuple'
-                msg += ' of the following values:\n'
-                msg += str(range(len(const.NSEL_FIELDS))) + '\n'
-                msg += 'Keeping previous value [' + str(self.nsf) + '].'
-                self.printout(msg, -1)
         elif 'offset' == name:
-            # Require tuple
-            if not type(()) == type(value):
-                checked = False
-            # Require non-empty tuple
-            elif 0 == len(value):
-                checked = False
-            else:
-                # Require tuple of integers
-                types = [type(0) == type(s) for s in value]
-                types = all(types)
-                if not types:
-                    checked = False
+            assert_msg = '"%s" must be a non-empty tuple of integers.' % name
+            assert type(()) == type(value), assert_msg
+            assert 0 != len(value), assert_msg
+            assert all([type(0) == type(s) for s in value]), assert_msg
 
-            if not checked:
-                msg = '"' + name + '" must be a non-empty tuple of integers.\n'
-                msg += 'Keeping previous value. [' + str(self[name]) + ']'
-                self.printout(msg, -1)
         elif name in ["sigma_smooth", "sigma_density"]:
-            # Require float
-            if not type(1.) == type(value):
-                checked = False
-            # Require positive float
-            elif 0 > value:
-                    checked = False
+            assert_msg = '"%s" must be a positive float.'
+            assert type(.0) == type(value), assert_msg
+            assert 0 < value, assert_msg
 
-            if not checked:
-                msg = '"' + name + '" must be a positive float.\n'
-                msg += 'Keeping previous value. [' + str(self[name]) + ']'
-                self.printout(msg, -1)
         elif name in ['rm_z_tips', 'rescale_deconvolved', 'correctCA']:
-            # Require boolean
-            if not type(True) == type(value):
-                checked = False
-            
-                msg = '"' + name + '" must be a Boolean.\n'
-                msg += 'Keeping previous value. [' + str(self[name]) + ']'
-                self.printout(msg, -1)
+            assert_msg = '"%s" must be a boolean.'
+            assert type(True) == type(value), assert_msg
+
         elif 'cdescr' == name:
-            # Require a dictionary
-            if not type({}) == type(value):
-                checked = False
-            else:
-                # Require a dictionary with string values
-                types = [type('') == type(v) for v in value.values()]
-                types = all(types)
-                if not types:
-                    checked = False
-
-            if not checked:
-                msg = '"' + name + '" must be a dictionary with string values.\n'
-                msg += 'Keeping previous value. [' + str(self.cdescr) + ']'
-                self.printout(msg, -1)
-
-        # Output
-        return(checked)
+            assert_msg = '"%s" must be a dictionary with string values.'
+            assert type({}) == type(value), assert_msg
+            assertc = all([type('') == type(v) for v in value.values()])
+            assert assertc, assert_msg
 
     def check_anseg_types(self):
         """Check seg_type and an_type. """
