@@ -100,9 +100,9 @@ import re
 import sys
 
 import pygpseq as gp
-from pygpseq.tools import image as imt, plot, stat as stt
-from pygpseq.fish.dot import add_allele
-from pygpseq.fish.nucleus import flag_G1_cells
+from pygpseq.tools import image as imt
+from pygpseq.fish.dot import add_allele, add_allele_polarity
+from pygpseq.fish.nucleus import flag_G1_cells, plot_nuclei_aggregated
 from pygpseq.fish.image import analyze_field_of_view
 
 # PARAMETERS ===================================================================
@@ -301,17 +301,6 @@ if type(None) != type(args.skip_channels):
 	print("  >>> Reduced table from %d to %d rows." % (old_size, t.shape[0]))
 
 # Add new empty columns
-t['cell_ID'] = np.nan
-t['lamin_dist'] = np.nan
-t['lamin_dist_norm'] = np.nan
-t['centr_dist'] = np.nan
-t['centr_dist_norm'] = np.nan
-t['com'] = np.nan
-t['angle'] = np.nan
-t['compartment'] = np.nan
-t['xnorm'] = np.nan
-t['ynorm'] = np.nan
-t['znorm'] = np.nan
 t['dilation'] = args.dilate[0]
 t['version'] = version
 
@@ -371,7 +360,6 @@ else:
 
 # Parse output and store log report --------------------------------------------
 
-# Nuclei container
 with open(os.path.join(args.outdir[0], "fov_analysis.log"), "w+") as hlog:
 	nuclei = []
 	tvdata = []
@@ -385,49 +373,11 @@ with open(os.path.join(args.outdir[0], "fov_analysis.log"), "w+") as hlog:
 	tvdata = pd.concat(tvdata)
 	tvdata.index = range(tvdata.shape[0])
 
-# Plot aggregated FISH view ---------------------------------------------------- # <<<<----- Move to separate function
+# Plot aggregated FISH view ----------------------------------------------------
 if not args.no_compartment_plot:
-	# Calculate median a/b/c
-	a = np.median(tvdata['a'].values)
-	b = np.median(tvdata['b'].values)
-	c = np.median(tvdata['c'].values)
-
-	# Extract coordinates for plot
-	coords = np.vstack(
-		[t['xnorm'].values * a,
-		t['ynorm'].values * b,
-		t['znorm'].values * c]
-	)
-
-	# All-channels visualization
-	plot.dots_in_ellipsoid(a, b, c, coords, aspect = args.aspect,
-		channels = t['Channel'].values, title = "Aggregated FISH visualization",
-		outpng = os.path.join(args.outdir[0], "aggregated.all.png"))
-
-	# Single channel visualization
-	for channel in set(t['Channel'].values.tolist()):
-		plot.dots_in_ellipsoid(a, b, c,
-			coords[:, t['Channel'].values == channel], aspect = args.aspect,
-			channels = t['Channel'].values[t['Channel'].values == channel],
-			outpng = os.path.join(args.outdir[0], "aggregated.%s.png" % channel),
-			title = "Aggregated FISH visualization for channel '%s'" % channel)
-
-	# All-channels folded visualization
-	plot.dots_in_ellipsoid(a, b, c, coords, aspect = args.aspect, fold = True,
-		channels = t['Channel'].values,
-		title = "Aggregated-folded FISH visualization",
-		outpng = os.path.join(args.outdir[0], "aggregated.all.folded.png"))
-
-	# Single channel folded visualization
-	for channel in set(t['Channel'].values.tolist()):
-		title = "Aggregated-folded FISH visualization"
-		title += " for channel '%s'" % channel
-		plot.dots_in_ellipsoid(a, b, c,
-			coords[:, t['Channel'].values == channel],
-			channels = t['Channel'].values[t['Channel'].values == channel],
-			aspect = args.aspect, fold = True, title = title,
-			outpng = os.path.join(args.outdir[0],
-				"aggregated.%s.folded.png" % channel))
+	aggdir = os.path.join(args.outdir[0], 'agg_vis/')
+	if not os.path.isdir(aggdir): os.mkdir(aggdir)
+	plot_nuclei_aggregated(t, tvdata, args.aspect, aggdir)
 
 # Identify G1 cells ------------------------------------------------------------
 t = flag_G1_cells(t, nuclei, args.outdir[0], args.dilate[0],
@@ -451,62 +401,9 @@ t.to_csv(outname, sep = '\t', index = False)
 print("  - Adding allele information...")
 t = add_allele(t)
 
-# Calculate angle on nucleus centroid between alleles -------------------------- # <<<--- Move to separate function
+# Calculate angle on nucleus centroid between alleles --------------------------
 print("  - Adding allele polarity information...")
-
-# Assemble universal index
-t.loc[:, 'universalID'] = ["%s_%s_%s" % x for x in zip(
-	t['File'].values, t['Channel'].values, t['cell_ID'].values
-)]
-
-# Subset data
-subt = t.loc[t['Allele'] > 0,:]
-
-# Go through cells
-for uid in subt['universalID']:
-	idx = subt[subt['universalID'] == uid].index
-
-	# Retrieve allele coordinates
-	focus = subt.loc[subt['universalID'] == uid, ('x', 'y', 'z')]
-	if 0 == sum(focus.shape):
-		continue
-
-	# Identify nucleus
-	cell_ID = subt.loc[subt['universalID'] == uid, 'cell_ID'].values[0]
-	series_ID = subt.loc[subt['universalID'] == uid, 'File'].values[0]
-	if np.isnan(cell_ID) or np.isnan(series_ID):
-		continue
-
-	nucleus = [n for n in nuclei if n.s == series_ID and n.n == cell_ID]
-	if 0 == len(nucleus):
-		print("Nucleus not found for %s.%s" % (series_ID, cell_ID,))
-		continue
-	else:
-		nucleus = nucleus[0]
-
-	# Nucleus center of mass coordinates
-	centr_coords = (nucleus.box_mass_center + nucleus.box_origin).astype('i')
-	
-	# Re-order center of mass coordinates
-	centr_coords = centr_coords[[1, 2, 0]]
-
-	P1_coords = focus.loc[focus.index[0],:]
-	P2_coords = focus.loc[focus.index[1],:]
-
-	if all(P2_coords == centr_coords) or all(P1_coords == centr_coords):
-		t.loc[idx, 'angle'] = 0
-	else:
-		# Calculate angle
-		xyz_aspect = np.array((ax, ay, az))
-		t.loc[idx, 'angle'] = stt.angle_between_points(
-			P1_coords * xyz_aspect,
-			centr_coords * xyz_aspect,
-			P2_coords * xyz_aspect
-		)
-	t.loc[idx, 'com'] = "_".join([str(x) for x in centr_coords.tolist()])
-
-# Remove universal ID
-t = t.drop('universalID', 1)
+t = add_allele_polarity(t, nuclei, args.aspect)
 
 # Write output -----------------------------------------------------------------
 outname = "%s/wCentr.out.dilate%d.%s" % (

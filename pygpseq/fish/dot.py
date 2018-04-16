@@ -13,7 +13,7 @@ import pandas as pd
 
 from scipy.ndimage.morphology import distance_transform_edt
 
-from pygpseq.tools import image as imt
+from pygpseq.tools import image as imt, stat as stt
 
 # FUNCTIONS ====================================================================
 
@@ -106,6 +106,78 @@ def add_allele(data):
 	data.loc[validIdx, 'Allele'] = subt['Allele']
 	return(data)
 
+def add_allele_polarity(t, nuclei, aspect):
+	'''Add inter-homologous angle in respect to the nucleus center of mass
+	for homologous couples.
+
+	Args:
+		t (pd.DataFrame): FISH data frame.
+		nuclei (list): list of pygpseq.anim.Nucleus instances.
+		aspect (tuple): Z,Y,X voxel sides in real units.
+
+	Returns:
+		pd.DataFrame: updated FISH data frame.
+	'''
+
+	# Check input
+	reqcols = ["File", "Channel", "cell_ID", "Allele"]
+	for c in reqcols:
+		assert c in t.columns, "missing '%s' column." % c
+	az, ay, ax = aspect
+
+	# Assemble universal index
+	t.loc[:, 'universalID'] = ["%s_%s_%s" % x for x in zip(
+		t['File'].values, t['Channel'].values, t['cell_ID'].values
+	)]
+
+	# Subset data to Allele columns
+	subt = t.loc[t['Allele'] > 0,:]
+
+	# Set default value for angle and com columns
+	t['angle'] = np.nan
+	t['com'] = np.nan
+
+	# Go through cells ---------------------------------------------------------
+	for uid in subt['universalID']:
+		idx = subt[subt['universalID'] == uid].index
+
+		# Retrieve allele coordinates
+		focus = subt.loc[subt['universalID'] == uid, ('x', 'y', 'z')]
+		if 0 == sum(focus.shape): continue
+
+		# Identify nucleus
+		cid = subt.loc[subt['universalID'] == uid, 'cell_ID'].values[0]
+		sid = subt.loc[subt['universalID'] == uid, 'File'].values[0]
+		if np.isnan(cid) or np.isnan(sid): continue
+
+		# Retrieve nucleus
+		ncond = [n.s == sid and n.n == cid for n in nuclei]
+		if not any(ncond):
+			print("Nucleus not found for %s.%s" % (sid, cid,))
+			continue
+		else: nucleus = [nuclei[i] for i in range(len(ncond)) if ncond[i]][0]
+
+		# Calculate nucleus center of mass coordinates
+		C = (nucleus.box_mass_center+nucleus.box_origin).astype('i')
+		C = C[[1, 2, 0]]
+		t.loc[idx, 'com'] = "_".join([str(x) for x in C.tolist()])
+
+		# Calculate angle
+		P1 = focus.loc[focus.index[0],:]
+		P2 = focus.loc[focus.index[1],:]
+
+		if all(P2 == C) or all(P1 == C): t.loc[idx, 'angle'] = 0
+		else:
+			# Calculate angle
+			xyz_aspect = np.array((ax, ay, az))
+			t.loc[idx, 'angle'] = stt.angle_between_points(
+				P1 * xyz_aspect, C * xyz_aspect, P2 * xyz_aspect)
+
+	# Remove universal ID
+	t = t.drop('universalID', 1)
+
+	return(t)
+
 def calc_dot_distances(msg, t, nuclei, aspect):
 	'''
 	Calculate distance of dots from lamina and central area
@@ -120,6 +192,11 @@ def calc_dot_distances(msg, t, nuclei, aspect):
 	  pd.DataFrame: updated dotter table.
 	  str: message log..
 	'''
+
+	t['lamin_dist'] = np.nan
+	t['lamin_dist_norm'] = np.nan
+	t['centr_dist'] = np.nan
+	t['centr_dist_norm'] = np.nan
 
 	# Skip if no cells are present
 	if np.all(np.isnan(t['cell_ID'].values)): return((t, msg))
@@ -169,6 +246,7 @@ def dots2cells(t, nuclei, dilate_factor):
 	  pd.DataFrame: updated DOTTER output.
 	'''
 	
+	t['cell_ID'] = np.nan
 	for idx in t.index:
 		coords = ( t.loc[idx, 'z'], t.loc[idx, 'x'], t.loc[idx, 'y'] )
 		for (nid, n) in nuclei.items():

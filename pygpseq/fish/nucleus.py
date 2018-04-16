@@ -19,11 +19,11 @@ from scipy.ndimage.measurements import center_of_mass
 from skimage import draw
 from skimage.morphology import dilation
 
-from .. import const
-from ..anim import Nucleus
-from ..tools import image as imt
-from ..tools import plot
-from ..tools import stat as stt
+from pygpseq import const
+from pygpseq.anim import Nucleus
+from pygpseq.tools import image as imt
+from pygpseq.tools import plot
+from pygpseq.tools import stat as stt
 
 # FUNCTIONS ====================================================================
 
@@ -45,6 +45,14 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 
 	'''
 
+	# ASSERT ===================================================================
+
+	reqcols = ["File", "cell_ID", 'x', 'y', 'z']
+	for c in reqcols:
+		assert c in t.columns, "missing '%s' column." % c
+
+	# RUN ======================================================================
+
 	# Temporarily remove dots outside cells
 	nan_cond = np.isnan(t.loc[:, 'cell_ID'])
 	vcomp_table = pd.DataFrame()
@@ -55,8 +63,15 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 			t['File'].values[0],))
 		return((t, vcomp_table, msg))
 
+	# Extract field
 	fid = subt['File'].values[0]
 	
+	# Add missing columns
+	t['compartment'] = np.nan
+	t['xnorm'] = np.nan
+	t['ynorm'] = np.nan
+	t['znorm'] = np.nan
+
 	# Create empty table to host compartment volume data
 	vcomp_table = pd.DataFrame(index = range(1, int(subt['cell_ID'].max()) + 1))
 	vcomp_table['File'] = fid
@@ -229,52 +244,6 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 
 			t.loc[np.logical_not(nan_cond), :] = subt
 
-	# Make aggregated visualization --------------------------------------------
-	
-	# Calculate median a/b/c
-	a = np.median(vcomp_table['a'].values)
-	b = np.median(vcomp_table['b'].values)
-	c = np.median(vcomp_table['c'].values)
-
-	coords = np.vstack([t['xnorm'].values * a, t['ynorm'].values * b,
-			t['znorm'].values * c])
-
-	# Plot
-	if not type(None) == type(outdir):
-		# All-channels visualization
-		plot.dots_in_ellipsoid(a, b, c, coords, aspect = aspect,
-			channels = t['Channel'].values,
-			title = "[f%d] Aggregated FISH visualization" % fid,
-			outpng = os.path.join(outdir, "%d.aggregated.all.png" % fid))
-
-		# Single channel visualization
-		for channel in set(t['Channel'].values.tolist()):
-			title = "[f%d] Aggregated FISH visualization" % fid
-			title += " for channel '%s'" % channel
-			plot.dots_in_ellipsoid(a, b, c,
-				coords[:, t['Channel'].values == channel], aspect = aspect,
-				channels = t['Channel'].values[t['Channel'].values == channel],
-				title = title, outpng = os.path.join(outdir,
-					"%d.aggregated.%s.png" % (fid, channel)))
-
-		# All-channels folded visualization
-		plot.dots_in_ellipsoid(a, b, c, coords, aspect = aspect,
-			channels = t['Channel'].values, fold = True,
-			title = "[f%d] Aggregated-folded FISH visualization" % fid,
-			outpng = os.path.join(outdir,
-				"%d.aggregated.all.folded.png" % fid))
-
-		# Single channel folded visualization
-		for channel in set(t['Channel'].values.tolist()):
-			title = "[f%d] Aggregated-folded FISH visualization" % fid
-			title += " for channel '%s'" % channel
-			plot.dots_in_ellipsoid(a, b, c,
-				coords[:, t['Channel'].values == channel],
-				channels = t['Channel'].values[t['Channel'].values == channel],
-				aspect = aspect, fold = True, title = title,
-				outpng = os.path.join(outdir,
-					"%d.aggregated.%s.folded.png" % (fid, channel)))
-
 	return((t, vcomp_table, msg))
 
 def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
@@ -436,7 +405,7 @@ def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
 	summary['universalID'] =  ["_%s.%s_" % x
 		for x in zip(summary['s'].values, summary['n'].astype("f").values)]
 	g1ids = [i for i in range(summary.shape[0])
-		if summary.loc[i, 'universalID'] in sel_nuclei_labels]
+		if summary.loc[i, 'universalID'] in sel_nuclei_labs]
 	summary.loc[g1ids, 'G1'] = 1
 	summary = summary.drop('universalID', 1)
 
@@ -458,6 +427,73 @@ def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
 	# Output -------------------------------------------------------------------
 	print("> Flagged G1 cells...")
 	return(t)
+
+def plot_nuclei_aggregated(t, nt, aspect, outdir = None):
+	'''Generate aggregated visualization for the provided data.
+
+	Args:
+		t (pd.DataFrame): FISH data frame.
+		nt (pd.DataFrame): nuclear compartment data frame.
+		outdir (str): output directory.
+	'''
+
+	# Don't print if no output folder is provided
+	if type(None) == type(outdir): return
+	if 0 == t.shape[0] or 0 == nt.shape[0]: return
+
+	# Asserts ------------------------------------------------------------------
+
+	assert os.path.isdir(outdir), "output folder does not exist."
+	for c in ['File', 'Channel', 'xnorm', 'ynorm', 'znorm']:
+		assert c in t.columns, "missing '%s' column." % c
+	for c in ['a', 'b', 'c']:
+		assert c in nt.columns, "missing '%s' column." % c
+
+	# Make aggregated visualization --------------------------------------------
+	
+	# Calculate median a/b/c
+	a = np.median(nt['a'].values)
+	b = np.median(nt['b'].values)
+	c = np.median(nt['c'].values)
+
+	coords = np.vstack([ t['xnorm'].values * a, t['ynorm'].values * b,
+		t['znorm'].values * c ])
+
+	if 1 == len(set(t['File'].values)): fid = "f_%d" % t['File'].values[0]
+	else: fid = "f_all"
+
+	# Plot ---------------------------------------------------------------------
+	
+	# All-channels visualization
+	plot.dots_in_ellipsoid(a, b, c, coords, aspect = aspect,
+		channels = t['Channel'].values,
+		title = "[%s] Aggregated FISH visualization" % fid,
+		outpng = os.path.join(outdir, "%s.aggregated.all.png" % fid))
+
+	# All-channels folded visualization
+	plot.dots_in_ellipsoid(a, b, c, coords, aspect = aspect,
+		channels = t['Channel'].values, fold = True,
+		title = "[%s] Aggregated-folded FISH visualization" % fid,
+		outpng = os.path.join(outdir, "%s.aggregated.all.folded.png" % fid))
+
+	# Single channel visualization
+	for channel in set(t['Channel'].values.tolist()):
+		title = "[%s] Aggregated FISH visualization" % fid
+		title += " for channel '%s'" % channel
+		plot.dots_in_ellipsoid(a, b, c,
+			coords[:, t['Channel'].values == channel], aspect = aspect,
+			channels = t['Channel'].values[t['Channel'].values == channel],
+			title = title, outpng = os.path.join(outdir,
+				"%s.aggregated.%s.png" % (fid, channel)))
+
+		title = "[%s] Aggregated-folded FISH visualization" % fid
+		title += " for channel '%s'" % channel
+		plot.dots_in_ellipsoid(a, b, c,
+			coords[:, t['Channel'].values == channel],
+			channels = t['Channel'].values[t['Channel'].values == channel],
+			aspect = aspect, fold = True, title = title,
+			outpng = os.path.join(outdir,
+				"%s.aggregated.%s.folded.png" % (fid, channel)))
 
 # END ==========================================================================
 
