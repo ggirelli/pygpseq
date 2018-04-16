@@ -55,11 +55,17 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		verbose (bool): display action log.
 	'''
 
+	# ASSERT ===================================================================
+	
+	reqcols = ['File']
+	for c in reqcols:
+		assert c in data.columns, "missing '%s' column." % c
+
+	# INPUT ====================================================================
+
 	v = verbose
 	msg = printout("Job '%s'..." % (im2fov[sid],), 1, v)
 	subt = data.loc[np.where(data['File'] == sid)[0], :]
-
-	# INPUT ====================================================================
 
 	# Get DNA scaling factor and rescale
 	sf = imt.get_rescaling_factor(im2fov[sid])
@@ -170,13 +176,19 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 
 	# Setup condition for compartment plotting
 	compdir = None
+	aggdir = None
 	if plotCompartments and not noplot:
 		compdir = os.path.join(outdir, 'compartments/')
 		if not os.path.isdir(compdir): os.mkdir(compdir)
+		aggdir = os.path.join(outdir, 'agg_vis/')
+		if not os.path.isdir(aggdir): os.mkdir(aggdir)
 
 	# Perform annotation
 	subt, tvcomp, msg = nucleus.annotate_compartments(
 		msg, subt, curnuclei, compdir, pole_fraction, aspect)
+	
+	# Plot aggregated visualization
+	nucleus.plot_nuclei_aggregated(subt, tvcomp, aspect, aggdir)
 
 	# CONCLUDE =================================================================
 
