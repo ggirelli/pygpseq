@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Added
 - Plotting option to `tiff_findoof` script.
+- Option to skip hole filling in segmented masks (`--no-hole-filling`) in `gpseq_anim`.
 
 ### Fixed
 - Axes order in `nd2_to_tiff`.

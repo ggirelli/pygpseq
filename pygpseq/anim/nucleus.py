@@ -42,6 +42,7 @@ class Nucleus(iot.IOinterface):
 	"""
 
 	__version__ = const.VERSION
+	c = 0
 	s = 0
 	n = 0
 	box = ()
@@ -58,7 +59,7 @@ class Nucleus(iot.IOinterface):
 	thr = 0
 
 	def __init__(self, logpath, n, series_id, mask, i, thr, offset, aspect,
-		dna_bg, sig_bg, calc_n_surface = None, **kwargs):
+		dna_bg, sig_bg, calc_n_surface = None, cond_name = None, **kwargs):
 		"""Run IOinterface __init__ method.
 
 		Args:
@@ -74,6 +75,7 @@ class Nucleus(iot.IOinterface):
 		sig_bg (uint16): median background for Signal channel.
 		calc_n_surface (bool): True to calculate the nucleus mesh surface.
 								 Optional, defaults to True.
+		cname (str): condition name.
 		**kwargs
 		"""
 		
@@ -85,6 +87,7 @@ class Nucleus(iot.IOinterface):
 			calc_n_surface = True
 
 		# Store parameters locally
+		self.c = "%s" % cond_name if type(None) != type(cond_name) else ""
 		self.s = series_id
 		self.n = n
 		self.box = self.get_bounding_box(mask, offset)
@@ -359,14 +362,16 @@ class Nucleus(iot.IOinterface):
 		if debugging:
 			fname = kwargs['out_dir'] + const.OUTDIR_DEBUG
 			fname += 's' + str(self.s) + 'n' + str(self.n)
-			if kwargs['plotting']:
-				io.imsave(fname + suffix + '.tif', mask.astype('u4'))
-			if kwargs['plotting']:
-				io.imsave(fname + '.dist' + suffix + '.tif', D.astype('u4'))
-			if kwargs['plotting']:
-				io.imsave(fname + '.dna' + suffix + '.tif', dna.astype('u4'))
-			if kwargs['plotting']:
-				io.imsave(fname + '.sig' + suffix + '.tif', sig.astype('u4'))
+			if kwargs['plotting']: io.imsave('%s%s%s.tif' % (
+				fname, self.c, suffix), mask.astype('u4'))
+			if kwargs['plotting']: io.imsave('%s%s.laminD%s.tif' % (
+				fname, self.c, suffix), laminD.astype('u4'))
+			if kwargs['plotting']: io.imsave('%s%s.centrD%s.tif' % (
+				fname, self.c, suffix), centrD.astype('u4'))
+			if kwargs['plotting']: io.imsave('%s%s.dna%s.tif' % (
+				fname, self.c, suffix), dna.astype('u4'))
+			if kwargs['plotting']: io.imsave('%s%s.sig%s.tif' % (
+				fname, self.c, suffix), sig.astype('u4'))
 
 		# Select pixels for partial 3D nuclear analysis
 		sm = np.zeros(mask.shape, dtype = 'u4')

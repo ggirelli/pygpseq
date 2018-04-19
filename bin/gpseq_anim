@@ -35,7 +35,7 @@
 # Description: script to interface with the pygpseq.anim package.
 # 
 # Changelog:
-#   v1.1.0dev
+#   v1.1.0dev - Added option to skip hole filling in segmented masks.
 #   v1.0.0 - first release.
 # 
 # ------------------------------------------------------------------------------
@@ -116,10 +116,10 @@ parser.add_argument('--nuclear-sel', type = str, nargs = '*',
 	default = ['flat_size', 'sumI'])
 parser.add_argument('--sigma-smooth', metavar = 'sigmaValue', type = float,
 	nargs = 1, default = [.1],
-	help = """Sigma value for sparse gaussian smoothing.""")
+	help = """Sigma value for sparse gaussian smoothing of profiles.""")
 parser.add_argument('--sigma-density', metavar = 'sigmaValue', type = float,
 	nargs = 1, default = [.1],
-	help = """Sigma value for density calculation.""")
+	help = """Sigma value for calculation of nuclear density distributions.""")
 parser.add_argument('--description', type = str, nargs = '*',
 	help = """Space separated condition:description couples.
 	'condition' are the name of condition folders.
@@ -138,6 +138,9 @@ parser.add_argument('--regexp', type = str, nargs = 1,
 	default = [regexp])
 
 # Flag parameters
+parser.add_argument('--no-hole-filling', action = 'store_const',
+	help = """Do not fill holes in segmented masks.""",
+	const = True, default = False)
 parser.add_argument('-r', '--rescale-deconvolved', action = 'store_const',
 	help = """Perform rescaling of deconvolved images. Requires Huygens
 	Professional v4.5 log file for an image to be rescaled.""",
@@ -244,6 +247,9 @@ gpi.umes = args.umes[0]
 # Minimum percentage of stack to be occupied by a cell
 gpi.min_z_size = args.min_z[0]
 
+# Do hole filling
+gpi.do_fill_holes = not args.no_hole_filling
+
 # Nuclear selection
 dnsel = {
 	'size' : 0,
@@ -301,39 +307,48 @@ os.system('clear')
 print("""
 ---------- SETTING:  VALUE ----------
 
-   Input directory:  """+gpi.basedir+"""
-  Output directory:  """+gpi.outdir+"""
-          Log file:  """+gpi.logpath+"""
+   Input directory :  %s
+  Output directory :  %s
+          Log file :  %s
   
-     Skipped steps:  """+str(args.skip)+"""
+     Skipped steps :  %s
   
-      DNA channels:  """+str(gpi.dna_names)+"""
-   Signal channels:  """+str(gpi.sig_names)+"""
+      DNA channels :  %s
+   Signal channels :  %s
 
-      Segmentation:  """+args.seg_type[0]+"""
-          Analysis:  """+args.an_type[0]+"""
-    Middle section:  """+args.mid_type[0]+"""
+      Segmentation :  %s
+          Analysis :  %s
+    Middle section :  %s
 
-Voxel aspect (ZYX):  """+str(gpi.aspect)+"""
-       Aspect unit: """+gpi.umes+"""
- Minimum Z portion:  """+str(gpi.min_z_size)+"""
-    Sigma (smooth):  """+str(gpi.sigma_smooth)+"""
-   Sigma (density):  """+str(gpi.sigma_density)+"""
+Voxel aspect (ZYX) :  %s
+       Aspect unit :  %s
+ Minimum Z portion :  %.2f
+        Fill holes :  %r
+    Sigma (smooth) :  %.4f
+   Sigma (density) :  %.4f
 
-  Condition descr.:  """+"\n                     ".join(readable_cdescr)+"""
+  Condition descr. :  %s
 
- Nuclear selection:  """+readable_nsf+"""
+ Nuclear selection :  %s
 
-           Threads:  """+str(gpi.ncores)+"""
-              Note:  """+gpi.notes+"""
+           Threads :  %d
+              Note :  %s
 
-            Regexp: """+gpi.reg+"""
+            Regexp :  '%s'
 
-   Rescale deconv.:  """+str(gpi.rescale_deconvolved)+"""
-   Normalize dist.:  """+str(gpi.normalize_distance)+"""
-         Debug mod:  """+str(gpi.debugging)+"""
+   Rescale deconv. :  %r
+   Normalize dist. :  %r
+         Debug mod :  %r
 
-""")
+""" % (
+	gpi.basedir, gpi.outdir, gpi.logpath, str(args.skip), str(gpi.dna_names),
+	str(gpi.sig_names), args.seg_type[0], args.an_type[0], args.mid_type[0],
+	str(gpi.aspect), gpi.umes, gpi.min_z_size, gpi.do_fill_holes,
+	gpi.sigma_smooth, gpi.sigma_density,
+	"\n                     ".join(readable_cdescr),
+	readable_nsf, gpi.ncores, gpi.notes, gpi.reg, gpi.rescale_deconvolved,
+	gpi.normalize_distance, gpi.debugging
+))
 
 # Ask for confirmation
 ask('Confirm settings and proceed.')

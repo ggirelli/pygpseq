@@ -138,7 +138,8 @@ class Main(Analyzer):
         """
 
         # Default answer
-        checked = super(Main, self).check_attr(name, value)
+        super(Main, self).check_attr(name, value)
+        checked = True
 
         if name in ['basedir', 'outdir']:
             # Require a string
@@ -452,17 +453,17 @@ class Main(Analyzer):
             fname += 'profiles.part' + kwargs['suffix'] + '.csv'
             if self.plotting: pd.DataFrame(mpartprof).to_csv(fname)
 
-            # Compare profiles
-            self.printout('Comparing partial profiles with WMW U test...', 0)
-            pvals = []
-            mpartprof = pd.DataFrame(mpartprof)
-            for col in mpartprof.columns:
-                if not col in ['condition', 'x', 'n']:
-                    pvals.append(stt.wilcox_sets(mpartprof, 'condition', col))
-            pvals = vt.merge_nparrays(pvals)
-            fname = self.outdir + const.OUTDIR_CSV
-            fname += 'profiles_wmw.part' + kwargs['suffix'] + '.csv'
-            if self.plotting: pd.DataFrame(pvals).to_csv(fname)
+            # # Compare profiles
+            # self.printout('Comparing partial profiles with WMW U test...', 0)
+            # pvals = []
+            # mpartprof = pd.DataFrame(mpartprof)
+            # for col in mpartprof.columns:
+            #     if not col in ['condition', 'x', 'n']:
+            #         pvals.append(stt.wilcox_sets(mpartprof, 'condition', col))
+            # pvals = vt.merge_nparrays(pvals)
+            # fname = self.outdir + const.OUTDIR_CSV
+            # fname += 'profiles_wmw.part' + kwargs['suffix'] + '.csv'
+            # if self.plotting: pd.DataFrame(pvals).to_csv(fname)
 
             # Plot background levels
             self.printout('Generating background levels plot...', 0)

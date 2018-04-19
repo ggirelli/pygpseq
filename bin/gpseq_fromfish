@@ -196,10 +196,10 @@ parser.add_argument('--compressed',
     action = 'store_const', dest = 'compressed',
     const = True, default = False,
     help = 'Generate compressed TIF binary masks (not compatible with ImageJ).')
-parser.add_argument('--clear-Z-borders',
-    action = 'store_const', dest = 'clearZborders',
-    const = False, default = False,
-    help = 'Discard nuclei in the first/last slices of the Z-stack.')
+# parser.add_argument('--clear-Z-borders',
+#     action = 'store_const', dest = 'clearZborders',
+#     const = False, default = False,
+#     help = 'Discard nuclei in the first/last slices of the Z-stack.')
 parser.add_argument('--dilate-Z',
     action = 'store_const', dest = 'doZdilation',
     const = False, default = False,

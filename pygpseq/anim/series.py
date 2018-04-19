@@ -44,6 +44,7 @@ class Series(iot.IOinterface):
     """
 
     __version__ = const.VERSION
+    c = None
     n = 0
     name = ''
     nuclei = []
@@ -65,6 +66,7 @@ class Series(iot.IOinterface):
             logpath = condition.logpath
             super(Series, self).__init__(path = logpath, append = True)
             self.basedir = condition.path
+            self.c = condition.name
         else:
             super(Series, self).__init__()
         
@@ -283,6 +285,7 @@ class Series(iot.IOinterface):
         kwargs['i'] = i
         kwargs['thr'] = thr
         kwargs['series_id'] = self.n
+        kwargs['cond_name'] = self.c
         seq = range(1, L.max() + 1)
         self.nuclei = [Nucleus(n = n, mask = L == n, **kwargs) for n in seq]
 
