@@ -354,22 +354,9 @@ class Nucleus(iot.IOinterface):
 			sig = sig[mid, :, :]
 
 		# Perform distance transform
-		if 3 == len(mask.shape):
-			zero_slice = np.zeros((1, mask.shape[1], mask.shape[2]))
-			laminD = distance_transform_edt(
-				np.concatenate([zero_slice, mask, zero_slice]),
-				aspect[3-len(mask.shape):])[1:-1, :, :]
-		else:
-			laminD = distance_transform_edt(mask,
-				aspect[3-len(mask.shape):])
-
-		if kwargs['center_as_percentile']:
-			centrD = distance_transform_edt(
-				laminD < np.percentile(laminD, 99.),
-				aspect[3-len(mask.shape):])
-		else:
-			centrD = distance_transform_edt(laminD != laminD.max(),
-				aspect[3-len(mask.shape):])
+		laminD = imt.calc_lamin_distance(mask, aspect)
+		centrD = imt.calc_center_distance(laminD, aspect,
+			kwargs['center_as_percentile'])
 
 		# Export single-nucleus images in debugging mode
 		if debugging:

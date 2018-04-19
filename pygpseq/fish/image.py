@@ -26,7 +26,7 @@ from pygpseq.tools import plot
 
 def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	mask_dir, mask_prefix, plotCompartments, pole_fraction,
-	outdir, noplot, labeled, compressed,
+	outdir, noplot, labeled, compressed, centerAsPercentile,
 	an_type, seg_type, # Required by the Binarize class
 	verbose = False):
 	'''Given a table with FISH data, add information on:
@@ -50,6 +50,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		noplot (bool): turn plotting off.
 		labeled (bool): import/export masks as labeled.
 		compressed (bool): export masks as compressed TIFFs.
+		centerAsPercentile (bool): define center as percentile.
 		an_type
 		seg_type
 		verbose (bool): display action log.
@@ -168,7 +169,8 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	# Distances ----------------------------------------------------------------
 	
 	msg += printout("Calculating lamina distance...", 3, v)
-	subt, msg = dot.calc_dot_distances(msg, subt, curnuclei, aspect)
+	subt, msg = dot.calc_dot_distances(msg, subt, curnuclei, aspect,
+		centerAsPercentile)
 
 	# Compartments -------------------------------------------------------------
 

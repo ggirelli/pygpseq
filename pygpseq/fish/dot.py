@@ -178,7 +178,7 @@ def add_allele_polarity(t, nuclei, aspect):
 
 	return(t)
 
-def calc_dot_distances(msg, t, nuclei, aspect):
+def calc_dot_distances(msg, t, nuclei, aspect, centerAsPercentile = False):
 	'''
 	Calculate distance of dots from lamina and central area
 	
@@ -187,6 +187,7 @@ def calc_dot_distances(msg, t, nuclei, aspect):
 	  t (pd.DataFrame): DOTTER output table.
 	  nuclei (list(gp.Nucleus)): identified nuclei.
 	  aspect (tuple): Z,Y,X voxel sides in real units.
+	  centerAsPercentile (bool): define center as percentile.
 	
 	Returns:
 	  pd.DataFrame: updated dotter table.
@@ -208,8 +209,9 @@ def calc_dot_distances(msg, t, nuclei, aspect):
 			cell_cond = cid == t['cell_ID']
 
 			# Distance from lamina and center
-			laminD = distance_transform_edt(nuclei[cid].mask, aspect)
-			centrD = distance_transform_edt(laminD != laminD.max(), aspect)
+			laminD = imt.calc_lamin_distance(nuclei[cid].mask, aspect)
+			centrD = imt.calc_center_distance(laminD, aspect,
+				centerAsPercentile)
 
 			t.loc[cell_cond, 'lamin_dist'] = laminD[
 				t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],

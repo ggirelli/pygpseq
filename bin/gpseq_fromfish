@@ -36,7 +36,8 @@
 # Description: Calculate radial position of dots in cells
 # 
 # Changelog:
-#  v5.1.1dev
+#  v5.1.1dev        : fixed 3D lamin distance calculation.
+#  					  Allowed to set the center as top percentile.
 #  v5.1.0 - 20180328: fixed compartment assignment.
 #  					  Generating aggregated FISH visualization.
 #  v5.0.2 - 20180321: fixed behaviour when not using --skip-channels.
@@ -200,6 +201,9 @@ parser.add_argument('--compressed',
 #     action = 'store_const', dest = 'clearZborders',
 #     const = False, default = False,
 #     help = 'Discard nuclei in the first/last slices of the Z-stack.')
+parser.add_argument('--center-as-percentile', action = 'store_const',
+	help = """Define nucleus center as top percentile instead of top value.""",
+	const = True, default = False)
 parser.add_argument('--dilate-Z',
     action = 'store_const', dest = 'doZdilation',
     const = False, default = False,
@@ -347,7 +351,8 @@ kwargs = {
 	'pole_fraction' : args.pole[0],
 	'outdir' : args.outdir[0], 'noplot' : args.noplot,
 	'labeled' : args.labeled, 'compressed' : args.compressed,
-	'an_type' : an_type, 'seg_type' : seg_type
+	'an_type' : an_type, 'seg_type' : seg_type,
+	'centerAsPercentile' : args.center_as_percentile
 }
 if 1 != args.threads[0]:
 	anData = Parallel(n_jobs = args.threads[0], verbose = 11)(
