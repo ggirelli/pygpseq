@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Plotting option to `tiff_findoof` script.
 - Option to skip hole filling in segmented masks (`--no-hole-filling`) in `gpseq_anim`.
+- Option to define nucleus center as top percentile (`--center-as-percentile`) in `gpseq_anim`.
 
 ### Fixed
 - Axes order in `nd2_to_tiff`.
