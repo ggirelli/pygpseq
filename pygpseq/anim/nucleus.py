@@ -312,8 +312,8 @@ class Nucleus(iot.IOinterface):
 
 		# Start log
 		log = ""
-		msg = 'Retrieving single-pixel data for nucleus #' + str(self.n) + '...'
-		log += self.printout(msg, 3)
+		#msg = 'Retrieving single-pixel data for nucleus #%d...' % self.n
+		#log += self.printout(msg, 3)
 
 		# Apply box selection to channels
 		dna = imt.apply_box(dna_ch, self.box)
@@ -334,7 +334,7 @@ class Nucleus(iot.IOinterface):
 			mask = L == sizes.index(max(sizes)) + 1
 		elif 0 == L.max():
 			msg = 'Found empty nucleus'
-			msg += ' [' + str(self.s) + '.' + str(self.n) + '].'
+			msg += ' [%d.%d].' % (self.s, self.n)
 			self.printout(msg, -1)
 
 		# Apply mask to boxes

@@ -500,6 +500,7 @@ class Main(Analyzer):
         template = env.get_template("report_template.html")
 
         # Prepare variables to fill the template
+        center_type = 'top-percentile' if self.center_as_percentile else 'max'
         tempv = {
             'profeat' : profeat,
             'starttime' : start_time,
@@ -531,6 +532,7 @@ class Main(Analyzer):
             'rm_z_tips' : self.do_clear_Z_borders,
             'an_type' : const.AN_LABELS[self.an_type],
             'mid_type' : const.MID_SEC_LABELS[self.mid_type],
+            'center_type' : center_type,
             'aspect' : self.aspect,
             'nsf' : [const.NSEL_NAMES[i] for i in self.nsf
                 if i in range(len(const.NSEL_NAMES))],

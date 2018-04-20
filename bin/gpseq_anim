@@ -310,7 +310,7 @@ gpi.debugging = args.DEBUG_MODE
 
 # Show current settings
 os.system('clear')
-print("""
+settings_string = """
 ---------- SETTING:  VALUE ----------
 
    Input directory :  %s
@@ -355,7 +355,12 @@ Voxel aspect (ZYX) :  %s
 	"\n                     ".join(readable_cdescr),
 	readable_nsf, gpi.ncores, gpi.notes, gpi.reg, gpi.rescale_deconvolved,
 	gpi.normalize_distance, gpi.debugging
-))
+)
+print(settings_string)
+
+# Save settings
+with open(os.path.splitext(gpi.logpath)[0] + ".settings.txt", 'w+') as IH:
+	IH.write(settings_string)
 
 # Ask for confirmation
 ask('Confirm settings and proceed.')
