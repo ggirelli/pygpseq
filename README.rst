@@ -1,11 +1,11 @@
 pyGPSeq v2.1.2
 =======================
 
-A Python package that provides tools to analyze images of GPSeq samples.
+A Python3 package that provides tools to analyze images of GPSeq samples.
 
-Sample scripts are available showing the code for single/batch runs.
-
-Read the [documentation](https://github.com/ggirelli/pygpseq/wiki) for more details.
+* Read the (public) [documentation](https://ggirelli.github.io/pygpseq/) for more details.
+* Read the (private) [documentation](https://github.com/ggirelli/pygpseq/wiki) for more details.  
+*Once the repo goes public, private docs will be merged with public ones.*
 
 Installation
 -------------
