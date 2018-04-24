@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [2.1.3] - 2018-04-24
 ### Added
 - Plotting option to `tiff_findoof` script.
 - Option to skip hole filling in segmented masks (`--no-hole-filling`) in `gpseq_anim`.
@@ -157,6 +163,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[2.1.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.3
 [2.1.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.2
 [2.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.0
 [2.0.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.0.1
