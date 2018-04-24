@@ -5,7 +5,7 @@ A Python package that provides tools to analyze images of GPSeq samples.
 
 Sample scripts are available showing the code for single/batch runs.
 
-Read the [documentation](https://github.com/ggirelli/gpseq-img-py/wiki) for more details.
+Read the [documentation](https://github.com/ggirelli/pygpseq/wiki) for more details.
 
 Installation
 -------------
@@ -13,8 +13,8 @@ Installation
 To **install**, run the following:
 
 ```
-git clone http://github.com/ggirelli/gpseq-img-py
-cd gpseq-img-py
+git clone http://github.com/ggirelli/pygpseq
+cd pygpseq
 sudo -H pip3 install .
 ```
 
@@ -65,6 +65,11 @@ To uncompress a set of tiff, use the `tiffcu -u` command. To compress them use t
 #### Convert a nd2 file into single-channel tiff images
 
 Use the `nd2_to_tiff` tool to convert images bundled into a nd2 file into separate single-channel tiff images. Use `nd2_to_tiff -h` for the documentation.
+
+Contributing
+---
+
+We welcome any contributions to `pygpseq`. Please, refer to the [contribution guidelines](https://ggirelli.github.io/pygpseq/contributing) if this is your first time contributing! Also, check out our [code of conduct](https://ggirelli.github.io/pygpseq/code_of_conduct).
 
 License
 ---
