@@ -35,6 +35,7 @@
 # Description: script to interface with the pygpseq.anim package.
 # 
 # Changelog:
+#   v1.1.1 - 20180502: added flat sumI to nuclear features.
 #   v1.1.0 - 20180424: Added option to skip hole filling in segmented masks.
 #   v1.0.0 - first release.
 # 
@@ -112,7 +113,7 @@ parser.add_argument('--mid-type', type = str, nargs = 1,
 parser.add_argument('--nuclear-sel', type = str, nargs = '*',
 	help = """Space-separated features for nuclear selection.
 	Use -- after the last one. Default: flat_size sumI""",
-	choices = ['size', 'surf', 'shape', 'sumI', 'meanI', 'flat_size'],
+	choices = list(gp.const.NSEL_FIELDS),
 	default = ['flat_size', 'sumI'])
 parser.add_argument('--sigma-smooth', metavar = 'sigmaValue', type = float,
 	nargs = 1, default = [.1],
@@ -157,7 +158,7 @@ parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 	const = True, default = False)
 
 # Version flag
-version = "1.1.0"
+version = "1.1.1"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 

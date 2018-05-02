@@ -36,6 +36,7 @@ class Nucleus(iot.IOinterface):
 		unit (string): px or vx.
 		surf (float): nucleus mesh surface.
 		sumI (float): sum of the intensity of every px/vx in the nucleus.
+		flat_sumI(float): sum of intensity over sum projection.
 		meanI (float): mean of the intensity of every px/vx in the nucleus.
 		shape (float): nucleus shape descriptor.
 		thr (float): global threshold used to identify the nucleus.
@@ -54,6 +55,7 @@ class Nucleus(iot.IOinterface):
 	unit = ''
 	surf = 0
 	sumI = 0
+	flat_sumI = 0
 	meanI = 0
 	shape = 0
 	thr = 0
@@ -109,6 +111,11 @@ class Nucleus(iot.IOinterface):
 		self.unit = imt.get_unit(i.shape)
 		self.sumI = i[mask == 1].sum()
 		self.meanI = self.sumI / self.size
+
+		flat_mask = imt.mk_z_projection(mask, const.MAX_PROJ)
+		self.flat_sumI = imt.mk_z_projection(i, const.SUM_PROJ)
+		self.flat_sumI = self.flat_sumI[1 == flat_mask].sum()
+
 		self.shape = imt.describe_shape(mask, self.aspect)
 		if 3 == len(mask.shape) and calc_n_surface:
 			self.surf = imt.calc_surface(mask, self.aspect)
@@ -420,7 +427,8 @@ class Nucleus(iot.IOinterface):
 		# Output
 		data = np.array(
 			(self.s, self.n, self.flat_size, self.size, self.surf, self.sumI,
-			self.meanI, self.shape), dtype = const.DTYPE_NUCLEAR_SUMMARY)
+			self.flat_sumI, self.meanI, self.shape),
+			dtype = const.DTYPE_NUCLEAR_SUMMARY)
 
 		return(data)
 

@@ -85,6 +85,23 @@ _const.MID_SEC_MAXSUMI = 2
 _const.MID_SEC_DEFAULT = _const.MID_SEC_LARGEST
 _const.MID_SEC_LABELS = ('central', 'largest', 'max intensity sum')
 
+# Nuclear selection features
+_const.NSEL_SIZE = 0
+_const.NSEL_SURF = 1
+_const.NSEL_SHAPE = 2
+_const.NSEL_SUMI = 3
+_const.NSEL_MEANI = 4
+_const.NSEL_FLAT_SIZE = 5
+_const.NSEL_FLAT_SUMI = 5
+_const.NSEL_FIELDS = ('size', 'surf', 'shape', 'sumI', 'meanI',
+	'flat_size', 'flat_sumI')
+_const.NSEL_NAMES = ('Size', 'Surface', 'Shape',
+	'Intensity Sum', 'Mean Intensity', 'Area',
+	'Intensity Sum in Sum projection')
+_const.NSEL_LABELS = ('auto', 'Surface [a.u.]', 'auto',
+	'Intensity Sum [a.u.]', 'Mean Intensity [a.u.]', 'Area [px]',
+	'Intensity Sum in Sum projection [a.u.]')
+
 # Output-related ---------------------------------------------------------------
 
 _const.DLAMIN_LABEL = "lamin_d"
@@ -92,8 +109,8 @@ _const.DLAMIN_NORM_LABEL = "lamin_dnorm"
 
 # Nuclear summary
 _const.DTYPE_NUCLEAR_SUMMARY = [('s', 'u4'), ('n', 'u4'),
-	('flat_size', 'u8'), ('size', 'u8'),
-	('surf', 'f8'), ('sumI', 'f8'), ('meanI', 'f8'), ('shape', 'f8')]
+	('flat_size', 'u8'), ('size', 'u8'), ('surf', 'f8'),
+	('sumI', 'f8'), ('flat_sumI', 'f8'), ('meanI', 'f8'), ('shape', 'f8')]
 
 # Single pixel nuclear data
 _const.DTYPE_NUCLEAR_DATA = [('s', 'u4'), ('n', 'u4'), ('dna', 'u8'),
@@ -112,19 +129,6 @@ for df in _const.DATA_FOCUS:
 	for pt in _const.PROFILE_TYPES:
 		_const.DTYPE_PROFILE_EXPORT.append(("%s_%s" % (df, pt), "f"))
 		_const.DTYPE_PROFILE_EXPORT.append(("%s_%s_raw" % (df, pt), "f"))
-
-# Nuclear selection features
-_const.NSEL_SIZE = 0
-_const.NSEL_SURF = 1
-_const.NSEL_SHAPE = 2
-_const.NSEL_SUMI = 3
-_const.NSEL_MEANI = 4
-_const.NSEL_FLAT_SIZE = 5
-_const.NSEL_FIELDS = ('size', 'surf', 'shape', 'sumI', 'meanI', 'flat_size')
-_const.NSEL_NAMES = ('Size', 'Surface', 'Shape',
-	'Intensity Sum', 'Mean Intensity', 'Area')
-_const.NSEL_LABELS = ('auto', 'Surface [a.u.]', 'auto',
-	'Intensity Sum [a.u.]', 'Mean Intensity [a.u.]', 'Area [px]')
 
 # Output folders (MUST have trailing slash)
 _const.OUTDIR_PDF = 'out_pdf/'
