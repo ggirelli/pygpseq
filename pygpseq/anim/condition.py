@@ -194,7 +194,7 @@ class Condition(iot.IOinterface):
 
         # Un-nest nuclear data
         data = []
-        [data.extend(nested) for nested in data_nested]
+        [data.extend(nested['spx_data']) for nested in data_nested]
 
         # Assemble into a single array
         self.printout('Merging into a single table...', 1)
@@ -769,7 +769,7 @@ def get_series_nuclear_data(self, summary, sidx, **kwargs):
     ns = summary['n'][ns]
 
     # Retrieve nuclear data
-    data, log = self.series[sidx - 1].get_nuclei_data(ns, **kwargs)
+    data, densp, log = self.series[sidx - 1].get_nuclei_data(ns, **kwargs)
 
     # Print log all at once
     time_msg = 'Took %s s.' % (round(time.time() - start_time, 3))
@@ -781,7 +781,7 @@ def get_series_nuclear_data(self, summary, sidx, **kwargs):
         self.printout(time_msg, 2)
 
     # Output
-    return(data)
+    return({'spx_data' : data, 'density' : densp})
 
 # END ==========================================================================
 

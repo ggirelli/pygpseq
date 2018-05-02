@@ -355,6 +355,7 @@ class Series(iot.IOinterface):
 
         # Empty nuclear data array
         data = []
+        densp = []
         for nucleus_id in nuclei_ids:
             # Select nucleus
             n = self.nuclei[nucleus_id -1]
@@ -364,13 +365,14 @@ class Series(iot.IOinterface):
                 n.verbose = False
 
             # Retrieve nuclear data
-            ndata, nlog = n.get_data(mask = mask, **kwargs)
+            ndata, ndensp, nlog = n.get_data(mask = mask, **kwargs)
 
             # Update log and save nuclear data
             log += nlog
             data.append(ndata)
+            densp.append(ndensp)
 
-        return((data, log))
+        return((data, densp, log))
 
     def propagate_attr(self, key):
         """Propagate attribute current value to every nucleus. """

@@ -300,7 +300,7 @@ class Nucleus(iot.IOinterface):
 		**kwargs
 
 		Returns:
-		tuple: nuclear data and log string.
+			tuple: nuclear data, density profile and log string.
 		"""
 
 		# SET PARAMS ===========================================================
@@ -418,8 +418,12 @@ class Nucleus(iot.IOinterface):
 		data['lamin_dnorm'] = data['lamin_d'] + data['centr_d']
 		data['lamin_dnorm'] = data['lamin_d'] / ( data['lamin_dnorm'] )
 
+		# Prepare density profile
+		density_profile = Nucleus.calc_density_profile(
+			data['dna']. data['lamin_dnorm'], kwargs['nbins'])
+
 		# Output
-		return((data, log))
+		return((data, density_profile, log))
 
 	def get_summary(self):
 		"""Get nuclear summary. """
@@ -431,6 +435,33 @@ class Nucleus(iot.IOinterface):
 			dtype = const.DTYPE_NUCLEAR_SUMMARY)
 
 		return(data)
+
+	def calc_density_profile(dna, dnorm, nbins = 200):
+		'''Build nucleus density profile.
+
+		Args:
+			dna (np.ndarray): single-voxel intensity array.
+			dnorm (np.ndarray): single voxel normalized lamin distance array.
+			nbins (int): number of bins over normalized lamin distance.
+		'''
+
+		profile = []
+
+		# Prepare denominators
+		M = dna.shape[0] # Nuclear voxel count
+		sumI = dna.sum() # Nuclear voxel intensity sum
+		norm = sumI / M  # Average voxel intensity
+		
+		# Calculate for each bin
+		breaks = np.linspace(0, 1, nbins + 1)
+		for i in range(1, len(breaks)):
+			# Identify voxels in the bin
+			layerN = dna >= breaks[i - 1] if i == 1 else dna > breaks[i - 1]
+			layerN = np.logical_and(layerN, dna <= breaks[i])
+			# Build profile
+			profile.append(dna[layerN].sum() / layerN.astype('i').sum() / norm)
+
+		return(profile)
 
 # END ==========================================================================
 
