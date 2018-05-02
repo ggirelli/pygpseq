@@ -16,6 +16,7 @@ import time
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from pygpseq import const
 from pygpseq.tools import path as pt, io as iot, plot, stat as stt, string as st
@@ -214,6 +215,14 @@ class Condition(iot.IOinterface):
             merged = merged[toKeep]
             msg = 'Removed %i pixels without DNA signal...' % nToRemove
             self.printout(msg, 2)
+
+        # Density profile ------------------------------------------------------
+
+        dp = np.array([nested['density'] for nested in data_nested]).transpose()
+        dp = pd.DataFrame(dp)
+        fname = "%s%s/density_profiles%s.csv" % (
+            kwargs['outdir'], const.OUTDIR_CSV, kwargs['suffix'])
+        dp.to_csv(fname)
 
         # PLOT =================================================================
 
