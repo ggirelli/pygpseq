@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+
+
+
+## [2.1.4] - 2018-05-03
 ### Added
 - Intensity sum on sum Z-projection for each nucleus as `flat_sumI`.
 - Density profile for each nucleus to `gpseq_anim` and `gpseq_fromfish`.
@@ -165,6 +170,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[2.1.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.4
 [2.1.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.3
 [2.1.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.2
 [2.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.0
