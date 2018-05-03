@@ -26,7 +26,7 @@ from pygpseq.tools import plot
 
 def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	mask_dir, mask_prefix, plotCompartments, pole_fraction,
-	outdir, noplot, labeled, compressed, centerAsPercentile,
+	outdir, noplot, labeled, compressed, centerAsPercentile, nbins,
 	an_type, seg_type, # Required by the Binarize class
 	verbose = False):
 	'''Given a table with FISH data, add information on:
@@ -51,6 +51,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		labeled (bool): import/export masks as labeled.
 		compressed (bool): export masks as compressed TIFFs.
 		centerAsPercentile (bool): define center as percentile.
+		nbins (int): number of bins for density profile.
 		an_type
 		seg_type
 		verbose (bool): display action log.
@@ -151,11 +152,12 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 			os.path.basename(im2fov[sid]), L.max()))
 
 	# Store nuclei -------------------------------------------------------------
-	msg, curnuclei = nucleus.build_nuclei(msg, L, dilate_factor,
+	msg, curnuclei, dp = nucleus.build_nuclei(msg, L, dilate_factor,
 		series_id = sid, thr = thr,
 		dna_bg = dna_bg, sig_bg = 0,
 		aspect = aspect, offset = (1, 1, 1),
-		logpath = IOinterface().logpath, i = im, istruct = istruct)
+		logpath = IOinterface().logpath,
+		i = im, istruct = istruct, nbins = nbins)
 
 	# ANALYSIS =================================================================
 	
@@ -199,7 +201,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 
 	# Output
 	msg += printout("< Finished job.", 0, v)
-	return((curnuclei, subt, tvcomp, msg))
+	return((curnuclei, subt, tvcomp, dp, msg))
 
 # END ==========================================================================
 

@@ -802,6 +802,12 @@ class Main(Analyzer):
         profiles = [d[0] for d in data if not type(None) == type(d)]
         sumd = [d[1] for d in data if not type(None) == type(d)]
         md = [d[2] for d in data if not type(None) == type(d)]
+        dp = [d[3] for d in data if not type(None) == type(d)]
+
+        # Assemble and export density profile
+        dp = pd.concat(dp)
+        dp.to_csv("%s%s/density_profiles%s.csv" % (
+            kwargs['outdir'], const.OUTDIR_CSV, kwargs['suffix']))
 
         # Calculate profile-specific features
         self.printout('* Calculating profile features *', 0)

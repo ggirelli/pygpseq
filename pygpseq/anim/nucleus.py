@@ -419,7 +419,7 @@ class Nucleus(iot.IOinterface):
 		data['lamin_dnorm'] = data['lamin_d'] / ( data['lamin_dnorm'] )
 
 		# Prepare density profile
-		density_profile = Nucleus.calc_density_profile(
+		density_profile = self.calc_density_profile(
 			data['dna'], data['lamin_dnorm'], kwargs['nbins'])
 
 		# Output
@@ -436,7 +436,7 @@ class Nucleus(iot.IOinterface):
 
 		return(data)
 
-	def calc_density_profile(dna, dnorm, nbins = 200):
+	def calc_density_profile(self, dna, dnorm, nbins = 200):
 		'''Build nucleus density profile.
 
 		Args:
@@ -445,23 +445,30 @@ class Nucleus(iot.IOinterface):
 			nbins (int): number of bins over normalized lamin distance.
 		'''
 
-		profile = [self.s, self.n]
+		profile = [self.c, self.s, self.n]
 
 		# Prepare denominators
-		M = dna.shape[0] # Nuclear voxel count
-		sumI = dna.sum() # Nuclear voxel intensity sum
-		norm = sumI / M  # Average voxel intensity
-		
+		M = dna.shape[0]      # Nuclear voxel count
+		sumI = np.nansum(dna) # Nuclear voxel intensity sum
+		denom = sumI / M      # Average voxel intensity
+
 		# Calculate for each bin
 		breaks = np.linspace(0, 1, nbins + 1)
 		for i in range(1, len(breaks)):
-			# Identify voxels in the bin
-			layerN = dna >= breaks[i - 1] if i == 1 else dna > breaks[i - 1]
-			layerN = np.logical_and(layerN, dna <= breaks[i])
-			# Build profile
-			profile.append(dna[layerN].sum() / layerN.astype('i').sum() / norm)
 
-		return(profile)
+			# Identify voxels in the bin
+			layerN = dnorm >= breaks[i - 1] if i == 1 else dnorm > breaks[i - 1]
+			layerN = np.logical_and(layerN, dnorm <= breaks[i])
+			Nvx = np.nansum(layerN.astype('i'))
+
+			if 0 == Nvx:
+				profile.append(np.nan)
+			else:
+				# Build profile
+				numer = np.nansum(dna[layerN]) / Nvx
+				profile.append(numer / denom)
+
+		return(np.array(profile))
 
 # END ==========================================================================
 

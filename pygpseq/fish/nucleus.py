@@ -247,7 +247,8 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 	return((t, vcomp_table, msg))
 
 def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
-	aspect, offset, logpath, i, istruct):
+	aspect, offset, logpath, i, istruct,
+	center_as_percentile = False, nbins = 200):
 	'''
 	Build nuclei objects
 	
@@ -263,6 +264,8 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 	  offset (tuple): tuple with pixel offset for bounding box.
 	  logpath (string): path to log file.
 	  i (np.array): image.
+	  centerAsPercentile (bool): define center as percentile.
+	  nbins (int): number of bins for density profile.
 	
 	Returns:
 	  (string, list): log message and list of Nucleus objects.
@@ -278,6 +281,7 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 
 	# Default nuclear ID list and empty dictionary
 	curnuclei = {}
+	dp = []
 
 	# Log operation
 	msg += "   - Saving %d nuclei" % L.max()
@@ -306,7 +310,27 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		nucleus.dilate_factor = dilate_factor
 		curnuclei[n] = nucleus
 
-	return((msg, curnuclei))
+		# Density profile ------------------------------------------------------
+
+		laminD = imt.calc_lamin_distance(mask, aspect)
+		centrD = imt.calc_center_distance(laminD, aspect, center_as_percentile)
+		laminD_norm = laminD + centrD
+		laminD_norm = laminD / laminD_norm
+		laminD_norm = laminD_norm[mask].flatten()
+		
+		dna = imt.apply_box(i, nucleus.box)[mask].flatten()
+		dp.append(nucleus.calc_density_profile(dna, laminD_norm, nbins))
+
+	if 0 != len(dp):
+		dp = pd.DataFrame(np.vstack(dp))
+		col_labs = ["c", "s", "n"]
+		col_labs.extend(["nd_%f" % b
+			for b in np.linspace(0, 1, nbins + 1)[1:]])
+		dp.columns = col_labs
+	else:
+		dp = pd.DataFrame()
+
+	return((msg, curnuclei, dp))
 
 def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
 	'''

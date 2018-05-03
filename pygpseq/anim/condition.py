@@ -218,11 +218,12 @@ class Condition(iot.IOinterface):
 
         # Density profile ------------------------------------------------------
 
-        dp = np.array([nested['density'] for nested in data_nested]).transpose()
+        dp = np.vstack([nested['density'] for nested in data_nested])
         dp = pd.DataFrame(dp)
-        fname = "%s%s/density_profiles%s.csv" % (
-            kwargs['outdir'], const.OUTDIR_CSV, kwargs['suffix'])
-        dp.to_csv(fname)
+        col_labs = ["c", "s", "n"]
+        col_labs.extend(["nd_%f" % b
+            for b in np.linspace(0, 1, kwargs['nbins'] + 1)[1:]])
+        dp.columns = col_labs
 
         # PLOT =================================================================
 
@@ -326,7 +327,7 @@ class Condition(iot.IOinterface):
 
         # Output
         self.printout('', 0)
-        return((profiles, summary, merged))
+        return((profiles, summary, merged, dp))
 
     def check_single_pixels(self, indata, profiles, partial = None,
         supcomm = None, **kwargs):
