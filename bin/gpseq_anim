@@ -66,10 +66,10 @@ Analyse a multi-condition GPSeq image dataset.
 """, formatter_class = argparse.RawDescriptionHelpFormatter)
 
 # Positional parameters
-parser.add_argument('inDir', type = str, nargs = 1,
+parser.add_argument('inDir', type = str,
 	help = """Path to input directory, containing singlcde-condition directories
 	with TIF files.""")
-parser.add_argument('outDir', type = str, nargs = 1,
+parser.add_argument('outDir', type = str,
 	help = """Path to output directory, must be different from the input
 	directory.""")
 
@@ -78,15 +78,15 @@ parser.add_argument('--skip', type = str, nargs = '*',
 	help = """Space-separated phases to be skipped.
 	Use -- after the last one.""",
 	choices = ['inst', 'seg', 'an', 'box', 'plot', 'report'])
-parser.add_argument('-l', '--logpath', type = str, nargs = 1,
+parser.add_argument('-l', '--logpath', type = str,
 	help = """Path to log file. By default: outDir/log""", metavar = 'log')
 parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 	help = """Physical size of Z, Y and X voxel sides.
 	Default: 300.0 216.6 216.6""",
 	metavar = ('Z', 'Y', 'X'), default = [300., 216.6, 216.6])
-parser.add_argument('-U', '--umes', type = str, nargs = 1,
+parser.add_argument('-U', '--umes', type = str,
 	help = """Unit of measure for the aspect. Default: nm""",
-	metavar = "unit", default = ["nm"])
+	metavar = "unit", default = "nm")
 parser.add_argument('-d', '--dna-channels', type = str, nargs = '+',
 	help = """Space-separated names of DNA staining channels.
 	Use -- after the last one.""",
@@ -95,31 +95,31 @@ parser.add_argument('-s', '--sig-channels', type = str, nargs = '+',
 	help = """Space-separated names of GPSeq signal channels.
 	Use -- after the last one.""",
 	default = ['cy5', 'tmr'], metavar = 'sig_name')
-parser.add_argument('-z', '--min-z', type = float, nargs = 1,
+parser.add_argument('-z', '--min-z', type = float,
 	help = """If lower than 1, minimum fraction of stack, if higher than 1,
 	minimum number of slices to be occupied by a nucleus. Default: .25""",
-	default = [.25], metavar = 'min_z')
-parser.add_argument('--seg-type', type = str, nargs = 1,
+	default = .25, metavar = 'min_z')
+parser.add_argument('--seg-type', type = str,
 	help = """Segmentation type. Default: 3d""",
-	choices = ['sum_proj', 'max_proj', '3d'], default = ['3d'])
-parser.add_argument('--an-type', type = str, nargs = 1,
+	choices = ['sum_proj', 'max_proj', '3d'], default = '3d')
+parser.add_argument('--an-type', type = str,
 	help = """Analysis type. Default: mid""",
 	choices = ['sum_proj', 'max_proj', '3d', 'mid'],
-	default = ['mid'])
-parser.add_argument('--mid-type', type = str, nargs = 1,
+	default = 'mid')
+parser.add_argument('--mid-type', type = str,
 	help = """Method for mid-section selection. Default: largest""",
 	choices = ['central', 'largest', 'maxIsum'],
-	default = ['largest'])
+	default = 'largest')
 parser.add_argument('--nuclear-sel', type = str, nargs = '*',
 	help = """Space-separated features for nuclear selection.
 	Use -- after the last one. Default: flat_size sumI""",
 	choices = list(gp.const.NSEL_FIELDS),
 	default = ['flat_size', 'sumI'])
 parser.add_argument('--sigma-smooth', metavar = 'sigmaValue', type = float,
-	nargs = 1, default = [.1],
+	default = .1,
 	help = """Sigma value for sparse gaussian smoothing of profiles.""")
 parser.add_argument('--sigma-density', metavar = 'sigmaValue', type = float,
-	nargs = 1, default = [.1],
+	default = .1,
 	help = """Sigma value for calculation of nuclear density distributions.""")
 parser.add_argument('--description', type = str, nargs = '*',
 	help = """Space separated condition:description couples.
@@ -127,16 +127,16 @@ parser.add_argument('--description', type = str, nargs = '*',
 	'description' are descriptive labels used in plots instead of folder names.
 	Use -- after the last one.""")
 parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
-	nargs = 1, default = [1],
+	default = 1,
 	help = """Number of threads to be used for parallelization. Increasing the
 	number of threads might increase the required amount of RAM.""")
-parser.add_argument('--note', type = str, nargs = 1,
+parser.add_argument('--note', type = str,
 	help = """Dataset/Analysis description. Use double quotes.""")
 regexp = "^(?P<channel_name>[^/]*)\\.(?P<channel_id>channel[0-9]+)"
 regexp += "\\.(?P<series_id>series[0-9]+)(?P<ext>(_cmle)?\\.tif)$"
-parser.add_argument('--regexp', type = str, nargs = 1,
+parser.add_argument('--regexp', type = str,
 	help = """Advanced. Regular expression to identify tif images.""",
-	default = [regexp])
+	default = regexp)
 
 # Flag parameters
 parser.add_argument('--no-hole-filling', action = 'store_const',
@@ -167,10 +167,10 @@ args = parser.parse_args()
 
 # Additional checks
 maxncores = multiprocessing.cpu_count()
-if maxncores < args.threads[0]:
+if maxncores < args.threads:
 	printout("Lowered number of threads to maximum available: %d" % (
 		maxncores), -1)
-	args.threads[0] = maxncores
+	args.threads = maxncores
 
 # FUNCTION =====================================================================
 
@@ -195,7 +195,7 @@ def ask(q):
 # RUN ==========================================================================
 
 # Create pyGPSeq analyzer instance
-gpi = gp.anim.Main(ncores = args.threads[0])
+gpi = gp.anim.Main(ncores = args.threads)
 
 # Steps to be skipped
 dskip = {
@@ -214,10 +214,10 @@ gpi.sig_names = tuple(args.sig_channels)
 gpi.dna_names = tuple(args.dna_channels)
 
 # Data directory
-gpi.basedir = args.inDir[0]
+gpi.basedir = args.inDir
 
 # Output directory
-gpi.outdir = args.outDir[0]
+gpi.outdir = args.outDir
 if not os.path.isdir(gpi.outdir): os.mkdir(gpi.outdir)
 
 # Segmentation type for nuclear identification
@@ -226,7 +226,7 @@ dseg = {
 	'max_proj' : 1,
 	'3d' : 2
 }
-gpi.seg_type = dseg[args.seg_type[0]]
+gpi.seg_type = dseg[args.seg_type]
 
 # Single-nucleus analysis type
 dan = {
@@ -235,7 +235,7 @@ dan = {
 	'3d' : 2,
 	'mid' : 3
 }
-gpi.an_type = dan[args.an_type[0]]
+gpi.an_type = dan[args.an_type]
 
 # Middle-section selection method
 dmid = {
@@ -243,17 +243,17 @@ dmid = {
 'largest' : 1,
 'maxIsum' : 2
 }
-gpi.mid_type = dmid[args.mid_type[0]]
+gpi.mid_type = dmid[args.mid_type]
 
 # Whether to define the center as the top percentile
 gpi.center_as_percentile = args.center_as_percentile
 
 # Voxel aspect proportions (or sizes, ZYX)
 gpi.aspect = tuple(args.aspect)
-gpi.umes = args.umes[0]
+gpi.umes = args.umes
 
 # Minimum percentage of stack to be occupied by a cell
-gpi.min_z_size = args.min_z[0]
+gpi.min_z_size = args.min_z
 
 # Do hole filling
 gpi.do_fill_holes = not args.no_hole_filling
@@ -274,13 +274,13 @@ if 0 != len(gpi.nsf):
 	readable_nsf = " ".join([str(arsel[i]) for i in gpi.nsf])
 
 # Regular expression to identify image files
-gpi.reg = args.regexp[0]
+gpi.reg = args.regexp
 
 # Where to save the run log
 if None is args.logpath:
-	gpi.logpath = args.outDir[0] + '/' + gpi.gen_log_name()
+	gpi.logpath = args.outDir + '/' + gpi.gen_log_name()
 else:
-	gpi.logpath = args.logpath[0]
+	gpi.logpath = args.logpath
 
 # Perform deconvolved image rescaling?
 gpi.rescale_deconvolved = args.rescale_deconvolved
@@ -289,8 +289,8 @@ gpi.rescale_deconvolved = args.rescale_deconvolved
 gpi.normalize_distance = args.normalize_distance
 
 # Sigma
-gpi.sigma_smooth = args.sigma_smooth[0]
-gpi.sigma_density = args.sigma_density[0]
+gpi.sigma_smooth = args.sigma_smooth
+gpi.sigma_density = args.sigma_density
 
 # Better condition naming
 if not None is args.description:
@@ -305,7 +305,7 @@ if 0 == len(readable_cdescr):
 
 # Notes
 if not None is args.note:
-	gpi.notes = args.note[0]
+	gpi.notes = args.note
 
 # Debugging mode
 gpi.debugging = args.DEBUG_MODE
@@ -351,7 +351,7 @@ Voxel aspect (ZYX) :  %s
 
 """ % (
 	gpi.basedir, gpi.outdir, gpi.logpath, str(args.skip), str(gpi.dna_names),
-	str(gpi.sig_names), args.seg_type[0], args.an_type[0], args.mid_type[0],
+	str(gpi.sig_names), args.seg_type, args.an_type, args.mid_type,
 	gpi.center_as_percentile, str(gpi.aspect), gpi.umes, gpi.min_z_size,
 	gpi.do_fill_holes, gpi.sigma_smooth, gpi.sigma_density,
 	"\n                     ".join(readable_cdescr),
@@ -361,7 +361,7 @@ Voxel aspect (ZYX) :  %s
 print(settings_string)
 
 # Save settings
-with open(os.path.splitext(gpi.logpath)[0] + ".settings.txt", 'w+') as IH:
+with open("%s.settings.txt" % os.path.splitext(gpi.logpath)[0], 'w+') as IH:
 	IH.write(settings_string)
 
 # Ask for confirmation
