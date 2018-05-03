@@ -445,7 +445,7 @@ class Nucleus(iot.IOinterface):
 			nbins (int): number of bins over normalized lamin distance.
 		'''
 
-		profile = []
+		profile = [self.s, self.n]
 
 		# Prepare denominators
 		M = dna.shape[0] # Nuclear voxel count

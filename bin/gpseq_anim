@@ -218,6 +218,7 @@ gpi.basedir = args.inDir[0]
 
 # Output directory
 gpi.outdir = args.outDir[0]
+if not os.path.isdir(gpi.outdir): os.mkdir(gpi.outdir)
 
 # Segmentation type for nuclear identification
 dseg = {
