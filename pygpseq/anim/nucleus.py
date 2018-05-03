@@ -420,7 +420,7 @@ class Nucleus(iot.IOinterface):
 
 		# Prepare density profile
 		density_profile = Nucleus.calc_density_profile(
-			data['dna']. data['lamin_dnorm'], kwargs['nbins'])
+			data['dna'], data['lamin_dnorm'], kwargs['nbins'])
 
 		# Output
 		return((data, density_profile, log))
