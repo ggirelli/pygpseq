@@ -35,6 +35,7 @@
 # Description: script to interface with the pygpseq.anim package.
 # 
 # Changelog:
+#  v1.1.3 - 20180507: added min_radius parameter.
 #  v1.1.2 - 20180503: added density profile calculation.
 #  v1.1.1 - 20180502: added flat sumI to nuclear features.
 #  v1.1.0 - 20180424: Added option to skip hole filling in segmented masks.
@@ -100,6 +101,9 @@ parser.add_argument('-z', '--min-z', type = float,
 	help = """If lower than 1, minimum fraction of stack, if higher than 1,
 	minimum number of slices to be occupied by a nucleus. Default: .25""",
 	default = .25, metavar = 'min_z')
+parser.add_argument('-R', '--min-radius', type = float,
+	help = """Minimum radius (in voxels) for segmented objects. Default: 10""",
+	default = 10., metavar = 'min_radius')
 parser.add_argument('--seg-type', type = str,
 	help = """Segmentation type. Default: 3d""",
 	choices = ['sum_proj', 'max_proj', '3d'], default = '3d')
@@ -161,7 +165,7 @@ parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 	const = True, default = False)
 
 # Version flag
-version = "1.1.2"
+version = "1.1.3"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -257,6 +261,7 @@ gpi.umes = args.umes
 
 # Minimum percentage of stack to be occupied by a cell
 gpi.min_z_size = args.min_z
+gpi.radius_interval = (args.min_radius, float('inf'))
 
 # Do hole filling
 gpi.do_fill_holes = not args.no_hole_filling
@@ -336,6 +341,7 @@ settings_string = """
 Voxel aspect (ZYX) :  %s
        Aspect unit :  %s
  Minimum Z portion :  %.2f
+    Minimum radius :  %.2f vx
         Fill holes :  %r
 
     Sigma (smooth) :  %.4f
@@ -359,7 +365,8 @@ Voxel aspect (ZYX) :  %s
 	gpi.basedir, gpi.outdir, gpi.logpath, str(args.skip), str(gpi.dna_names),
 	str(gpi.sig_names), args.seg_type, args.an_type, args.mid_type,
 	gpi.center_as_percentile, str(gpi.aspect), gpi.umes, gpi.min_z_size,
-	gpi.do_fill_holes, gpi.sigma_smooth, gpi.sigma_density, gpi.nbins,
+	gpi.radius_interval[0], gpi.do_fill_holes, gpi.sigma_smooth,
+	gpi.sigma_density, gpi.nbins,
 	"\n                     ".join(readable_cdescr),
 	readable_nsf, gpi.ncores, gpi.notes, gpi.reg, gpi.rescale_deconvolved,
 	gpi.normalize_distance, gpi.debugging

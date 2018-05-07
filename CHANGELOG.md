@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [2.1.5] - 2018-05-07
+### Added
+- Option `--min-radius`/`-R` to `gpseq_anim` to change the XY size filter of segmented objects.
+
+
+
 ## [2.1.4] - 2018-05-03
 ### Added
 - Intensity sum on sum Z-projection for each nucleus as `flat_sumI`.
