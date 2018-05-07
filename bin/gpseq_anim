@@ -35,6 +35,8 @@
 # Description: script to interface with the pygpseq.anim package.
 # 
 # Changelog:
+#  v1.1.4 - 20180507: added Python version, command line & timestamp
+#                     to settings file.
 #  v1.1.3 - 20180507: added min_radius parameter.
 #  v1.1.2 - 20180503: added density profile calculation.
 #  v1.1.1 - 20180502: added flat sumI to nuclear features.
@@ -165,7 +167,7 @@ parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 	const = True, default = False)
 
 # Version flag
-version = "1.1.3"
+version = "1.1.4"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -374,8 +376,11 @@ Voxel aspect (ZYX) :  %s
 print(settings_string)
 
 # Save settings
-with open("%s.settings.txt" % os.path.splitext(gpi.logpath)[0], 'w+') as IH:
-	IH.write(settings_string)
+with open("%s.settings.txt" % os.path.splitext(gpi.logpath)[0], 'w+') as OH:
+	OH.write("%s\n" % " ".join(sys.argv))
+	OH.write("@%s\n\n" % datetime.datetime.now())
+	OH.write("%s\n" % sys.version)
+	OH.write(settings_string)
 
 # Ask for confirmation
 ask('Confirm settings and proceed.')

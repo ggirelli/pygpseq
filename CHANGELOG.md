@@ -7,7 +7,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
-### ...
+### Added
+- Python version, command line and timestamp to `gpseq_anim` exported settings file.
 
 
 
