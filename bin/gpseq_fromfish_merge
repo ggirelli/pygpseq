@@ -35,18 +35,6 @@
 # Project: GPSeq/FISH
 # Description: script to merge multiple gpseq_fromfish outputs.
 # 
-# Changelog:
-#  v3.0.1 - 20180320: fixed input directory list issue.
-#  					  Fixed partial information merge.
-#  v3.0.0 - 20180315: converted to python and merged to pygpseq.
-#  v2.1.1 - 20180312: added support to merge nuclear compartment data.
-#  					  Added parallelization for speed improvement.
-#  v2.1.0 - 20180209: changed terminology in output, copy instead of allele.
-#  v2.0.1 - fixed probe name assignment.
-#  v2.0.0 - requires only one metadata table.
-#  v1.1.0 - now supporting set/probe label columns in metadata.
-#  v1.0.0 - first implementation.
-# 
 # ------------------------------------------------------------------------------
 
 
@@ -90,7 +78,7 @@ gpseq_fromfish_merge -m meta.tsv -i HAP1/dots_auto IMR90/dots_auto
 # Positional parameters
 parser.add_argument('-m', '--meta', metavar = "metadata", required = True,
 	type = str, nargs = 1, help = """Path to metadata table. Required columns:
-	dataset, series, channel, cell_line, set_label, probe_label.""")
+	dataset, series, channel, cell_line, probe_label.""")
 parser.add_argument('-i', '--indir', metavar = "indir", required = True,
 	type = str, nargs = "+", help = """List of space-separated input folder
 	paths with gpseq_fromfish output as subfolders.""")
@@ -101,8 +89,8 @@ parser.add_argument('-o', '--outdir', metavar = "outdir", type = str, nargs = 1,
 	position.""", default = ".")
 parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 	help = """Physical size of Z, Y and X voxel sides.
-	Default: 300.0 216.6 216.6""",
-	metavar = ('Z', 'Y', 'X'), default = [300., 216.6, 216.6])
+	Default: 300.0 132.0 132.0""",
+	metavar = ('Z', 'Y', 'X'), default = [300., 132.0, 132.0])
 parser.add_argument('-d', '--delimiter', metavar = "sep", type = str, nargs = 1,
 	help = """Column separator in input tables.""", default = "\t")
 parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
@@ -111,7 +99,7 @@ parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
 	number of threads might increase the required amount of RAM.""")
 
 # Version flag
-version = "3.0.1"
+version = "3.0.2"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -141,6 +129,12 @@ if maxncores < args.threads[0]:
 if 0 >= args.threads[0]: args.threads[0] = 1
 
 # FUNCTION =====================================================================
+
+def merge_DataFrameDict_byKey(dfd, k):
+	out = [d[k] for d in dfd if type(d[k]) == type(pd.DataFrame())]
+	out = pd.DataFrame() if 0 == len(out) else pd.concat(out)
+	out.index = range(out.shape[0])
+	return out
 
 def look_for_data(d, flist, k, flag, dataset, ipath):
 	'''Look for tables in input folder.
@@ -178,10 +172,9 @@ def extract_data(did, sid):
 
 	# Extract dataset and series information -----------------------------------
 	dataset = did
-	series = "%03d" % sid
-	flag = "%s_%s" % (dataset, series)
+	session = "%03d" % sid
+	flag = "%s_%s" % (dataset, session)
 	cell_type = subt.loc[0, 'cell_line']
-	label = subt.loc[0, "set_label"]
 
 	# Log current status
 	print("Working on %s..." % flag)
@@ -233,7 +226,7 @@ def extract_data(did, sid):
 	if type(pd.DataFrame()) == type(d['dots']):
 		dots = d['dots']
 		dots['dataset'] = dataset
-		dots['label'] = label
+		dots['session'] = session
 		dch = {}
 		for i in subt.index:
 			dch[subt.loc[i, 'channel'].lower()] = subt.loc[i, 'probe_label']
@@ -250,6 +243,7 @@ def extract_data(did, sid):
 	if type(pd.DataFrame()) == type(d['nuclei']):
 		nuclei = d['nuclei']
 		nuclei['dataset'] = dataset
+		nuclei['session'] = session
 		nuclei['cell_type'] = cell_type
 	else:
 		nuclei = np.nan
@@ -258,6 +252,7 @@ def extract_data(did, sid):
 	if type(pd.DataFrame()) == type(d['compartments']):
 		comps = d['compartments']
 		comps['dataset'] = dataset
+		comps['session'] = session
 		comps['cell_type'] = cell_type
 	else:
 		comps = np.nan
@@ -298,7 +293,7 @@ def extract_data(did, sid):
 					alt['centr_dist_norm'].values))[0]
 				d['angle'] = alt['angle'].values[0]
 				d['dataset'] = dataset
-				d['label'] = label
+				d['session'] = session
 				d['probe_label'] = alt['probe_label'].values[0]
 				d['cell_type'] = cell_type
 
@@ -332,7 +327,7 @@ def extract_data(did, sid):
 md = pd.read_csv(meta_path, delim)
 
 # Check that all mandatory metadata columns 
-req_col = ["dataset", "channel", "series", "cell_line", "set_label",
+req_col = ["dataset", "channel", "series", "cell_line",
 	"probe_label"]
 for c in req_col:
 	if not c in md.columns:
@@ -352,38 +347,16 @@ l2 = [x for x in l2 if type(x) == type({})]
 # Merge dataset outputs --------------------------------------------------------
 
 print("Merging copy information...")
-alleles = [d['alleles']
-	for d in l2 if type(d['alleles']) == type(pd.DataFrame())]
-if 0 == len(alleles):
-	alleles = pd.DataFrame()
-else:
-	alleles = pd.concat(alleles)
-	alleles.index = range(alleles.shape[0])
+alleles = merge_DataFrameDict_byKey(l2, 'alleles')
 
 print("Merging dot information...")
-dots = [d['dots']
-	for d in l2 if type(d['dots']) == type(pd.DataFrame())]
-if 0 == len(dots):
-	dots = pd.DataFrame()
-else:
-	dots = pd.concat(dots)
-	dots.index = range(dots.shape[0])
+dots = merge_DataFrameDict_byKey(l2, 'dots')
 
 print("Merging compartment information...")
-comps = [d['comps']
-	for d in l2 if type(d['comps']) == type(pd.DataFrame())]
-if 0 == len(comps):
-	comps = pd.DataFrame()
-else:
-	comps = pd.concat(comps)
-	comps.index = range(comps.shape[0])
+comps = merge_DataFrameDict_byKey(l2, 'comps')
 
 print("Merging nuclear information...")
-nuclei = pd.concat([d['nuclei']
-	for d in l2 if type(d['nuclei']) == type(pd.DataFrame())])
-if 0 == len(nuclei):
-	nuclei = [pd.DataFrame()]
-nuclei.index = range(nuclei.shape[0])
+nuclei = merge_DataFrameDict_byKey(l2, 'nuclei')
 
 # Write output
 if not os.path.isdir(outdir): os.mkdir(outdir)

@@ -35,54 +35,6 @@
 # Project: GPSeq/FISH
 # Description: Calculate radial position of dots in cells
 # 
-# Changelog:
-#  v5.1.3 - 20180503: added density profile calculation.
-#                     Added settings confirmation.
-#  v5.1.2 - 20180502: added flat sumI to nuclear features.
-#  v5.1.1 - 20180424: fixed 3D lamin distance calculation.
-#                     Allowed to set the center as top percentile.
-#  v5.1.0 - 20180328: fixed compartment assignment.
-#                     Generating aggregated FISH visualization.
-#  v5.0.2 - 20180321: fixed behaviour when not using --skip-channels.
-#  v5.0.1 - 20180319: added --skip-channels option.
-#  v5.0.0 - 20180314: moved to pygpseq module.
-#  v4.1.4 - 20180313: compartment volume data exported separately.
-#                     Fixed compartment assignment.
-#                     Allowed for user-specifided pole compartment definition.
-#  v4.1.3 - 20180308: added compartment volume data.
-#  v4.1.2 - 20180306: fixed warning from pandas.
-#                     Removed tiff format from png masks.
-#  v4.1.1 - 20180305: fixed NaN issue in cell IDs.
-#  v4.1.0 - 20180302: added compatibility to compressed tiff files.
-#  v4.0.1 - 20180301: fixed rotation order.
-#  v4.0.0 - 20180301: added compartmentalization for ellipsoidal nuclei.
-#                     Default cell values is now standardize to NaN.
-#  v3.4.2 - 20180226: now enforcing round integer coordinates.
-#  v3.4.1 - 20180226: fixed bug occurring when mask folder was not provided.
-#  v3.4.0 - 20180220: segmented cells as additional input.
-#  v3.3.0 - 20180219: input can now be already binarized.
-#  v3.2.2 - 20180207: set angle to 0 when one point overlaps to the nucleus CoM.
-#  v3.2.1 - 20180207: discarding rows from input table for skipped FoVs.
-#  v3.2.0 - 20171212: fixed G1 selection in output table.
-#  v3.1.1 - 20171206: fixed allele polarity, using correct center of mass.
-#  v3.1.0 - 20171204: fixed allele polarity including aspect ratio.
-#  v3.0.1 - 20171130: adjusted allele polarity, fixed selection,
-#                     also now allowing missing images.
-#  v3.0.0 - 20171120: changed dilation to allow anisotropic images.
-#  v2.3.1 - 20171120: fixed dilation factor (now corresponds to number of px).
-#  v2.3.0 - 20171120: fixed allele angle calculation and minor bug.
-#  v2.2.1 - 20171116: fixed series ID issue, added version column.
-#  v2.2.0 - 20171116: added polarity calculation between alleles.
-#  v2.1.0 - 20171115: fixed distance calculation and normalization.
-#  v2.0.0 - 20171114: fixed cell assignment and G1 selection.
-#  v1.2.0 - 20171105: dilation, allele labeling, parallelization.
-#  v1.1.1 - 20171020: fixed parameter description.
-#  v1.1.0 - 20170830: added G1 cells selection.
-#  v1.0.0 - 20170718: first implementation.
-# 
-# TODO:
-#   Allow for different segmentation/analysis methods.
-# 
 # ------------------------------------------------------------------------------
 
 
@@ -441,14 +393,16 @@ with open(os.path.join(args.outdir, "fov_analysis.log"), "w+") as hlog:
     nuclei = []
     tvdata = []
     t = []
+    t_columns = set()
     density_profile = []
     for (curnuclei, subt, tvcomp, dp, msg) in anData:
         hlog.write(msg)
         nuclei.extend(curnuclei.values())
         tvdata.append(tvcomp)
         t.append(subt)
+        [t_columns.add(c) for c in subt.columns]
         density_profile.append(dp)
-    t = pd.concat(t)
+    t = pd.concat(t).loc[:, t_columns]
     tvdata = pd.concat(tvdata)
     tvdata.index = range(tvdata.shape[0])
 
