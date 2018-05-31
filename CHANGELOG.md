@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+<<<<<<< HEAD
 ### ...
 - ...
 
@@ -16,6 +17,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Bug in `gpseq_fromfish` due to wrong column labeling.
 - Bug in `gpseq_fromfish_merge`.
+
+### Added
+- Python version, command line and timestamp to `gpseq_anim` exported settings file.
 
 
 
