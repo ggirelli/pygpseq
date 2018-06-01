@@ -201,7 +201,7 @@ def extract_data(did, sid):
 		dots = [x for x in flist if "wCentr.out" in x and "noAllele" not in x]
 		comps = [x for x in flist if "nuclear_compartment.volume.tsv" in x]
 		dens = [x for x in flist if "density_profile.tsv" in x]
-		vols = [x for x in flist if "volue_profile.tsv" in x]
+		vols = [x for x in flist if "volume_profile.tsv" in x]
 
 		out = look_for_data(out, nuclei, "nuclei", flag, dataset, ipath)
 		out = look_for_data(out, dots, "dots", flag, dataset, ipath)
