@@ -99,7 +99,7 @@ parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
 	number of threads might increase the required amount of RAM.""")
 
 # Version flag
-version = "3.1.0"
+version = "3.1.1"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -201,11 +201,13 @@ def extract_data(did, sid):
 		dots = [x for x in flist if "wCentr.out" in x and "noAllele" not in x]
 		comps = [x for x in flist if "nuclear_compartment.volume.tsv" in x]
 		dens = [x for x in flist if "density_profile.tsv" in x]
+		vols = [x for x in flist if "volue_profile.tsv" in x]
 
 		out = look_for_data(out, nuclei, "nuclei", flag, dataset, ipath)
 		out = look_for_data(out, dots, "dots", flag, dataset, ipath)
 		out = look_for_data(out, comps, "compartments", flag, dataset, ipath)
 		out = look_for_data(out, dens, "density_profile", flag, dataset, ipath)
+		out = look_for_data(out, vols, "volume_profile", flag, dataset, ipath)
 
 		outl.append(out)
 
@@ -268,6 +270,15 @@ def extract_data(did, sid):
 	else:
 		dens = np.nan
 
+	# Extract volume profile ---------------------------------------------------
+	if type(pd.DataFrame()) == type(d['volume_profile']):
+		vols = d['volume_profile']
+		vols['dataset'] = dataset
+		vols['session'] = session
+		vols['cell_type'] = cell_type
+	else:
+		vols = np.nan
+
 	# Prepare allele by channel table ------------------------------------------
 	if type(pd.DataFrame()) == type(dots):
 		aldata = dots.loc[np.logical_not(np.isnan(dots['Allele'].values)),]
@@ -328,6 +339,7 @@ def extract_data(did, sid):
 		'nuclei' : nuclei,
 		'comps' : comps,
 		'dens' : dens,
+		'vols' : vols,
 		'alleles' : alleles
 	}
 
@@ -373,6 +385,9 @@ nuclei = merge_DataFrameDict_byKey(l2, 'nuclei')
 print("Merging density profile information...")
 dens = merge_DataFrameDict_byKey(l2, 'dens')
 
+print("Merging volume profile information...")
+vols = merge_DataFrameDict_byKey(l2, 'vols')
+
 # Write output
 if not os.path.isdir(outdir): os.mkdir(outdir)
 curdate = datetime.datetime.now().isoformat().split("T")[0]
@@ -383,6 +398,8 @@ alleles.to_csv("%s/%s%s" % (outdir, curdate, "_copies.merged.tsv"), delim,
 nuclei.to_csv("%s/%s%s" % (outdir, curdate, "_nuclei.merged.tsv"), delim,
 	index = False, na_rep = "NA")
 dens.to_csv("%s/%s%s" % (outdir, curdate, "_density_profile.merged.tsv"), delim,
+	index = False, na_rep = "NA")
+vols.to_csv("%s/%s%s" % (outdir, curdate, "_volume_profile.merged.tsv"), delim,
 	index = False, na_rep = "NA")
 comps.to_csv("%s/%s%s" % (outdir, curdate, "_ncomps.merged.tsv"), delim,
 	index = False, na_rep = "NA")
