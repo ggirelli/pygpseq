@@ -99,7 +99,7 @@ parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
 	number of threads might increase the required amount of RAM.""")
 
 # Version flag
-version = "3.0.2"
+version = "3.1.0"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -200,10 +200,12 @@ def extract_data(did, sid):
 		nuclei = [x for x in flist if "nuclei.out" in x]
 		dots = [x for x in flist if "wCentr.out" in x and "noAllele" not in x]
 		comps = [x for x in flist if "nuclear_compartment.volume.tsv" in x]
+		dens = [x for x in flist if "density_profile.tsv" in x]
 
 		out = look_for_data(out, nuclei, "nuclei", flag, dataset, ipath)
 		out = look_for_data(out, dots, "dots", flag, dataset, ipath)
 		out = look_for_data(out, comps, "compartments", flag, dataset, ipath)
+		out = look_for_data(out, dens, "density_profile", flag, dataset, ipath)
 
 		outl.append(out)
 
@@ -256,6 +258,15 @@ def extract_data(did, sid):
 		comps['cell_type'] = cell_type
 	else:
 		comps = np.nan
+
+	# Extract density profile --------------------------------------------------
+	if type(pd.DataFrame()) == type(d['density_profile']):
+		dens = d['density_profile']
+		dens['dataset'] = dataset
+		dens['session'] = session
+		dens['cell_type'] = cell_type
+	else:
+		dens = np.nan
 
 	# Prepare allele by channel table ------------------------------------------
 	if type(pd.DataFrame()) == type(dots):
@@ -316,6 +327,7 @@ def extract_data(did, sid):
 		'dots' : dots,
 		'nuclei' : nuclei,
 		'comps' : comps,
+		'dens' : dens,
 		'alleles' : alleles
 	}
 
@@ -358,6 +370,9 @@ comps = merge_DataFrameDict_byKey(l2, 'comps')
 print("Merging nuclear information...")
 nuclei = merge_DataFrameDict_byKey(l2, 'nuclei')
 
+print("Merging density profile information...")
+dens = merge_DataFrameDict_byKey(l2, 'dens')
+
 # Write output
 if not os.path.isdir(outdir): os.mkdir(outdir)
 curdate = datetime.datetime.now().isoformat().split("T")[0]
@@ -366,6 +381,8 @@ dots.to_csv("%s/%s%s" % (outdir, curdate, "_dots.merged.tsv"), delim,
 alleles.to_csv("%s/%s%s" % (outdir, curdate, "_copies.merged.tsv"), delim,
 	index = False, na_rep = "NA")
 nuclei.to_csv("%s/%s%s" % (outdir, curdate, "_nuclei.merged.tsv"), delim,
+	index = False, na_rep = "NA")
+dens.to_csv("%s/%s%s" % (outdir, curdate, "_density_profile.merged.tsv"), delim,
 	index = False, na_rep = "NA")
 comps.to_csv("%s/%s%s" % (outdir, curdate, "_ncomps.merged.tsv"), delim,
 	index = False, na_rep = "NA")
