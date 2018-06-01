@@ -7,8 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [2.1.7] - 2018-06-01
 ### Added
 - Nuclear density merge through `gpseq_fromfish_merge`.
+- Volume profile to `gpseq_fromfish`.
+
+### Fixed
+- Center as percentile option is now used also for the nuclear density calculation in `gpseq_fromfish`.
 
 
 
@@ -187,6 +197,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[2.1.7] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.7
 [2.1.6] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.6
 [2.1.5] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.5
 [2.1.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.4

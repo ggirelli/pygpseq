@@ -282,6 +282,7 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 	# Default nuclear ID list and empty dictionary
 	curnuclei = {}
 	dp = []
+	nv = []	
 
 	# Log operation
 	msg += "   - Saving %d nuclei" % L.max()
@@ -320,17 +321,26 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		
 		dna = imt.apply_box(i, nucleus.box)[mask].flatten()
 		dp.append(nucleus.calc_density_profile(dna, laminD_norm, nbins))
+		hist, edges = np.histogram(laminD_norm, nbins)
+		out = [nucleus.c, nucleus.s, nucleus.n]
+		out.extend(hist.tolist())
+		nv.append(out)
 
+	col_labs = ["c", "s", "n"]
+	col_labs.extend(["nd_%f" % b for b in np.linspace(0, 1, nbins + 1)[1:]])
 	if 0 != len(dp):
 		dp = pd.DataFrame(np.vstack(dp))
-		col_labs = ["c", "s", "n"]
-		col_labs.extend(["nd_%f" % b
-			for b in np.linspace(0, 1, nbins + 1)[1:]])
 		dp.columns = col_labs
 	else:
 		dp = pd.DataFrame()
 
-	return((msg, curnuclei, dp))
+	if 0 != len(nv):
+		nv = pd.DataFrame(np.vstack(nv))
+		nv.columns = col_labs
+	else:
+		nv = pd.DataFrame()
+
+	return((msg, curnuclei, dp, nv))
 
 def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
 	'''

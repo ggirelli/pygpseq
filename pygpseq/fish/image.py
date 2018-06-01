@@ -152,7 +152,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 			os.path.basename(im2fov[sid]), L.max()))
 
 	# Store nuclei -------------------------------------------------------------
-	msg, curnuclei, dp = nucleus.build_nuclei(msg, L, dilate_factor,
+	msg, curnuclei, dp, nv = nucleus.build_nuclei(msg, L, dilate_factor,
 		series_id = sid, thr = thr,
 		dna_bg = dna_bg, sig_bg = 0,
 		aspect = aspect, offset = (1, 1, 1),
@@ -202,7 +202,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 
 	# Output
 	msg += printout("< Finished job.", 0, v)
-	return((curnuclei, subt, tvcomp, dp, msg))
+	return((curnuclei, subt, tvcomp, dp, nv, msg))
 
 # END ==========================================================================
 

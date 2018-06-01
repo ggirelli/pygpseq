@@ -180,7 +180,7 @@ parser.add_argument('--no-compart-plot', action = 'store_const',
     help = 'Do not produce compartments-related plots.')
 
 # Version flag
-version = "5.1.3"
+version = "5.2.0"
 parser.add_argument('--version', action = 'version',
     version = '%s v%s' % (sys.argv[0], version,))
 
@@ -395,13 +395,15 @@ with open(os.path.join(args.outdir, "fov_analysis.log"), "w+") as hlog:
     t = []
     t_columns = set()
     density_profile = []
-    for (curnuclei, subt, tvcomp, dp, msg) in anData:
+    volume_profile = []
+    for (curnuclei, subt, tvcomp, dp, nv, msg) in anData:
         hlog.write(msg)
         nuclei.extend(curnuclei.values())
         tvdata.append(tvcomp)
         t.append(subt)
         [t_columns.add(c) for c in subt.columns]
         density_profile.append(dp)
+        volume_profile.append(nv)
     t = pd.concat(t).loc[:, t_columns]
     tvdata = pd.concat(tvdata)
     tvdata.index = range(tvdata.shape[0])
@@ -417,6 +419,12 @@ dp = pd.concat(density_profile)
 dp['c'] = args.dotCoords
 outname = "%s/density_profile.tsv" % (args.outdir,)
 dp.to_csv(outname, sep = '\t', index = False)
+
+# Prepare volume profile -------------------------------------------------------
+nv = pd.concat(volume_profile)
+nv['c'] = args.dotCoords
+outname = "%s/volume_profile.tsv" % (args.outdir,)
+nv.to_csv(outname, sep = '\t', index = False)
 
 # Identify G1 cells ------------------------------------------------------------
 t = flag_G1_cells(t, nuclei, args.outdir, args.dilate,
