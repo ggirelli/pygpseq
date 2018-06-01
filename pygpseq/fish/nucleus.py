@@ -248,7 +248,7 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 
 def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 	aspect, offset, logpath, i, istruct,
-	center_as_percentile = False, nbins = 200):
+	centerAsPercentile = False, nbins = 200):
 	'''
 	Build nuclei objects
 	
@@ -313,7 +313,7 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		# Density profile ------------------------------------------------------
 
 		laminD = imt.calc_lamin_distance(mask, aspect)
-		centrD = imt.calc_center_distance(laminD, aspect, center_as_percentile)
+		centrD = imt.calc_center_distance(laminD, aspect, centerAsPercentile)
 		laminD_norm = laminD + centrD
 		laminD_norm = laminD / laminD_norm
 		laminD_norm = laminD_norm[mask].flatten()

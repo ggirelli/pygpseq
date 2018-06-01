@@ -157,6 +157,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		dna_bg = dna_bg, sig_bg = 0,
 		aspect = aspect, offset = (1, 1, 1),
 		logpath = IOinterface().logpath,
+		centerAsPercentile = centerAsPercentile,
 		i = im, istruct = istruct, nbins = nbins)
 
 	# ANALYSIS =================================================================
