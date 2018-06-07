@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [2.1.8] - 2018-06-07
+### Fixed
+- `datetime` import in `gpseq_anim`.
+
 ### Added
 - Volume density merge through `gpseq_fromfish_merge`.
 
@@ -197,6 +206,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[2.1.8] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.8
 [2.1.7] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.7
 [2.1.6] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.6
 [2.1.5] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.5
