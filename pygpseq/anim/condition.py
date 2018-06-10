@@ -166,7 +166,7 @@ class Condition(iot.IOinterface):
 
         # Check that the condition contains nuclei
         if 0 == len(nuclei):
-            return((None, None, None))
+            return((None, None, None, None))
 
         # Retrieve nuclei summaries
         self.printout('Retrieving nuclear summary...', 1)
@@ -182,7 +182,7 @@ class Condition(iot.IOinterface):
 
         # Check that nuclei are selected
         if 0 == len(selected):
-            return((None, None, None))
+            return((None, None, None, None))
         
         # Apply selection
         summary = np.asarray([summary[i] for i in selected],
