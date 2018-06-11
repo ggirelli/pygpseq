@@ -152,6 +152,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 			os.path.basename(im2fov[sid]), L.max()))
 
 	# Store nuclei -------------------------------------------------------------
+	msg += printout("Building nuclei...", 3, v)
 	msg, curnuclei, dp, nv = nucleus.build_nuclei(msg, L, dilate_factor,
 		series_id = sid, thr = thr,
 		dna_bg = dna_bg, sig_bg = 0,
