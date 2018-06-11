@@ -69,14 +69,18 @@ _const.MAX_PROJ = 1
 _const.SEG_SUM_PROJ = _const.SUM_PROJ
 _const.SEG_MAX_PROJ = _const.MAX_PROJ
 _const.SEG_3D = 2
+_const.SEG_DEFAULT = _const.SEG_3D
 _const.SEG_LABELS = ('Sum Z projection', 'Max Z projection', '3D')
+_const.SEG_ARG_LABELS = ('sum_proj', 'max_proj', '3d')
 
 # Analysis types
 _const.AN_SUM_PROJ = 0
 _const.AN_MAX_PROJ = 1
 _const.AN_3D = 2
 _const.AN_MID = 3
+_const.AN_DEFAULT = _const.AN_MID
 _const.AN_LABELS = ('Sum Z projection', 'Max Z projection', '3D', 'Mid-section')
+_const.AN_ARG_LABELS = ('sum_proj', 'max_proj', '3d', 'mid')
 
 # Mid-section selection mode
 _const.MID_SEC_CENTRAL = 0
@@ -84,6 +88,14 @@ _const.MID_SEC_LARGEST = 1
 _const.MID_SEC_MAXSUMI = 2
 _const.MID_SEC_DEFAULT = _const.MID_SEC_LARGEST
 _const.MID_SEC_LABELS = ('central', 'largest', 'max intensity sum')
+_const.MID_SEC_ARG_LABELS = ('central', 'largest', 'maxIsum')
+
+# Lamina distance mode
+_const.LD_CENTER_MAX = 0
+_const.LD_CENTER_PERCENTILE = 1
+_const.LD_DIFFUSION = 2
+_const.LD_DEFAULT = _const.LD_CENTER_PERCENTILE
+_const.LD_ARG_LABELS = ('center_max', 'center_percentile', 'diffusion')
 
 # Nuclear selection features
 _const.NSEL_SIZE = 0

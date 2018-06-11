@@ -99,16 +99,25 @@ parser.add_argument('-R', '--min-radius', type = float,
 	help = """Minimum radius (in voxels) for segmented objects. Default: 10""",
 	default = 10., metavar = 'min_radius')
 parser.add_argument('--seg-type', type = str,
-	help = """Segmentation type. Default: 3d""",
-	choices = ['sum_proj', 'max_proj', '3d'], default = '3d')
+	help = """Segmentation type. Default: '%s'""" % (
+		gp.const.SEG_ARG_LABELS[gp.const.SEG_DEFAULT]),
+	choices = list(gp.const.SEG_ARG_LABELS),
+	default = gp.const.SEG_ARG_LABELS[gp.const.SEG_DEFAULT])
 parser.add_argument('--an-type', type = str,
-	help = """Analysis type. Default: mid""",
-	choices = ['sum_proj', 'max_proj', '3d', 'mid'],
-	default = 'mid')
+	help = """Analysis type. Default: '%s'""" % (
+		gp.const.AN_ARG_LABELS[gp.const.AN_DEFAULT]),
+	choices = list(gp.const.AN_ARG_LABELS),
+	default = gp.const.AN_ARG_LABELS[gp.const.AN_DEFAULT])
 parser.add_argument('--mid-type', type = str,
-	help = """Method for mid-section selection. Default: largest""",
-	choices = ['central', 'largest', 'maxIsum'],
-	default = 'largest')
+	help = """Method for mid-section selection. Default: '%s'""" % (
+		gp.const.MID_SEC_ARG_LABELS[gp.const.MID_SEC_DEFAULT]),
+	choices = list(gp.const.MID_SEC_ARG_LABELS),
+	default = gp.const.MID_SEC_ARG_LABELS[gp.const.MID_SEC_DEFAULT])
+parser.add_argument('--dist-type', type = str,
+	help = """Method for lamina distance calculation/normalization.
+	Default: '%s'""" % (gp.const.LD_ARG_LABELS[gp.const.LD_DEFAULT]),
+	choices = list(gp.const.LD_ARG_LABELS),
+	default = gp.const.LD_ARG_LABELS[gp.const.LD_DEFAULT])
 parser.add_argument('--nuclear-sel', type = str, nargs = '*',
 	help = """Space-separated features for nuclear selection.
 	Use -- after the last one. Default: flat_size sumI""",
@@ -143,9 +152,6 @@ parser.add_argument('--nbins', type = int, default = 200,
 parser.add_argument('--no-hole-filling', action = 'store_const',
 	help = """Do not fill holes in segmented masks.""",
 	const = True, default = False)
-parser.add_argument('--center-as-percentile', action = 'store_const',
-	help = """Define nucleus center as top percentile instead of top value.""",
-	const = True, default = False)
 parser.add_argument('-r', '--rescale-deconvolved', action = 'store_const',
 	help = """Perform rescaling of deconvolved images. Requires Huygens
 	Professional v4.5 log file for an image to be rescaled.""",
@@ -159,7 +165,7 @@ parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 	const = True, default = False)
 
 # Version flag
-version = "1.1.4"
+version = "1.1.5"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -221,33 +227,10 @@ gpi.basedir = args.inDir
 gpi.outdir = args.outDir
 if not os.path.isdir(gpi.outdir): os.mkdir(gpi.outdir)
 
-# Segmentation type for nuclear identification
-dseg = {
-	'sum_proj' : 0,
-	'max_proj' : 1,
-	'3d' : 2
-}
-gpi.seg_type = dseg[args.seg_type]
-
-# Single-nucleus analysis type
-dan = {
-	'sum_proj' : 0,
-	'max_proj' : 1,
-	'3d' : 2,
-	'mid' : 3
-}
-gpi.an_type = dan[args.an_type]
-
-# Middle-section selection method
-dmid = {
-'central' : 0,
-'largest' : 1,
-'maxIsum' : 2
-}
-gpi.mid_type = dmid[args.mid_type]
-
-# Whether to define the center as the top percentile
-gpi.center_as_percentile = args.center_as_percentile
+gpi.seg_type = gp.const.SEG_ARG_LABELS[args.seg_type]
+gpi.an_type = gp.const.AN_ARG_LABELS[args.an_type]
+gpi.mid_type = const.MID_SEC_ARG_LABELS[args.mid_type]
+gpi.dist_type = const.LD_ARG_LABELS[args.dist_type]
 
 # Voxel aspect proportions (or sizes, ZYX)
 gpi.aspect = tuple(args.aspect)
