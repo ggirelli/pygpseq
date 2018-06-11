@@ -110,12 +110,16 @@ def simulate_diffusion(mask, sigma, aspect, simthr = .7):
     simbox = (1 - mask).astype(np.float64)
 
     iterc = 1
+    # outside = np.absolute((mask - 1).sum())
+    # to_be_reached = np.prod(mask.shape) - outside
     while np.isinf(timebox.sum()):
         simbox = ndGuassianSmooth(simbox, sigma, aspect, True)
         simbox[mask == 0] = 1
         cond = simbox >= simthr
         timebox[np.logical_and(cond, np.logical_not(reached))] = iterc
         reached = np.logical_or(cond, reached)
+        # flag = "%.2f%%" % (((cond).sum() - outside) / to_be_reached * 100.)
+        # print((iterc, flag))
         iterc += 1
 
     timebox[np.isinf(timebox)] = np.nan
@@ -154,7 +158,7 @@ def normalize_nuclear_distance(dist_type, laminD, centrD):
         dnorm = quick_normalize(laminD)
     else:
         dnorm = laminD / (laminD + centrD)
-    return laminD
+    return dnorm
 
 # END ==========================================================================
 
