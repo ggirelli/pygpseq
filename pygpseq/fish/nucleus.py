@@ -17,6 +17,7 @@ import os
 import pandas as pd
 from scipy.ndimage.measurements import center_of_mass
 from skimage import draw
+import skimage.io as io
 from skimage.morphology import dilation
 
 from pygpseq import const
@@ -247,7 +248,8 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 
 def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 	aspect, offset, logpath, i, istruct,
-	dist_type = const.LD_ARG_LABELS[const.LD_DEFAULT], nbins = 200):
+	dist_type = const.LD_ARG_LABELS[const.LD_DEFAULT],
+	nbins = 200, debug = False, debug_dir = ""):
 	'''
 	Build nuclei objects
 	
@@ -314,7 +316,19 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		# Density profile ------------------------------------------------------
 		laminD, centrD = dist.calc_nuclear_distances(dist_type, mask, aspect)
 		laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
+		
+		if debug:
+			ipath = "series%d.nucleus%d.tif" % (series_id, n)
+			io.imsave(os.path.join(debug_dir, "mask.%s" % ipath),
+				mask.astype('u4'))
+			io.imsave(os.path.join(debug_dir, "laminD.%s" % ipath),
+				laminD.astype(np.uint32))
+			io.imsave(os.path.join(debug_dir, "laminD_norm.%s" % ipath),
+				(laminD_norm * 255).astype(np.uint32))
+			io.imsave(os.path.join(debug_dir, "centrD.%s" % ipath),
+				centrD.astype(np.uint32))
 		laminD_norm = laminD_norm[mask].flatten()
+
 		
 		dna = imt.apply_box(i, nucleus.box)[mask].flatten()
 		dp.append(nucleus.calc_density_profile(dna, laminD_norm, nbins))

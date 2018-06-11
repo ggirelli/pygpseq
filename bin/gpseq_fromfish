@@ -155,6 +155,9 @@ parser.add_argument('--nbins', type = int, default = 200,
     help = "Number of bins for density profile calculation. Default: 200")
 
 # Add flags
+parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
+    help = """Debugging mode.""",
+    const = True, default = False)
 parser.add_argument('-y', '--do-all', action = 'store_const',
     help = """Do not ask for settings confirmation and proceed.""",
     const = True, default = False)
@@ -273,13 +276,14 @@ No compartment plot : %r
        Input regexp : %s
               Delim : '%s'
             Threads : %d
+         Debug mode : %r
     """ % (
         args.dotCoords, args.imdir, args.outdir, args.mask_folder,
         args.mask_prefix, args.dilate, str(args.aspect), args.dist_type,
         str(args.skip_channels), args.pole, args.nbins, args.labeled,
         args.compressed, args.doZdilation,
         args.noplot, args.no_compartment_plot, args.inreg, args.delim,
-        args.threads
+        args.threads, args.DEBUG_MODE
     )
 
     if clear: print("\033[H\033[J%s" % s)
@@ -301,6 +305,12 @@ with open("%s/settings.txt" % args.outdir, 'w+') as OH:
     OH.write("@%s\n\n" % datetime.datetime.now())
     OH.write("%s\n" % sys.version)
     OH.write(settings_string)
+
+ddir = ""
+if args.DEBUG_MODE:
+    ddir = "%s/debugging" % args.outdir
+    if not os.path.isdir(ddir) and not os.path.isfile(ddir):
+        os.mkdir(ddir)
 
 # Build 3D isotropic structuring element for dilation
 if not args.doZdilation:
@@ -390,7 +400,9 @@ kwargs = {
     'an_type' : an_type,
     'seg_type' : seg_type,
     'dist_type' : gp.const.LD_ARG_LABELS.index(args.dist_type),
-    'nbins' : args.nbins
+    'nbins' : args.nbins,
+    'debug' : args.DEBUG_MODE,
+    'debug_dir' : ddir
 }
 if 1 != args.threads:
     anData = Parallel(n_jobs = args.threads, verbose = 11)(

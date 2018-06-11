@@ -28,7 +28,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	mask_dir, mask_prefix, plotCompartments, pole_fraction,
 	outdir, noplot, labeled, compressed, dist_type, nbins,
 	an_type, seg_type, # Required by the Binarize class
-	verbose = False):
+	verbose = False, debug = False, debug_dir = ""):
 	'''Given a table with FISH data, add information on:
 		- lamin/center absolute/normalized distance
 		- angle between homogue pairs
@@ -55,6 +55,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		an_type
 		seg_type
 		verbose (bool): display action log.
+		debug (bool): debugging mode.
 	'''
 
 	# ASSERT ===================================================================
@@ -159,7 +160,8 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		aspect = aspect, offset = (1, 1, 1),
 		logpath = IOinterface().logpath,
 		dist_type = dist_type,
-		i = im, istruct = istruct, nbins = nbins)
+		i = im, istruct = istruct, nbins = nbins,
+		debug = debug, debug_dir = debug_dir)
 
 	# ANALYSIS =================================================================
 	

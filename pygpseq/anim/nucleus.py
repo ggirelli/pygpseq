@@ -369,13 +369,13 @@ class Nucleus(iot.IOinterface):
 			if kwargs['plotting']: io.imsave('%s%s%s.tif' % (
 				fname, self.c, suffix), mask.astype('u4'))
 			if kwargs['plotting']: io.imsave('%s%s.laminD%s.tif' % (
-				fname, self.c, suffix), laminD.astype('u4'))
+				fname, self.c, suffix), laminD.astype(np.uint32))
 			if kwargs['plotting']: io.imsave('%s%s.centrD%s.tif' % (
-				fname, self.c, suffix), centrD.astype('u4'))
+				fname, self.c, suffix), centrD.astype(np.uint32))
 			if kwargs['plotting']: io.imsave('%s%s.dna%s.tif' % (
-				fname, self.c, suffix), dna.astype('u4'))
+				fname, self.c, suffix), dna.astype(np.uint32))
 			if kwargs['plotting']: io.imsave('%s%s.sig%s.tif' % (
-				fname, self.c, suffix), sig.astype('u4'))
+				fname, self.c, suffix), sig.astype(np.uint32))
 
 		# Select pixels for partial 3D nuclear analysis
 		sm = np.zeros(mask.shape, dtype = 'u4')

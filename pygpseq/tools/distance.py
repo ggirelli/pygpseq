@@ -128,7 +128,10 @@ def simulate_diffusion(mask, sigma, aspect, simthr = .7):
 
     timebox[np.isinf(timebox)] = np.nan
 
-    return timebox
+    if 3 == mask.shape:
+        return timebox[1:-1, :, :]
+    else:
+        return timebox
 
 def calc_nuclear_distances(dist_type, mask, aspect):
     '''Calculate distance from lamina and center for each voxel in a nucleus.
