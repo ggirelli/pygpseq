@@ -12,6 +12,11 @@ import os
 import sys
 
 import numpy as np
+
+from scipy.ndimage.filters import convolve
+from scipy.ndimage.morphology import distance_transform_edt
+from scipy.stats import norm
+
 import pygpseq as gp
 
 # FUNCTIONS ====================================================================
@@ -72,7 +77,7 @@ def mkGaussianKernel(size, sigma):
     assert 1 == size % 2
     D = np.array(range(size)) - size // 2
     mu = 0
-    kernel = st.norm(mu, sigma).pdf(D)
+    kernel = norm(mu, sigma).pdf(D)
     kernel /= kernel.sum()
     return kernel
 
@@ -102,7 +107,7 @@ def simulate_diffusion(mask, sigma, aspect, simthr = .7):
     timebox = np.zeros(mask.shape)
     timebox[1 == mask] = -np.inf
     reached = 0 == mask
-    simbox = 1 - mask
+    simbox = (1 - mask).astype(np.float64)
 
     iterc = 1
     while np.isinf(timebox.sum()):
@@ -131,21 +136,21 @@ def calc_nuclear_distances(dist_type, mask, aspect):
         str(gp.const.LD_ARG_LABELS), dist_type)
     assert dist_type in range(len(gp.const.LD_ARG_LABELS)), assert_msg
 
-    if dist_type == gp.const.LD_ARG_LABELS[gp.const.LD_DIFFUSION]:
+    if dist_type == gp.const.LD_DIFFUSION:
         laminD = simulate_diffusion(mask, 1, aspect)
         centrD = np.absolute(laminD - np.nanmax(laminD))
     else:
-        center_as_percentile = gp.const.LD_ARG_LABELS[gp.const.LD_CENTER_PERC]
+        center_as_percentile = gp.const.LD_CENTER_PERC
         center_as_percentile = dist_type == center_as_percentile
         laminD = calc_lamina_distance(mask, aspect)
         centrD = calc_center_distance(laminD, aspect,
             center_as_percentile)
     return (laminD, centrD)
 
-def normalize_nuclear_distances(dist_type, laminD, centrD):
+def normalize_nuclear_distance(dist_type, laminD, centrD):
     '''Normalize lamina distnace.'''
 
-    if dist_type == gp.const.LD_ARG_LABELS[gp.const.LD_DIFFUSION]:
+    if dist_type == gp.const.LD_DIFFUSION:
         dnorm = quick_normalize(laminD)
     else:
         dnorm = laminD / (laminD + centrD)

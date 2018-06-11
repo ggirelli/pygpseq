@@ -52,6 +52,9 @@ import pandas as pd
 import pygpseq as gp
 import sys
 
+from ggc.prompt import ask
+from ggc.args import check_threads
+
 from pygpseq.tools.io import printout
 
 # PARAMETERS ===================================================================
@@ -163,6 +166,9 @@ parser.add_argument('-n', '--normalize-distance', action = 'store_const',
 parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 	help = """Debugging mode.""",
 	const = True, default = False)
+parser.add_argument('-y', '--do-all', action = 'store_const',
+    help = """Do not ask for settings confirmation and proceed.""",
+    const = True, default = False)
 
 # Version flag
 version = "2.0.0"
@@ -181,23 +187,69 @@ if maxncores < args.threads:
 
 # FUNCTION =====================================================================
 
-def ask(q):
-	"""Asks for confirmation. Aborts otherwise.
+def print_settings(gpi, args, clear = True):
+    '''Show input settings, for confirmation.
 
-	Args:
-		q (string): question.
-	"""
+    Args:
+        args (Namespace): arguments parsed by argparse.
+        clear (bool): clear screen before printing.
+    '''
+    s = " # GPSeq image analysis v%s\n" % version
 
-	answer = ''
-	while not answer.lower() in ['y', 'n']:
-		print("%s %s" % (q, "(y/n)"))
-		answer = sys.stdin.readline().strip()
+    s += """
+---------- SETTING:  VALUE ----------
 
-		if 'n' == answer.lower():
-			sys.exit("Aborted.\n")
-		elif not 'y' == answer.lower():
-			print("Please, answer 'y' or 'n'.\n")
+   Input directory :  %s
+  Output directory :  %s
+          Log file :  %s
+  
+     Skipped steps :  %s
+  
+      DNA channels :  %s
+   Signal channels :  %s
 
+      Segmentation :  %s
+          Analysis :  %s
+    Middle section :  %s
+     Distance mode :  %s
+
+Voxel aspect (ZYX) :  %s
+       Aspect unit :  %s
+ Minimum Z portion :  %.2f
+    Minimum radius :  %.2f vx
+        Fill holes :  %r
+
+    Sigma (smooth) :  %.4f
+   Sigma (density) :  %.4f
+             #bins :  %d
+
+  Condition descr. :  %s
+
+ Nuclear selection :  %s
+
+           Threads :  %d
+              Note :  %s
+
+            Regexp :  '%s'
+
+   Rescale deconv. :  %r
+   Normalize dist. :  %r
+         Debug mod :  %r
+
+	""" % (
+		gpi.basedir, gpi.outdir, gpi.logpath, str(args.skip), str(gpi.dna_names),
+		str(gpi.sig_names), args.seg_type, args.an_type, args.mid_type,
+		args.dist_type, str(gpi.aspect), gpi.umes, gpi.min_z_size,
+		gpi.radius_interval[0], gpi.do_fill_holes, gpi.sigma_smooth,
+		gpi.sigma_density, gpi.nbins,
+		"\n                     ".join(readable_cdescr),
+		readable_nsf, gpi.ncores, gpi.notes, gpi.reg, gpi.rescale_deconvolved,
+		gpi.normalize_distance, gpi.debugging
+	)
+
+    if clear: print("\033[H\033[J%s" % s)
+    else: print(s)
+    return(s)
 
 # RUN ==========================================================================
 
@@ -295,58 +347,8 @@ if not None is args.note:
 gpi.debugging = args.DEBUG_MODE
 
 # Show current settings
-os.system('clear')
-settings_string = """
----------- SETTING:  VALUE ----------
-
-   Input directory :  %s
-  Output directory :  %s
-          Log file :  %s
-  
-     Skipped steps :  %s
-  
-      DNA channels :  %s
-   Signal channels :  %s
-
-      Segmentation :  %s
-          Analysis :  %s
-    Middle section :  %s
-     Distance mode :  %s
-
-Voxel aspect (ZYX) :  %s
-       Aspect unit :  %s
- Minimum Z portion :  %.2f
-    Minimum radius :  %.2f vx
-        Fill holes :  %r
-
-    Sigma (smooth) :  %.4f
-   Sigma (density) :  %.4f
-             #bins :  %d
-
-  Condition descr. :  %s
-
- Nuclear selection :  %s
-
-           Threads :  %d
-              Note :  %s
-
-            Regexp :  '%s'
-
-   Rescale deconv. :  %r
-   Normalize dist. :  %r
-         Debug mod :  %r
-
-""" % (
-	gpi.basedir, gpi.outdir, gpi.logpath, str(args.skip), str(gpi.dna_names),
-	str(gpi.sig_names), args.seg_type, args.an_type, args.mid_type,
-	args.dist_type, str(gpi.aspect), gpi.umes, gpi.min_z_size,
-	gpi.radius_interval[0], gpi.do_fill_holes, gpi.sigma_smooth,
-	gpi.sigma_density, gpi.nbins,
-	"\n                     ".join(readable_cdescr),
-	readable_nsf, gpi.ncores, gpi.notes, gpi.reg, gpi.rescale_deconvolved,
-	gpi.normalize_distance, gpi.debugging
-)
-print(settings_string)
+settings_string = print_settings(gpi, args)
+if not args.do_all: ask("Confirm settings and proceed?")
 
 # Save settings
 with open("%s.settings.txt" % os.path.splitext(gpi.logpath)[0], 'w+') as OH:
@@ -354,9 +356,6 @@ with open("%s.settings.txt" % os.path.splitext(gpi.logpath)[0], 'w+') as OH:
 	OH.write("@%s\n\n" % datetime.datetime.now())
 	OH.write("%s\n" % sys.version)
 	OH.write(settings_string)
-
-# Ask for confirmation
-ask('Confirm settings and proceed.')
 
 # Start the analysis
 gpi = gpi.run()

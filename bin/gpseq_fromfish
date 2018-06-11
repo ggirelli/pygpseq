@@ -46,6 +46,7 @@ matplotlib.use('ps')
 import matplotlib.pyplot as plt
 
 import argparse
+import datetime
 from joblib import Parallel, delayed
 import multiprocessing
 import numpy as np
@@ -286,8 +287,15 @@ No compartment plot : %r
 
 # RUN ==========================================================================
 
-ssettings = print_settings(args)
+settings_string = print_settings(args)
 if not args.do_all: ask("Confirm settings and proceed?")
+
+# Save settings
+with open("%s/settings.txt" % args.outdir, 'w+') as OH:
+    OH.write("%s\n" % " ".join(sys.argv))
+    OH.write("@%s\n\n" % datetime.datetime.now())
+    OH.write("%s\n" % sys.version)
+    OH.write(settings_string)
 
 # Create output folder
 if not os.path.isdir(args.outdir):
