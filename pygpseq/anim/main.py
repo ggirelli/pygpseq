@@ -810,7 +810,7 @@ class Main(Analyzer):
             kwargs['outdir'], const.OUTDIR_CSV, kwargs['suffix']))
 
         # Assemble and export volume profile
-        vp = vp.concat(vp)
+        vp = pd.concat(vp)
         vp.to_csv("%s%s/volume_profiles%s.csv" % (
             kwargs['outdir'], const.OUTDIR_CSV, kwargs['suffix']))
 
