@@ -61,6 +61,10 @@ class Analyzer(iot.IOinterface):
     radius_interval = (10., float('inf'))
     min_z_size = .25
     seg_type = const.SEG_SUM_PROJ
+    mask_folder = None
+    mask_prefix = "mask_"
+    labeled = False
+    compressed = False
     an_type = const.AN_SUM_PROJ
     mid_type = const.MID_SEC_DEFAULT
     dist_type = const.LD_DEFAULT

@@ -231,54 +231,76 @@ class Series(iot.IOinterface):
         i = dna_ch.copy()
 
         # Produce a mask
-        bi = Binarize(path = kwargs['logpath'], append = True, **kwargs)
-        bi.verbose = self.verbose
-        mask, thr, tmp_log = bi.run(i)
-        log += tmp_log
+        Segmenter = Binarize(path = kwargs['logpath'], append = True, **kwargs)
+        Segmenter.verbose = self.verbose
+        
+        # Check if already segmented
+        already_segmented = False
+        mask_tiff_dir = kwargs['mask_folder']
+        if not type(None) == type(mask_tiff_dir):
+            mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
+                "%sdapi_%03d.tif" % (kwargs['mask_prefix'], self.n))
+            already_segmented = os.path.isfile(mpath)
+
+        # Skip or binarize
+        if already_segmented:
+            log += self.printout("Skipped binarization, using provided mask.",3)
+            log += self.printout("'%s'" % mpath, 4)
+            mask = imt.read_tiff(mpath) != 0 # Read and binarize
+            thr = 0
+        else:
+            log += self.printout("Binarizing...", 2)
+            (mask, thr, tmp_log) = Segmenter.run(i)
+            log += tmp_log
+
+            # Filter based on object size
+            mask, tmp_log = Segmenter.filter_obj_XY_size(mask)
+            log += tmp_log
+            mask, tmp_log = Segmenter.filter_obj_Z_size(mask)
+            log += tmp_log
 
         # Estimate background 
+        log += self.printout('Estimating background:', 2)
         if None == self.dna_bg:
             self.dna_bg = imt.estimate_background(dna_ch, mask, seg_type)
         kwargs['dna_bg'] = self.dna_bg
         if None == self.sig_bg:
             self.sig_bg = imt.estimate_background(sig_ch, mask, seg_type)
         kwargs['sig_bg'] = self.sig_bg
-        log += self.printout('Estimating background:', 2)
         log += self.printout('DNA channel: ' + str(kwargs['dna_bg']), 3)
         log += self.printout('Signal channel: ' + str(kwargs['sig_bg']), 3)
-
-        # Filter object size
-        mask, tmp_log = bi.filter_obj_XY_size(mask)
-        log += tmp_log
-        mask, tmp_log = bi.filter_obj_Z_size(mask)
-        log += tmp_log
 
         # Save mask
         log += self.printout('Saving series object mask...', 2)
         L = label(mask)
 
-        # Plot
-        fig = plt.figure()
-        if 3 == len(mask.shape):
-            plt.imshow(L.max(0).astype('u4'))
-        else:
-            plt.imshow(L.astype('u4'))
-        plt.gca().get_xaxis().set_visible(False)
-        plt.gca().get_yaxis().set_visible(False)
-        plot.set_font_size(kwargs['font_size'])
+        # Export binary mask as TIF
+        if not type(None) == type(mask_tiff_dir) and not already_segmented:
+            log += self.printout("Exporting mask as tif...", 4)
+            if not os.path.isdir(mask_tiff_dir): os.mkdir(mask_tiff_dir)
+            if not os.path.isdir("%s/%s/" % (mask_tiff_dir, self.c)):
+                os.mkdir("%s/%s/" % (mask_tiff_dir, self.c))
 
-        title = 'Nuclei in "' + kwargs['cond_name'] + '", ' + str(self.name)
-        title += ' [' + str(L.max()) + ' objects]'
-        plt.title(title)
+            if kwargs['labeled']:
+                plot.save_tif(mpath, L, 'uint8', kwargs['compressed'])
+            else:
+                L[np.nonzero(L)] = 255
+                plot.save_tif(mpath, L, 'uint8', kwargs['compressed'])
+                L = label(mask)
 
-        # Export as png
-        fname = kwargs['out_dir'] + const.OUTDIR_MASK + kwargs['cond_name']
-        fname += '.' + self.name + '.mask' + suffix + '.png'
-        if kwargs['plotting']: plot.export(fname, 'png')
+        # Export mask as PNG
+        if kwargs['plotting']:
+            # Create png masks output directory
+            maskdir = os.path.join(kwargs['outdir'], const.OUTDIR_MASK)
+            if not os.path.isdir(maskdir): os.mkdir(maskdir)
+            imbname = os.path.splitext(os.path.basename(self.name))[0]
 
-        # Close plot figure
-        plt.close(fig)
-        
+            # Export labeled mask
+            log += self.printout("Saving nuclear ID mask...", 3)
+            plot.export_mask_png("%smask.%s.nuclei.png" % (maskdir, imbname),
+                L, 'Nuclei in "%s" [%d objects]' % (
+                os.path.basename(self.name), L.max()))
+
         # Initialize nuclei
         log += self.printout('Bounding ' + str(L.max()) + ' nuclei...', 2)
         kwargs['logpath'] = self.logpath
