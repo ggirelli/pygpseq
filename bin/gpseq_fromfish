@@ -380,7 +380,7 @@ kwargs = {
     'compressed' : args.compressed,
     'an_type' : an_type,
     'seg_type' : seg_type,
-    'dist_type' : args.dist_type,
+    'dist_type' : gp.const.LD_ARG_LABELS.index(args.dist_type),
     'nbins' : args.nbins
 }
 if 1 != args.threads:
