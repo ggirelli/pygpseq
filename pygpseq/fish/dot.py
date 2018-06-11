@@ -13,7 +13,7 @@ import pandas as pd
 
 from scipy.ndimage.morphology import distance_transform_edt
 
-from pygpseq.tools import image as imt, stat as stt
+from pygpseq.tools import distance as dist, image as imt, stat as stt
 
 # FUNCTIONS ====================================================================
 
@@ -209,8 +209,8 @@ def calc_dot_distances(msg, t, nuclei, aspect, centerAsPercentile = False):
 			cell_cond = cid == t['cell_ID']
 
 			# Distance from lamina and center
-			laminD = imt.calc_lamin_distance(nuclei[cid].mask, aspect)
-			centrD = imt.calc_center_distance(laminD, aspect,
+			laminD = dist.calc_lamina_distance(nuclei[cid].mask, aspect)
+			centrD = dist.calc_center_distance(laminD, aspect,
 				centerAsPercentile)
 
 			t.loc[cell_cond, 'lamin_dist'] = laminD[

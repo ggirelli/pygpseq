@@ -12,7 +12,8 @@
 __all__ = ['matplotlib', 'numpy', 'scipy', 'skimage', 'tifffile']
 
 from pygpseq.tools.binarize import Binarize
-from pygpseq.tools import chromab, image, io, path, plot, stat, string, vector
+from pygpseq.tools import chromab, distance, image, io, path, plot, stat
+from pygpseq.tools import string, vector
 
 # END ==========================================================================
 

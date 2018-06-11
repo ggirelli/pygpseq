@@ -15,8 +15,8 @@ import skimage.io as io
 from skimage.measure import label, marching_cubes, mesh_surface_area
 
 from pygpseq import const
-from pygpseq.tools import io as iot, image as imt, stat as stt, string as st
-from pygpseq.tools import vector as vt
+from pygpseq.tools import distance as dist, io as iot, image as imt
+from pygpseq.tools import stat as stt, string as st, vector as vt
 
 # CLASSES ======================================================================
 
@@ -361,8 +361,8 @@ class Nucleus(iot.IOinterface):
 			sig = sig[mid, :, :]
 
 		# Perform distance transform
-		laminD = imt.calc_lamin_distance(mask, aspect)
-		centrD = imt.calc_center_distance(laminD, aspect,
+		laminD = dist.calc_lamina_distance(mask, aspect)
+		centrD = dist.calc_center_distance(laminD, aspect,
 			kwargs['center_as_percentile'])
 
 		# Export single-nucleus images in debugging mode

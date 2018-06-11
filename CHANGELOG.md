@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
-### ...
-- ...
+### Added
+- Enzyme diffusion simulation.
+
+### Changed
+- Moved distance functions to separate `tools` sub-module.
+
+### Fixed
+- `return` bug crashing the pipeline when a condition has no nuclei.
 
 
 

@@ -83,55 +83,6 @@ def binarize(i, thr):
         i = closing(i > thr, cube(3))
     return(i)
 
-def calc_lamin_distance(mask, aspect):
-    '''Calculate lamin distance. If 3D image, add empty slices to top and
-    bottom of the stack.
-
-    Args:
-        mask (np.ndarray): binary image.
-        aspect (tuple[float]): pixel/voxel dimension proportion.
-    '''
-
-    # Check for binary image
-    assert_msg = "binary image expected, instead got [%f, %f]." % (
-        mask.min(), mask.max())
-    assert 1 >= mask.max() and 0 <= mask.min(), assert_msg
-
-    # Calculate lamin distance
-    if 3 == len(mask.shape):
-        # Add top/bottom empty slices
-        zero_slice = np.zeros((1, mask.shape[1], mask.shape[2]))
-        laminD = distance_transform_edt(
-            np.concatenate([zero_slice, mask, zero_slice]),
-            aspect[3-len(mask.shape):])[1:-1, :, :]
-    else:
-        laminD = distance_transform_edt(mask,
-            aspect[3-len(mask.shape):])
-    return(laminD)
-
-def calc_center_distance(laminD, aspect, asPercentile = False):
-    '''Calculate center distance. Center is by default defined as the voxel(s)
-    with the highest lamin distance, otherwise as the top percentile.
-
-    Args:
-        mask (np.ndarray): binary image.
-        aspect (tuple[float]): pixel/voxel dimension proportion.
-        asPercentile (bool): define center as percentile.
-    '''
-
-    # Center as top percentile
-    if asPercentile:
-        centrD = distance_transform_edt(
-            laminD < np.percentile(laminD, 99.),
-            aspect[3-len(laminD.shape):])
-
-    # Center as top value
-    else:
-        centrD = distance_transform_edt(laminD != laminD.max(),
-            aspect[3-len(laminD.shape):])
-
-    return(centrD)
-
 def calc_surface(mask, spacing = None):
     """Calculate the surface of a binary mask.
     The provided mask is expected to have only one object.

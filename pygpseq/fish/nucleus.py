@@ -21,9 +21,8 @@ from skimage.morphology import dilation
 
 from pygpseq import const
 from pygpseq.anim import Nucleus
-from pygpseq.tools import image as imt
-from pygpseq.tools import plot
-from pygpseq.tools import stat as stt
+from pygpseq.tools import image as imt, plot
+from pygpseq.tools import distance as dist, stat as stt
 
 # FUNCTIONS ====================================================================
 
@@ -313,8 +312,8 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 
 		# Density profile ------------------------------------------------------
 
-		laminD = imt.calc_lamin_distance(mask, aspect)
-		centrD = imt.calc_center_distance(laminD, aspect, centerAsPercentile)
+		laminD = dist.calc_lamina_distance(mask, aspect)
+		centrD = dist.calc_center_distance(laminD, aspect, centerAsPercentile)
 		laminD_norm = laminD + centrD
 		laminD_norm = laminD / laminD_norm
 		laminD_norm = laminD_norm[mask].flatten()
