@@ -175,7 +175,7 @@ class Nucleus(iot.IOinterface):
 			suffix = st.add_leading_dot(kwargs['suffix'])
 
 		# Get nuclear data
-		data, log = self.get_data(**kwargs)
+		data, dp, vp, log = self.get_data(**kwargs)
 
 		# Export as csv file
 		out_fname = kwargs['series_name'] + '.nucleus' + str(self.n)
@@ -300,7 +300,7 @@ class Nucleus(iot.IOinterface):
 		**kwargs
 
 		Returns:
-			tuple: nuclear data, density profile and log string.
+			tuple: nuclear data, density profile, volume profile and log string.
 		"""
 
 		# SET PARAMS ===========================================================
@@ -417,11 +417,11 @@ class Nucleus(iot.IOinterface):
 		data['lamin_dnorm'] = vt.flatten_and_select(laminD_norm, mask_flat)
 
 		# Prepare density profile
-		density_profile = self.calc_density_profile(
+		density_profile, volume_profile = self.calc_density_profile(
 			data['dna'], data['lamin_dnorm'], kwargs['nbins'])
 
 		# Output
-		return((data, density_profile, log))
+		return((data, density_profile, volume_profile, log))
 
 	def get_summary(self):
 		"""Get nuclear summary. """
@@ -443,7 +443,8 @@ class Nucleus(iot.IOinterface):
 			nbins (int): number of bins over normalized lamin distance.
 		'''
 
-		profile = [self.c, self.s, self.n]
+		density_profile = [self.c, self.s, self.n]
+		volume_profile = [self.c, self.s, self.n]
 
 		# Prepare denominators
 		M = dna.shape[0]      # Nuclear voxel count
@@ -458,15 +459,16 @@ class Nucleus(iot.IOinterface):
 			layerN = dnorm >= breaks[i - 1] if i == 1 else dnorm > breaks[i - 1]
 			layerN = np.logical_and(layerN, dnorm <= breaks[i])
 			Nvx = np.nansum(layerN.astype('i'))
+			volume_profile.append(Nvx)
 
 			if 0 == Nvx:
-				profile.append(np.nan)
+				density_profile.append(np.nan)
 			else:
 				# Build profile
 				numer = np.nansum(dna[layerN]) / Nvx
-				profile.append(numer / denom)
+				density_profile.append(numer / denom)
 
-		return(np.array(profile))
+		return (np.array(density_profile), np.array(volume_profile))
 
 # END ==========================================================================
 

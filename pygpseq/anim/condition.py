@@ -225,6 +225,15 @@ class Condition(iot.IOinterface):
             for b in np.linspace(0, 1, kwargs['nbins'] + 1)[1:]])
         dp.columns = col_labs
 
+        # Volume profile -------------------------------------------------------
+
+        vp = np.vstack([nested['volume'] for nested in data_nested])
+        vp = pd.DataFrame(vp)
+        col_labs = ["c", "s", "n"]
+        col_labs.extend(["nd_%f" % b
+            for b in np.linspace(0, 1, kwargs['nbins'] + 1)[1:]])
+        vp.columns = col_labs
+
         # PLOT =================================================================
 
         # EVERY PIXEL ----------------------------------------------------------
@@ -327,7 +336,7 @@ class Condition(iot.IOinterface):
 
         # Output
         self.printout('', 0)
-        return((profiles, summary, merged, dp))
+        return((profiles, summary, merged, dp, vp))
 
     def check_single_pixels(self, indata, profiles, partial = None,
         supcomm = None, **kwargs):
@@ -779,7 +788,7 @@ def get_series_nuclear_data(self, summary, sidx, **kwargs):
     ns = summary['n'][ns]
 
     # Retrieve nuclear data
-    data, densp, log = self.series[sidx - 1].get_nuclei_data(ns, **kwargs)
+    data, dp, vp, log = self.series[sidx - 1].get_nuclei_data(ns, **kwargs)
 
     # Print log all at once
     time_msg = 'Took %s s.' % (round(time.time() - start_time, 3))
@@ -791,7 +800,7 @@ def get_series_nuclear_data(self, summary, sidx, **kwargs):
         self.printout(time_msg, 2)
 
     # Output
-    return({'spx_data' : data, 'density' : densp})
+    return({'spx_data' : data, 'density' : dp, 'volume': vp})
 
 # END ==========================================================================
 

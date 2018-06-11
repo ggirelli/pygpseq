@@ -802,10 +802,16 @@ class Main(Analyzer):
         sumd = [d[1] for d in data if not type(None) == type(d)]
         md = [d[2] for d in data if not type(None) == type(d)]
         dp = [d[3] for d in data if not type(None) == type(d)]
+        vp = [d[4] for d in data if not type(None) == type(d)]
 
         # Assemble and export density profile
         dp = pd.concat(dp)
         dp.to_csv("%s%s/density_profiles%s.csv" % (
+            kwargs['outdir'], const.OUTDIR_CSV, kwargs['suffix']))
+
+        # Assemble and export volume profile
+        vp = vp.concat(vp)
+        vp.to_csv("%s%s/volume_profiles%s.csv" % (
             kwargs['outdir'], const.OUTDIR_CSV, kwargs['suffix']))
 
         # Calculate profile-specific features
