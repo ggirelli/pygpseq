@@ -129,13 +129,13 @@ def calc_nuclear_distances(dist_type, mask, aspect):
 
     assert_msg = "expected one of %s, got '%s'" % (
         str(gp.const.LD_ARG_LABELS), dist_type)
-    assert dist_type in gp.const.LD_ARG_LABELS, assert_msg
+    assert dist_type in range(len(gp.const.LD_ARG_LABELS)), assert_msg
 
-    if dist_type == const.LD_ARG_LABELS[const.LD_DIFFUSION]:
+    if dist_type == gp.const.LD_ARG_LABELS[gp.const.LD_DIFFUSION]:
         laminD = simulate_diffusion(mask, 1, aspect)
         centrD = np.absolute(laminD - np.nanmax(laminD))
     else:
-        center_as_percentile = const.LD_ARG_LABELS[const.LD_CENTER_PERC]
+        center_as_percentile = gp.const.LD_ARG_LABELS[gp.const.LD_CENTER_PERC]
         center_as_percentile = dist_type == center_as_percentile
         laminD = calc_lamina_distance(mask, aspect)
         centrD = calc_center_distance(laminD, aspect,
@@ -145,7 +145,7 @@ def calc_nuclear_distances(dist_type, mask, aspect):
 def normalize_nuclear_distances(dist_type, laminD, centrD):
     '''Normalize lamina distnace.'''
 
-    if dist_type == const.LD_ARG_LABELS[const.LD_DIFFUSION]:
+    if dist_type == gp.const.LD_ARG_LABELS[gp.const.LD_DIFFUSION]:
         dnorm = quick_normalize(laminD)
     else:
         dnorm = laminD / (laminD + centrD)
