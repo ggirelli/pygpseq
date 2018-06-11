@@ -92,9 +92,9 @@ _const.MID_SEC_ARG_LABELS = ('central', 'largest', 'maxIsum')
 
 # Lamina distance mode
 _const.LD_CENTER_MAX = 0
-_const.LD_CENTER_PERCENTILE = 1
+_const.LD_CENTER_PERC = 1
 _const.LD_DIFFUSION = 2
-_const.LD_DEFAULT = _const.LD_CENTER_PERCENTILE
+_const.LD_DEFAULT = _const.LD_CENTER_PERC
 _const.LD_ARG_LABELS = ('center_max', 'center_percentile', 'diffusion')
 
 # Nuclear selection features

@@ -165,7 +165,7 @@ parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 	const = True, default = False)
 
 # Version flag
-version = "1.1.5"
+version = "2.0.0"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -227,10 +227,14 @@ gpi.basedir = args.inDir
 gpi.outdir = args.outDir
 if not os.path.isdir(gpi.outdir): os.mkdir(gpi.outdir)
 
-gpi.seg_type = gp.const.SEG_ARG_LABELS[args.seg_type]
-gpi.an_type = gp.const.AN_ARG_LABELS[args.an_type]
-gpi.mid_type = const.MID_SEC_ARG_LABELS[args.mid_type]
-gpi.dist_type = const.LD_ARG_LABELS[args.dist_type]
+assert args.seg_type in gp.const.SEG_ARG_LABELS
+gpi.seg_type = gp.const.SEG_ARG_LABELS.index(args.seg_type)
+assert args.an_type in gp.const.AN_ARG_LABELS
+gpi.an_type = gp.const.AN_ARG_LABELS.index(args.an_type)
+assert args.mid_type in gp.const.MID_SEC_ARG_LABELS
+gpi.mid_type = gp.const.MID_SEC_ARG_LABELS.index(args.mid_type)
+assert args.dist_type in gp.const.LD_ARG_LABELS
+gpi.dist_type = gp.const.LD_ARG_LABELS.index(args.dist_type)
 
 # Voxel aspect proportions (or sizes, ZYX)
 gpi.aspect = tuple(args.aspect)
@@ -244,14 +248,8 @@ gpi.radius_interval = (args.min_radius, float('inf'))
 gpi.do_fill_holes = not args.no_hole_filling
 
 # Nuclear selection
-dnsel = {
-	'size' : 0,
-	'surf' : 1,
-	'shape' : 2,
-	'sumI' : 3,
-	'meanI' : 4,
-	'flat_size' : 5
-}
+dnsel = {'size' : 0, 'surf' : 1, 'shape' : 2, 'sumI' : 3,
+	'meanI' : 4, 'flat_size' : 5}
 arsel = ['size', 'surf', 'shape', 'sumI', 'meanI', 'flat_size']
 gpi.nsf = tuple([dnsel[e] for e in args.nuclear_sel])
 readable_nsf = "*NONE*"
@@ -313,7 +311,7 @@ settings_string = """
       Segmentation :  %s
           Analysis :  %s
     Middle section :  %s
-       Center perc :  %r
+     Distance mode :  %s
 
 Voxel aspect (ZYX) :  %s
        Aspect unit :  %s
@@ -341,7 +339,7 @@ Voxel aspect (ZYX) :  %s
 """ % (
 	gpi.basedir, gpi.outdir, gpi.logpath, str(args.skip), str(gpi.dna_names),
 	str(gpi.sig_names), args.seg_type, args.an_type, args.mid_type,
-	gpi.center_as_percentile, str(gpi.aspect), gpi.umes, gpi.min_z_size,
+	args.dist_type, str(gpi.aspect), gpi.umes, gpi.min_z_size,
 	gpi.radius_interval[0], gpi.do_fill_holes, gpi.sigma_smooth,
 	gpi.sigma_density, gpi.nbins,
 	"\n                     ".join(readable_cdescr),

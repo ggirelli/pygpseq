@@ -63,6 +63,7 @@ class Analyzer(iot.IOinterface):
     seg_type = const.SEG_SUM_PROJ
     an_type = const.AN_SUM_PROJ
     mid_type = const.MID_SEC_DEFAULT
+    dist_type = const.LD_DEFAULT
     nsf = (const.NSEL_SIZE, const.NSEL_SUMI, const.NSEL_SHAPE)
     offset = (0, 5, 5)
     part_n_erosion = .5
@@ -72,7 +73,6 @@ class Analyzer(iot.IOinterface):
     nbins = 200
     do_clear_Z_borders = False
     do_fill_holes = True
-    center_as_percentile = False
     rescale_deconvolved = False
     correctCA = False
     normalize_distance = True

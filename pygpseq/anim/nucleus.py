@@ -361,9 +361,8 @@ class Nucleus(iot.IOinterface):
 			sig = sig[mid, :, :]
 
 		# Perform distance transform
-		laminD = dist.calc_lamina_distance(mask, aspect)
-		centrD = dist.calc_center_distance(laminD, aspect,
-			kwargs['center_as_percentile'])
+		laminD, centrD = dist.calc_nuclear_distances(
+			kwargs['dist_type'], mask, aspect)
 
 		# Export single-nucleus images in debugging mode
 		if debugging:
@@ -415,8 +414,9 @@ class Nucleus(iot.IOinterface):
 		data['sig'] = np.array(data['sig']) - self.sig_bg
 
 		# Add normalized distance
-		data['lamin_dnorm'] = data['lamin_d'] + data['centr_d']
-		data['lamin_dnorm'] = data['lamin_d'] / ( data['lamin_dnorm'] )
+		laminD_norm = dist.normalize_nuclear_distance(
+			kwargs['dist_type'], laminD, centrD)
+		data['lamin_dnorm'] = vt.flatten_and_select(laminD_norm, mask_flat)
 
 		# Prepare density profile
 		density_profile = self.calc_density_profile(

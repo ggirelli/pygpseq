@@ -247,7 +247,7 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 
 def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 	aspect, offset, logpath, i, istruct,
-	centerAsPercentile = False, nbins = 200):
+	dist_type = const.LD_ARG_LABELS[const.LD_DEFAULT], nbins = 200):
 	'''
 	Build nuclei objects
 	
@@ -263,7 +263,7 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 	  offset (tuple): tuple with pixel offset for bounding box.
 	  logpath (string): path to log file.
 	  i (np.array): image.
-	  centerAsPercentile (bool): define center as percentile.
+	  dist_type (str): nuclear distance calculation mode.
 	  nbins (int): number of bins for density profile.
 	
 	Returns:
@@ -311,11 +311,8 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		curnuclei[n] = nucleus
 
 		# Density profile ------------------------------------------------------
-
-		laminD = dist.calc_lamina_distance(mask, aspect)
-		centrD = dist.calc_center_distance(laminD, aspect, centerAsPercentile)
-		laminD_norm = laminD + centrD
-		laminD_norm = laminD / laminD_norm
+		laminD, centrD = dist.calc_nuclear_distances(dist_type, mask, aspect)
+		laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
 		laminD_norm = laminD_norm[mask].flatten()
 		
 		dna = imt.apply_box(i, nucleus.box)[mask].flatten()

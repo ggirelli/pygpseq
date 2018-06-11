@@ -178,7 +178,7 @@ def add_allele_polarity(t, nuclei, aspect):
 
 	return(t)
 
-def calc_dot_distances(msg, t, nuclei, aspect, centerAsPercentile = False):
+def calc_dot_distances(msg, t, nuclei, aspect, dist_type):
 	'''
 	Calculate distance of dots from lamina and central area
 	
@@ -187,7 +187,7 @@ def calc_dot_distances(msg, t, nuclei, aspect, centerAsPercentile = False):
 	  t (pd.DataFrame): DOTTER output table.
 	  nuclei (list(gp.Nucleus)): identified nuclei.
 	  aspect (tuple): Z,Y,X voxel sides in real units.
-	  centerAsPercentile (bool): define center as percentile.
+	  dist_type (str): nuclear distance calculation mode.
 	
 	Returns:
 	  pd.DataFrame: updated dotter table.
@@ -208,10 +208,7 @@ def calc_dot_distances(msg, t, nuclei, aspect, centerAsPercentile = False):
 			msg += "    >>> Working on cell #%d...\n" % (cid,)
 			cell_cond = cid == t['cell_ID']
 
-			# Distance from lamina and center
-			laminD = dist.calc_lamina_distance(nuclei[cid].mask, aspect)
-			centrD = dist.calc_center_distance(laminD, aspect,
-				centerAsPercentile)
+			laminD, centrD = dist.calc_nuclear_distances(dist_type, mask, aspect)
 
 			t.loc[cell_cond, 'lamin_dist'] = laminD[
 				t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
@@ -227,10 +224,17 @@ def calc_dot_distances(msg, t, nuclei, aspect, centerAsPercentile = False):
 
 	# Normalize distances ------------------------------------------------------
 
-	# Max distance for each dot
-	fnorm = t.loc[:, 'lamin_dist'] + t.loc[:, 'centr_dist']
-	t.loc[:, 'centr_dist_norm'] = t.loc[:, 'centr_dist'] / fnorm
-	t.loc[:, 'lamin_dist_norm'] = t.loc[:, 'lamin_dist'] / fnorm
+	laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
+	laminD_norm = laminD_norm[mask].flatten()
+
+	t.loc[cell_cond, 'lamin_dist_norm'] = laminD[
+		t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
+		t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
+		t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
+	]
+
+	ldn = t.loc[cell_cond, 'lamin_dist_norm'].values
+	t.loc[cell_cond, 'centr_dist_norm'] = np.absolute(ldn - np.nanmax(ldn))
 
 	# Output
 	return((t, msg))

@@ -12,6 +12,7 @@ import os
 import sys
 
 import numpy as np
+import pygpseq as gp
 
 # FUNCTIONS ====================================================================
 
@@ -91,6 +92,10 @@ def ndGuassianSmooth(T, sigma, aspect, normalized = False):
             V /= convolve(np.ones(V.shape), k, mode = 'constant')
     return V
 
+def quick_normalize(m):
+    m = m.copy() - m.min()
+    return m / m.max()
+
 def simulate_diffusion(mask, sigma, aspect, simthr = .7):
     """Simulates enzyme diffusion with constant external concentration and
     iterative anisotropic Gaussian blurring."""
@@ -111,6 +116,40 @@ def simulate_diffusion(mask, sigma, aspect, simthr = .7):
     timebox[np.isinf(timebox)] = np.nan
 
     return timebox
+
+def calc_nuclear_distances(dist_type, mask, aspect):
+    '''Calculate distance from lamina and center for each voxel in a nucleus.
+    
+    Args:
+        dist_type (str): any string from gp.const.LD_ARG_LABELS
+
+    Returns:
+        (np.ndarray, np.ndarray): lamina_distance, center_distance
+    '''
+
+    assert_msg = "expected one of %s, got '%s'" % (
+        str(gp.const.LD_ARG_LABELS), dist_type)
+    assert dist_type in gp.const.LD_ARG_LABELS, assert_msg
+
+    if dist_type == const.LD_ARG_LABELS[const.LD_DIFFUSION]:
+        laminD = simulate_diffusion(mask, 1, aspect)
+        centrD = np.absolute(laminD - np.nanmax(laminD))
+    else:
+        center_as_percentile = const.LD_ARG_LABELS[const.LD_CENTER_PERC]
+        center_as_percentile = dist_type == center_as_percentile
+        laminD = calc_lamina_distance(mask, aspect)
+        centrD = calc_center_distance(laminD, aspect,
+            center_as_percentile)
+    return (laminD, centrD)
+
+def normalize_nuclear_distances(dist_type, laminD, centrD):
+    '''Normalize lamina distnace.'''
+
+    if dist_type == const.LD_ARG_LABELS[const.LD_DIFFUSION]:
+        dnorm = quick_normalize(laminD)
+    else:
+        dnorm = laminD / (laminD + centrD)
+    return laminD
 
 # END ==========================================================================
 

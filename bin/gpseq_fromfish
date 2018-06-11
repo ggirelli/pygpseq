@@ -124,6 +124,11 @@ parser.add_argument('-D', '--dilate', metavar = "npx", type = int,
     help = """Number of pixels for nuclear mask dilation. It is automatically
     scaled based on the specified aspect to be isotropic in 3D. Default: 0""",
     default = 0)
+parser.add_argument('--dist-type', type = str,
+    help = """Method for lamina distance calculation/normalization.
+    Default: '%s'""" % (gp.const.LD_ARG_LABELS[gp.const.LD_DEFAULT]),
+    choices = list(gp.const.LD_ARG_LABELS),
+    default = gp.const.LD_ARG_LABELS[gp.const.LD_DEFAULT])
 parser.add_argument('-t', '--threads', metavar = "nthreads", type = int,
     help = """Number of threads for parallelization. Default: 1""",
     default = 1)
@@ -164,9 +169,9 @@ parser.add_argument('--compressed',
 #     action = 'store_const', dest = 'clearZborders',
 #     const = False, default = False,
 #     help = 'Discard nuclei in the first/last slices of the Z-stack.')
-parser.add_argument('--center-as-percentile', action = 'store_const',
-    help = """Define nucleus center as top percentile instead of top value.""",
-    const = True, default = False)
+# parser.add_argument('--center-as-percentile', action = 'store_const',
+#     help = """Define nucleus center as top percentile instead of top value.""",
+#     const = True, default = False)
 parser.add_argument('--dilate-Z',
     action = 'store_const', dest = 'doZdilation',
     const = False, default = False,
@@ -180,7 +185,7 @@ parser.add_argument('--no-compart-plot', action = 'store_const',
     help = 'Do not produce compartments-related plots.')
 
 # Version flag
-version = "5.2.0"
+version = "6.0.0"
 parser.add_argument('--version', action = 'version',
     version = '%s v%s' % (sys.argv[0], version,))
 
@@ -247,6 +252,7 @@ def print_settings(args, clear = True):
 
            Dilation : %d
      Aspect (Z Y X) : %s
+      Distance type : %s
    Skipped channels : %s
       Pole fraction : %.3f
               #bins : %d
@@ -255,7 +261,6 @@ def print_settings(args, clear = True):
 
             Labeled : %r
          Compressed : %r
-    Center as Perc. : %r
       Dilate over Z : %r
 
         Do not plot : %r
@@ -268,9 +273,9 @@ No compartment plot : %r
             Threads : %d
     """ % (
         args.dotCoords, args.imdir, args.outdir, args.mask_folder,
-        args.mask_prefix, args.dilate, str(args.aspect),
+        args.mask_prefix, args.dilate, str(args.aspect), args.dist_type,
         str(args.skip_channels), args.pole, args.nbins, args.labeled,
-        args.compressed, args.center_as_percentile, args.doZdilation,
+        args.compressed, args.doZdilation,
         args.noplot, args.no_compartment_plot, args.inreg, args.delim,
         args.threads
     )
@@ -375,7 +380,7 @@ kwargs = {
     'compressed' : args.compressed,
     'an_type' : an_type,
     'seg_type' : seg_type,
-    'centerAsPercentile' : args.center_as_percentile,
+    'dist_type' : args.dist_type,
     'nbins' : args.nbins
 }
 if 1 != args.threads:

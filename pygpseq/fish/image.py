@@ -26,7 +26,7 @@ from pygpseq.tools import plot
 
 def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	mask_dir, mask_prefix, plotCompartments, pole_fraction,
-	outdir, noplot, labeled, compressed, centerAsPercentile, nbins,
+	outdir, noplot, labeled, compressed, dist_type, nbins,
 	an_type, seg_type, # Required by the Binarize class
 	verbose = False):
 	'''Given a table with FISH data, add information on:
@@ -50,7 +50,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		noplot (bool): turn plotting off.
 		labeled (bool): import/export masks as labeled.
 		compressed (bool): export masks as compressed TIFFs.
-		centerAsPercentile (bool): define center as percentile.
+		dist_type (str): nuclear distance calculation mode.
 		nbins (int): number of bins for density profile.
 		an_type
 		seg_type
@@ -157,7 +157,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		dna_bg = dna_bg, sig_bg = 0,
 		aspect = aspect, offset = (1, 1, 1),
 		logpath = IOinterface().logpath,
-		centerAsPercentile = centerAsPercentile,
+		dist_type = dist_type,
 		i = im, istruct = istruct, nbins = nbins)
 
 	# ANALYSIS =================================================================
@@ -172,8 +172,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	# Distances ----------------------------------------------------------------
 	
 	msg += printout("Calculating lamina distance...", 3, v)
-	subt, msg = dot.calc_dot_distances(msg, subt, curnuclei, aspect,
-		centerAsPercentile)
+	subt, msg = dot.calc_dot_distances(msg, subt, curnuclei, aspect, dist_type)
 
 	# Compartments -------------------------------------------------------------
 
