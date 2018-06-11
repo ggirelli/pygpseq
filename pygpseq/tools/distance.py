@@ -18,6 +18,7 @@ from scipy.ndimage.morphology import distance_transform_edt
 from scipy.stats import norm
 
 import pygpseq as gp
+from pygpseq.tools import image as imt
 
 # FUNCTIONS ====================================================================
 
@@ -39,8 +40,7 @@ def calc_lamina_distance(mask, aspect):
     if 3 == len(mask.shape):
         # Add top/bottom empty slices
         zero_slice = np.zeros((1, mask.shape[1], mask.shape[2]))
-        laminD = distance_transform_edt(
-            np.concatenate([zero_slice, mask, zero_slice]),
+        laminD = distance_transform_edt(imt.add_top_bottom_slides(mask),
             aspect[3-len(mask.shape):])[1:-1, :, :]
     else:
         laminD = distance_transform_edt(mask,
@@ -104,6 +104,10 @@ def quick_normalize(m):
 def simulate_diffusion(mask, sigma, aspect, simthr = .7):
     """Simulates enzyme diffusion with constant external concentration and
     iterative anisotropic Gaussian blurring."""
+
+    if 3 == mask.shape:
+        mask = imt.add_top_bottom_slides(mask)
+
     timebox = np.zeros(mask.shape)
     timebox[1 == mask] = -np.inf
     reached = 0 == mask

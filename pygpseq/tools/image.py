@@ -26,6 +26,10 @@ from pygpseq.tools.io import printout
 
 # FUNCTIONS ====================================================================
 
+def add_top_bottom_slides(i):
+    zero_slice = np.zeros((1, i.shape[1], i.shape[2]))
+    return np.concatenate([zero_slice, i, zero_slice])
+
 def apply_box(i, box):
     """Apply square/box selection to an image.
 
