@@ -225,8 +225,9 @@ an_type = gp.const.AN_3D
 
 # Additional checks ------------------------------------------------------------
 
-assert_msg = "cannot apply dilation on images with different X/Y aspect."
-assert 0 != args.dilate and ax == ay, assert_msg
+if 0 != args.dilate:
+    assert_msg = "cannot apply dilation on images with different X/Y aspect."
+    assert ax == ay, assert_msg
 
 # FUNCTIONS ====================================================================
 
