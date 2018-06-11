@@ -98,8 +98,8 @@ def ndGuassianSmooth(T, sigma, aspect, normalized = False):
     return V
 
 def quick_normalize(m):
-    m = m.copy() - m.min()
-    return m / m.max()
+    m = m.copy() - np.nanmin(m)
+    return m / np.nanmax(m)
 
 def simulate_diffusion(mask, sigma, aspect, simthr = .7):
     """Simulates enzyme diffusion with constant external concentration and

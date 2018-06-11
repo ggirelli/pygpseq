@@ -205,36 +205,38 @@ def calc_dot_distances(msg, t, nuclei, aspect, dist_type):
 	# Calculate distances ------------------------------------------------------
 	max_cell_ID = int(np.nanmax(t['cell_ID'].values))
 	for cid in (i for i in range(max_cell_ID + 1) if i in nuclei.keys()):
-			msg += "    >>> Working on cell #%d...\n" % (cid,)
-			cell_cond = cid == t['cell_ID']
+		msg += "    >>> Working on cell #%d...\n" % (cid,)
+		
+		cell_cond = cid == t['cell_ID']
+		if 0 == sum(cell_cond): continue
 
-			laminD, centrD = dist.calc_nuclear_distances(dist_type, mask, aspect)
+		laminD, centrD = dist.calc_nuclear_distances(dist_type,
+			nuclei[cid].mask, aspect)
 
-			t.loc[cell_cond, 'lamin_dist'] = laminD[
-				t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
-				t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
-				t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
-			]
+		t.loc[cell_cond, 'lamin_dist'] = laminD[
+			t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
+			t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
+			t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
+		]
 
-			t.loc[cell_cond, 'centr_dist'] = centrD[
-				t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
-				t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
-				t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
-			]
+		t.loc[cell_cond, 'centr_dist'] = centrD[
+			t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
+			t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
+			t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
+		]
 
-	# Normalize distances ------------------------------------------------------
+		# Normalize distances --------------------------------------------------
 
-	laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
-	laminD_norm = laminD_norm[mask].flatten()
+		laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
 
-	t.loc[cell_cond, 'lamin_dist_norm'] = laminD[
-		t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
-		t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
-		t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
-	]
+		t.loc[cell_cond, 'lamin_dist_norm'] = laminD_norm[
+			t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
+			t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
+			t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
+		]
 
-	ldn = t.loc[cell_cond, 'lamin_dist_norm'].values
-	t.loc[cell_cond, 'centr_dist_norm'] = np.absolute(ldn - np.nanmax(ldn))
+		ldn = t.loc[cell_cond, 'lamin_dist_norm'].values
+		t.loc[cell_cond, 'centr_dist_norm'] = np.absolute(ldn - np.nanmax(ldn))
 
 	# Output
 	return((t, msg))
