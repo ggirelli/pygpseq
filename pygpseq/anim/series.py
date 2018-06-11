@@ -297,7 +297,8 @@ class Series(iot.IOinterface):
 
             # Export labeled mask
             log += self.printout("Saving nuclear ID mask...", 3)
-            plot.export_mask_png("%smask.%s.nuclei.png" % (maskdir, imbname),
+            plot.export_mask_png(
+                "%s%s.mask.%s.nuclei.png" % (maskdir, self.c, imbname),
                 L, 'Nuclei in "%s" [%d objects]' % (
                 os.path.basename(self.name), L.max()))
 
