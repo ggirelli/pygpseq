@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+##  [3.0.0] - 2018-06-12
 ### Added
 - Enzyme diffusion simulation.
 - `gpseq_fromfish`
@@ -219,6 +225,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.0
 [2.1.8] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.8
 [2.1.7] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.7
 [2.1.6] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.6
