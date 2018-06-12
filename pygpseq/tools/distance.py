@@ -88,13 +88,15 @@ def ndGuassianSmooth(T, sigma, aspect, normalized = False):
         radius += 1
     d = int(2 * radius + 1)
     V = T.copy()
+    fill = V.max()
     for di in range(len(V.shape)):
         new_shape = np.ones(len(V.shape)).astype('i')
         new_shape[di] = d
-        k = np.reshape(mkGaussianKernel(d, sigma * aspect[di] / aspect[0]), new_shape)
-        V = convolve(V, k, mode = 'constant')
+        k = np.reshape(
+            mkGaussianKernel(d, sigma * aspect[di] / aspect[0]), new_shape)
+        V = convolve(V, k, mode = 'constant', cval = fill)
         if normalized:
-            V /= convolve(np.ones(V.shape), k, mode = 'constant')
+            V /= convolve(np.ones(V.shape), k, mode = 'constant', cval = fill)
     return V
 
 def quick_normalize(m):
@@ -104,9 +106,6 @@ def quick_normalize(m):
 def simulate_diffusion(mask, sigma, aspect, simthr = .7):
     """Simulates enzyme diffusion with constant external concentration and
     iterative anisotropic Gaussian blurring."""
-
-    if 3 == mask.shape:
-        mask = imt.add_top_bottom_slides(mask)
 
     timebox = np.zeros(mask.shape)
     timebox[1 == mask] = -np.inf
@@ -128,10 +127,7 @@ def simulate_diffusion(mask, sigma, aspect, simthr = .7):
 
     timebox[np.isinf(timebox)] = np.nan
 
-    if 3 == mask.shape:
-        return timebox[1:-1, :, :]
-    else:
-        return timebox
+    return timebox
 
 def calc_nuclear_distances(dist_type, mask, aspect):
     '''Calculate distance from lamina and center for each voxel in a nucleus.

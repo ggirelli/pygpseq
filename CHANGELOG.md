@@ -9,7 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Added
 - Enzyme diffusion simulation.
-- Settings export to `gpseq_fromfish`.
+- `gpseq_fromfish`
+    + Settings export.
+    + Debug mode.
 - `gpseq_anim`
     + `--do-all/-y` option.
     + `-M`, `-m`, `--labeled` and `--compressed` to export/import masks.
