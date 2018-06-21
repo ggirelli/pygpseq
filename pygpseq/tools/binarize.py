@@ -84,6 +84,7 @@ class Binarize(iot.IOinterface):
         if key in dir(self):
             self.__setattr__(key, value)
     
+    @staticmethod
     def check_attr(name, value):
         """Run attribute assertions.
 
