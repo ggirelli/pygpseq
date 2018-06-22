@@ -236,8 +236,9 @@ class Series(iot.IOinterface):
         
         # Check if already segmented
         already_segmented = False
-        mask_tiff_dir = kwargs['mask_folder']
+        mask_tiff_dir = None
         if not type(None) == type(mask_tiff_dir):
+            mask_tiff_dir = kwargs['mask_folder']
             mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
                 "%sdapi_%03d.tif" % (kwargs['mask_prefix'], self.n))
             already_segmented = os.path.isfile(mpath)

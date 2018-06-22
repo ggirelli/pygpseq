@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [3.0.2] - 2018-06-22
+### Fixed
+- Bug that crashed `gpseq_anim` when option `-m` is not used.
+
+
+
 ## [3.0.1] - 2018-06-21
 ### Fixed
 - `tiff_auto3dseg` minor bug due to unbound `staticmethod`.
