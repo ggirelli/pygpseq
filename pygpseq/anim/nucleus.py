@@ -12,7 +12,8 @@ import numpy as np
 from scipy import ndimage as ndi
 from scipy.ndimage.morphology import distance_transform_edt
 import skimage.io as io
-from skimage.measure import label, marching_cubes, mesh_surface_area
+from skimage.measure import label, mesh_surface_area
+from skimage.measure import marching_cubes_lewiner as marching_cubes
 
 from pygpseq import const
 from pygpseq.tools import distance as dist, io as iot, image as imt
