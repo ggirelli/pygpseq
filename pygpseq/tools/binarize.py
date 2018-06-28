@@ -105,7 +105,7 @@ class Binarize(iot.IOinterface):
         elif name == 'adp_neigh':
             # Require int
             assert_msg = 'int expected, got "%s".' % type(value)
-            assert type(True) == type(value), assert_msg
+            assert type(0) == type(value), assert_msg
 
         elif 'an_type' == name:
             # Check that it is one of the allowed constants
