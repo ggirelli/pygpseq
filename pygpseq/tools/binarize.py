@@ -237,6 +237,7 @@ class Binarize(iot.IOinterface):
         mask = []
 
         # Perform global threshold
+        thr = 0
         if self.do_global_thr:
             thr = threshold_otsu(im)
             log += self.printout('Thresholding image, global thr: %f' % thr, 2)
