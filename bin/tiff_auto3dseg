@@ -35,12 +35,6 @@
 # Project: bioimaging
 # Description: automatic 3D segmentation of nuclear staining.
 # 
-# Changelog:
-#  v2.0.0 - 20180314: merged with pygpseq.
-#  v1.1.0 - 20180301: allowed for masks with different bit depth.
-#  v1.0.0 - 20180219: fixed border clearing.
-#  v0.0.1 - 20171205: first implementation.
-# 
 # ------------------------------------------------------------------------------
 
 
@@ -128,7 +122,7 @@ parser.add_argument('--compressed',
     help = 'Generate compressed TIF binary masks (not compatible with ImageJ).')
 
 # Version flag
-version = "2.0.0"
+version = "2.0.1"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
