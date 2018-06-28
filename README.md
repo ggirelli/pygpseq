@@ -1,4 +1,4 @@
-pyGPSeq v3.0.2
+pyGPSeq v3.1.0
 =======================
 
 A Python3 package that provides tools to analyze images of GPSeq samples.
