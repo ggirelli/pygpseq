@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Added
 - Version info to package dependencies in `setup.py`.
+- More flexible adaptive threshold behavior in `tools.binarize`.
+
+### Changed
+- Now depending on `scikit-image v0.14.0` (upgraded package).
 
 ### Fixed
 - Minor bugs in `binarizer` that crashed the script with certain parameter combinations.
+- Local threshold behavior.
 
 
 
