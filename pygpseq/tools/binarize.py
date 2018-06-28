@@ -38,6 +38,9 @@ class Binarize(iot.IOinterface):
       do_global_thr (bool): True to apply global threshol (Otsu).
       do_adaptive_thr (bool): True to apply local (adaptive) threshold.
       adp_neigh (int): neighbourhood square side for local thr.
+      adp_method (str): local threshold method.
+      adp_mode (str): local threshold border mode.
+      adp_closing (bool): perform closing operation adter adaptive threshold.
       do_clear_borders (bool): True to remove objects touching the borders.
       do_clear_Z_borders (bool): True to remove objects touching Z borders.
       do_fill_holes (bool): True to fill holes (both 2D and 3D).
@@ -50,6 +53,9 @@ class Binarize(iot.IOinterface):
     do_global_thr = True
     do_adaptive_thr = True
     adp_neigh = 101
+    adp_method = 'gaussian'
+    adp_mode = 'constant'
+    adp_closing = True
     do_clear_borders = True
     do_clear_Z_borders = False
     do_fill_holes = True
@@ -248,7 +254,9 @@ class Binarize(iot.IOinterface):
             msg = 'Applying adaptive threshold to neighbourhood: %d' % (
                 self.adp_neigh,)
             log += self.printout(msg, 2)
-            mask.append(imt.threshold_adaptive(im, self.adp_neigh))
+            mask.append(imt.threshold_adaptive(im, self.adp_neigh,
+                doClosing = self. adp_closing,
+                method = self.adp_method, mode = self.adp_mode))
 
         # Combine masks
         if len(mask) == 2: mask = np.logical_and(mask[0], mask[1])

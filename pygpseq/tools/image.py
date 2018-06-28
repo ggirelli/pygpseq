@@ -629,12 +629,15 @@ def slice_k_d_img(img, k):
     # Output
     return(img)
 
-def threshold_adaptive(i, block_size):
+def threshold_adaptive(i, block_size, doClosing = True,
+    method = None, mode = None, param = None):
     """Adaptive threshold.
 
     Args:
       i (np.array): image.
       block_size (int): neighbourhood, if even then it is incremented by 1.
+      doClosing (bool): to trigger closing operation after local thresholding.
+      method, mode, param: additional parameters for threshold_local.
 
     Returns:
       np.array: thresholded image.
@@ -645,17 +648,21 @@ def threshold_adaptive(i, block_size):
         block_size += 1
 
     # Local threshold mask
-    lmask = np.zeros(i.shape)
-
+    lmask = i.copy()
+    
     # Apply threshold per slice
     if 3 == len(i.shape):
         for slice_id in range(i.shape[0]):
             lmask[slice_id, :, :] = filters.threshold_local(
-                i[slice_id, :, :], block_size)
-        lmask = closing(lmask, cube(3))
+                i[slice_id, :, :], block_size, method = method,
+                mode = mode, param = param)
+        lmask = i >= lmask
+        if doClosing: lmask = closing(lmask, cube(3))
     else:
-        lmask = filters.threshold_local(i, block_size)
-        lmask = closing(lmask, square(3))
+        lmask = filters.threshold_local(i, block_size, method = method,
+            mode = mode, param = param)
+        lmask = i >= lmask
+        if doClosing: lmask = closing(lmask, square(3))
 
     # Output
     return(lmask)
