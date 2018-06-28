@@ -57,6 +57,7 @@ import re
 from scipy import ndimage as ndi
 import sys
 import tifffile
+from tqdm import tqdm
 import warnings
 
 from skimage.filters import threshold_local, threshold_otsu
@@ -229,12 +230,17 @@ if not os.path.isdir(outdir):
 imglist = [f for f in os.listdir(imgdir) 
     if os.path.isfile(os.path.join(imgdir, f))
     and not type(None) == type(re.match(inpattern, f))]
+print("Found %d image(s) to segment. Starting..." % len(imglist))
 
 # Start iteration --------------------------------------------------------------
 
-outlist = Parallel(n_jobs = ncores)(
-    delayed(run_segmentation)(imgpath, imgdir)
-    for imgpath in imglist)
+if 1 == ncores:
+    for imgpath in tqdm(imglist):
+        run_segmentation(imgpath, imgdir)
+else:
+    outlist = Parallel(n_jobs = ncores, verbose = 11)(
+        delayed(run_segmentation)(imgpath, imgdir)
+        for imgpath in imglist)
 
 # END ==========================================================================
 
