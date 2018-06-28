@@ -38,7 +38,7 @@ setup(name='pygpseq',
 	keywords='microscopy image analysis bioimaging biology cell DNA',
 	packages=find_packages(),
 	install_requires=[
-		'ggc==0.03',
+		'ggc==0.0.3',
 		'jinja2==2.10',
 		'joblib==0.11',
 		'matplotlib==2.2.2',
