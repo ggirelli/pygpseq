@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [3.0.3] - 2018-06-29
+### Fixed
+- Typo in `gpseq_fromfish` that rendered the `--dilate-Z` flag useless.
+
+
+
 ## [3.0.2] - 2018-06-22
 ### Fixed
 - Bug that crashed `gpseq_anim` when option `-m` is not used.
