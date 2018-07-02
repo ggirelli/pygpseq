@@ -869,19 +869,21 @@ def profile_density_scatterplot(pp, field_label, nbins, xyrange,
     if new_figure:
         return(fig)
 
-def save_tif(path, img, dtype, compressed):
-    new_shape = [1]
-    [new_shape.append(n) for n in img.shape]
-    img.shape = new_shape
+def save_tif(path, img, dtype, compressed, bundled_axes = "CZYX"):
+    if not "C" in bundled_axes:
+        new_shape = [1]
+        [new_shape.append(n) for n in img.shape]
+        img.shape = new_shape
+        bundled_axes = "C" + bundled_axes
 
     if compressed:
         tifffile.imsave(path, img.astype(dtype),
             shape = img.shape, compress = 9,
-            dtype = dtype, imagej = True, metadata = {'axes' : 'CZYX'})
+            dtype = dtype, imagej = False, metadata = {'axes' : bundled_axes})
     else:
         tifffile.imsave(path, img.astype(dtype),
             shape = img.shape, compress = 0,
-            dtype = dtype, imagej = True, metadata = {'axes' : 'CZYX'})
+            dtype = dtype, imagej = False, metadata = {'axes' : bundled_axes})
 
 def set_font_size(size):
     """Set plot font size."""

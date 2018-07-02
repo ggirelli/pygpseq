@@ -11,14 +11,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Version info to package dependencies in `setup.py`.
 - More flexible adaptive threshold behavior in `tools.binarize`.
 - Option to use dilated mask only for dots assignment, and not for distance calculation, as `gpseq_fromfish --dots-assignment-only`.
+- (Un)Compression log to `tiffcu`.
 
 ### Changed
 - Now depending on `scikit-image v0.14.0` (upgraded package).
+- Output directory now optional in `nd2_to_tiff`.
 
 ### Fixed
 - Minor bugs in `binarizer` that crashed the script with certain parameter combinations.
 - Local threshold behavior.
 - Order of output table columns in `gpseq_fromfish`.
+- `nd2_to_tiff` now compatible with single-channel nd2 files.
+- `nd2_to_tiff` now exporting tiff files with proper axes order.
 
 
 

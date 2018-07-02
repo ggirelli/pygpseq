@@ -54,6 +54,7 @@ import tifffile
 
 from pygpseq.tools import image as imt
 from pygpseq.tools import plot
+from pygpseq.tools.io import printout
 
 # PARAMETERS ===================================================================
 
@@ -71,16 +72,17 @@ GPSeq:   dapi.channel001.series001.tif
 ''', formatter_class = argparse.RawDescriptionHelpFormatter)
 
 # Add mandatory arguments
-parser.add_argument('input', type = str, nargs = 1,
+parser.add_argument('input', type = str,
     help = '''Path to the nd2 file to convert.''')
-parser.add_argument('outdir', type = str, nargs = 1,
-    help = '''Path to output TIFF folder, created if missing.''')
 
 # Add arguments with default value
-parser.add_argument('-M', '--mode', type = str, nargs = 1,
+parser.add_argument('-o', '--outdir', metavar = "outdir", type = str,
+    help = """Path to output TIFF folder, created if missing. Default to a
+    folder with the input file basename.""", default = None)
+parser.add_argument('-m', '--mode', type = str,
     choices = ("DOTTER", "GPSeq"), metavar = 'mode',
     help = """Output filename notation. Default: GPSeq.""",
-    default = ["GPSeq"])
+    default = "GPSeq")
 
 # Add flags
 parser.add_argument('--compressed',
@@ -89,7 +91,7 @@ parser.add_argument('--compressed',
     help = 'Force compressed TIFF as output (not compatible with ImageJ).')
 
 # Version flag
-version = "1.1.0"
+version = "2.0.0"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
@@ -97,22 +99,22 @@ parser.add_argument('--version', action = 'version',
 args = parser.parse_args()
 
 # Assign to in-script variables
-ipath = args.input[0]
-outdir = args.outdir[0]
-mode = args.mode[0]
-doCompress = args.doCompress
+if type(None) == type(args.outdir):
+    args.outdir = os.path.splitext(os.path.basename(args.input))[0]
+    args.outdir = os.path.join(os.path.dirname(args.input), args.outdir)
+    print("Output directory: '%s'" % args.outdir)
 
 # Additional checks
-if not os.path.isfile(ipath):
-    printout("Input file not found: %s" % ipath, -2)
-if os.path.isfile(outdir):
+if not os.path.isfile(args.input):
+    printout("Input file not found: %s" % args.input, -2)
+if os.path.isfile(args.outdir):
     printout("The specified output directory cannot be a file. Path: %s" % (
-        outdir,), -2)
-if not os.path.isdir(outdir): os.mkdir(outdir)
+        args.outdir,), -2)
+if not os.path.isdir(args.outdir): os.mkdir(args.outdir)
 
 # FUNCTIONS ====================================================================
 
-def export_fov(fov, metadata, fid):
+def export_fov(fov, metadata, fid, bundled_axes):
     '''Export a field of view after bundling the axes to separate channel TIFF.
 
     Args:
@@ -121,47 +123,67 @@ def export_fov(fov, metadata, fid):
         fid (int): field of view 0-based index.
     '''
 
-    print(" Field #%d: found %d channels." % (fid + 1, fov.shape[3]))
+    if "c" in bundled_axes:
+        print(" Field #%d: found %d channels %s." % (
+            fid + 1, fov.shape[3], str(metadata['channels'])))
 
-    # Iterate over channels
-    for cid in range(fov.shape[3]):
-        ch = fov[:, :, :, cid]
-        print(ch.shape)
+        # Iterate over channels
+        for cid in range(fov.shape[3]):
+            ch = fov[:, :, :, cid]
+            
+            # Identify ouytput file name notation
+            if "GPSeq" == args.mode:
+                outpath = "%s.channel%03d.series%03d.tif" % (
+                    metadata['channels'][cid].lower(), cid + 1, fid + 1)
+            elif "DOTTER" == args.mode:
+                outpath = "%s_%03d.tif" % (
+                    metadata['channels'][cid].lower(), fid + 1)
+            else: return()
+
+            print("  Exporting %s..." % outpath)
+            plot.save_tif(os.path.join(args.outdir, outpath),
+                ch, imt.get_dtype(ch.max()), args.doCompress,
+                bundled_axes = bundled_axes.upper()[:-1])
+    else:
+        print(" Field #%d: found 1 channel (%s)." % (
+            fid + 1, metadata['channels'][0]))
 
         # Identify ouytput file name notation
-        if "GPSeq" == mode:
+        if "GPSeq" == args.mode:
             outpath = "%s.channel%03d.series%03d.tif" % (
-                metadata['channels'][cid].lower(), cid + 1, fid + 1)
-        elif "DOTTER" == mode:
+                metadata['channels'][0].lower(), 1, fid + 1)
+        elif "DOTTER" == args.mode:
             outpath = "%s_%03d.tif" % (
-                metadata['channels'][cid].lower(), fid + 1)
+                metadata['channels'][0].lower(), fid + 1)
         else: return()
 
         print("  Exporting %s..." % outpath)
-        plot.save_tif(os.path.join(outdir, outpath),
-            ch, imt.get_dtype(ch.max()), doCompress)
+        plot.save_tif(os.path.join(args.outdir, outpath),
+            fov, imt.get_dtype(fov.max()), args.doCompress,
+            bundled_axes = bundled_axes.upper())
 
 # RUN ==========================================================================
 
 # Create buffer pointer to nd2 image
-images = ND2Reader(ipath)
+images = ND2Reader(args.input)
 
 # Check if multiple fields of view are present
+axes_for_bundling = "zyxc" if "c" in images.axes else "zyx"
 if 'v' not in images.axes:
     print("Single field of view found.")
 
     # Export single field of view
-    images.bundle_axes = 'zyxc'
-    export_fov(images[0], images.metadata, 0)
+    images.bundle_axes = axes_for_bundling
+    export_fov(images[0], images.metadata, 0, axes_for_bundling)
 else:
     print("Multiple fields of view found (%d)." % images.sizes['v'])
 
     # Export multiple fields of view
     images.iter_axes = 'v'
-    images.bundle_axes = 'zyxc'
+    images.bundle_axes = axes_for_bundling
     for fid in range(images.sizes['v']):
         fov = images[fid]
-        export_fov(fov, images.metadata, fid)
+        export_fov(fov, images.metadata, fid, axes_for_bundling)
 
 print("DONE")
 

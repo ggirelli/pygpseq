@@ -111,7 +111,7 @@ parser.add_argument('-c',
     help = 'Compress TIFF files.')
 
 # Version flag
-version = "1.0.0"
+version = "1.0.1"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
@@ -182,10 +182,13 @@ def run(imgpath, imgdir, outdir, outpath = None, compress = None):
     if not compress:
         plot.save_tif(os.path.join(outdir, outpath),
             img, imt.get_dtype(img.max()), False)
+        label = "Uncompressed"
     else:
         plot.save_tif(os.path.join(outdir, outpath),
             img, imt.get_dtype(img.max()), True)
+        label = "Compressed"
 
+    print("%s '%s'." % (label, os.path.join(imgdir, imgpath)))
     return(os.path.join(outdir, outpath))
 
 # RUN ==========================================================================
