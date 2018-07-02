@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [3.0.4] - 2018-07-02
 ### Added
 - Version info to package dependencies in `setup.py`.
 - More flexible adaptive threshold behavior in `tools.binarize`.
@@ -260,6 +266,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.0.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.4
 [3.0.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.3
 [3.0.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.2
 [3.0.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.1
