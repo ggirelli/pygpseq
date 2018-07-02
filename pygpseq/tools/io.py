@@ -183,13 +183,14 @@ def merge_summaries(sums):
 
     return(out)
 
-def printout(s, lvl, verbose = True):
+def printout(s, lvl, verbose = True, canAbort = True):
     """Log to shell.
 
     Args:
       s (string): message string.
       lvl (int): message level.
       verbose (bool): True to display formatted message.
+      canAbort (bool): whether to abort if lvl==-2.
     """
     
     # Only a string can be logged
@@ -198,21 +199,22 @@ def printout(s, lvl, verbose = True):
 
     # Add level-based prefix
     if -2 == lvl:
-        s = '\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n' + s + '\nTerminated.\n'
-        print(s)
-        sys.exit()
+        s = '\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s' % s
+        if canAbort:
+            print("\n%sTerminated.\n" % s)
+            sys.exit()
     elif -1 == lvl:
-        s = '\n~~ WARNING ~~ (ノ ゜Д゜)ノ ︵ ┻━┻\n' + s
+        s = '\n~~ WARNING ~~ (ノ ゜Д゜)ノ ︵ ┻━┻\n%s' % s
     elif 0 == lvl:
-        s = ' ' + s
+        s = ' %s' % s
     elif 1 == lvl:
-        s = '  · ' + s
+        s = '  · %s' % s
     elif 2 == lvl:
-        s = '    > ' + s
+        s = '    > %s' % s
     elif 3 == lvl:
-        s = '    >> ' + s
+        s = '    >> %s' % s
     elif 4 <= lvl:
-        s = '    >>> ' + s
+        s = '    >>> %s' % s
 
     # Log
     if verbose: print(s)

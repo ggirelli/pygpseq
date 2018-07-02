@@ -427,19 +427,22 @@ with open(os.path.join(args.outdir, "fov_analysis.log"), "w+") as hlog:
     t_columns = []
     density_profile = []
     volume_profile = []
-    for (curnuclei, subt, tvcomp, dp, nv, msg) in anData:
-        hlog.write(msg)
-        
-        nuclei.extend(curnuclei.values())
-        tvdata.append(tvcomp)
-        t.append(subt)
-        density_profile.append(dp)
-        volume_profile.append(nv)
+    for data in anData:
+        if type(None) != type(data):
+            curnuclei, subt, tvcomp, dp, nv, msg = data
+            hlog.write(msg)
+            
+            nuclei.extend(curnuclei.values())
+            tvdata.append(tvcomp)
+            t.append(subt)
+            density_profile.append(dp)
+            volume_profile.append(nv)
 
-        for c in subt.columns:
-            if not c in t_columns:
-                t_columns.append(c)
-                
+            for c in subt.columns:
+                if not c in t_columns:
+                    t_columns.append(c)
+
+    assert 0 != len(t)
     t = pd.concat(t).loc[:, t_columns]
     tvdata = pd.concat(tvdata)
     tvdata.index = range(tvdata.shape[0])

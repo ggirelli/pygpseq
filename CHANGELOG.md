@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Now depending on `scikit-image v0.14.0` (upgraded package).
 - Output directory now optional in `nd2_to_tiff`.
+- `gpseq_fromfish` now not crashing when a tiff file is corrupted, only an error message is showed.
 
 ### Fixed
 - Minor bugs in `binarizer` that crashed the script with certain parameter combinations.
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Order of output table columns in `gpseq_fromfish`.
 - `nd2_to_tiff` now compatible with single-channel nd2 files.
 - `nd2_to_tiff` now exporting tiff files with proper axes order.
+- Mask import in `gpseq_anim`.
 
 
 

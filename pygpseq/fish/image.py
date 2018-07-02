@@ -78,6 +78,8 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	# Read image
 	msg += printout("Reading image ...", 2, v)
 	im = imt.read_tiff(im2fov[sid], k = 3, rescale = sf)
+	if type(None) == type(im):
+		return(None)
 
 	# SEGMENTATION =============================================================
 	
@@ -96,7 +98,9 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		msg += printout("Skipped binarization, using provided mask.", 3, v)
 		imbin = imt.read_tiff(mpath) != 0 # Read and binarize
 		thr = 0
-	else:
+		already_segmented = type(None) != type(imbin)
+	
+	if not already_segmented:
 		msg += printout("Binarizing...", 2, v)
 		(imbin, thr, log) = Segmenter.run(im)
 		msg += log

@@ -555,15 +555,18 @@ def read_tiff(impath, k = None, noSelection = False, rescale = 1):
     
     Returns:
       np.ndarray: image.
+      None: file is possibly corrupt.
     '''
 
     assert os.path.isfile(impath), "trying to read missing file"
 
     # Read TIFF (capture any parsing issues)
     try: im = imread(impath)
-    except ValueError as e:
+    except (ValueError, TypeError) as e:
         msg = "Something went wrong while trying to read a file"
-        printout("%s (possibly corrupt):\n%s\n" % (msg, impath), -2)
+        printout("%s (possibly corrupt):\n%s\n" % (msg, impath), -2,
+            canAbort = False)
+        return(None)
 
     # Reshape and re-slice
     while 0 == im.shape[0] and not noSelection:
