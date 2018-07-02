@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Now depending on `scikit-image v0.14.0` (upgraded package).
 - Output directory now optional in `nd2_to_tiff`.
 - `gpseq_fromfish` now not crashing when a tiff file is corrupted, only an error message is showed.
+- Better error message during initialization if a series does not have either DNA or Signal channel(s).
 
 ### Fixed
 - Minor bugs in `binarizer` that crashed the script with certain parameter combinations.

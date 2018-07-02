@@ -199,10 +199,11 @@ def printout(s, lvl, verbose = True, canAbort = True):
 
     # Add level-based prefix
     if -2 == lvl:
-        s = '\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s' % s
+        if not canAbort:
+            s = '\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s' % s
         if canAbort:
-            print("\n%sTerminated.\n" % s)
-            sys.exit()
+            print("\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s\nTerminated.\n" % s)
+            raise Exception(s)
     elif -1 == lvl:
         s = '\n~~ WARNING ~~ (ノ ゜Д゜)ノ ︵ ┻━┻\n%s' % s
     elif 0 == lvl:

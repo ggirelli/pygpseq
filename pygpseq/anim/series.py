@@ -242,14 +242,15 @@ class Series(iot.IOinterface):
             mask_tiff_dir = kwargs['mask_folder']
         if not type(None) == type(mask_tiff_dir):
             mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
-                "%sdapi_%03d.tif" % (kwargs['mask_prefix'], self.n))
+                "%sdna_%03d.tif" % (kwargs['mask_prefix'], self.n))
             already_segmented = os.path.isfile(mpath)
 
         # Skip or binarize
         if already_segmented:
             log += self.printout("Skipped binarization, using provided mask.",3)
             log += self.printout("'%s'" % mpath, 4)
-            mask = imt.read_tiff(mpath) != 0 # Read and binarize
+            mask = imt.read_tiff(mpath, 3) != 0 # Read and binarize
+            print(filist)
             thr = 0
         else:
             log += self.printout("Binarizing...", 2)
@@ -264,10 +265,10 @@ class Series(iot.IOinterface):
 
         # Estimate background 
         log += self.printout('Estimating background:', 2)
-        if None == self.dna_bg:
+        if type(None) == type(self.dna_bg):
             self.dna_bg = imt.estimate_background(dna_ch, mask, seg_type)
         kwargs['dna_bg'] = self.dna_bg
-        if None == self.sig_bg:
+        if type(None) == type(self.sig_bg):
             self.sig_bg = imt.estimate_background(sig_ch, mask, seg_type)
         kwargs['sig_bg'] = self.sig_bg
         log += self.printout('DNA channel: ' + str(kwargs['dna_bg']), 3)

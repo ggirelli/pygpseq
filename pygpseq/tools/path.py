@@ -49,6 +49,44 @@ def add_trailing_slash(s):
         s = s + '/'
     return(s)
 
+def select_folders(path, ext):
+    """Select subdirectories containing files with the given extension.
+
+    Args:
+      path (string): base directory path.
+      ext (string): extensions to look for.
+
+    Returns:
+      list: list of selected path's subdirectories containing file *.ext.
+    """
+
+    # Check input params
+    path = add_trailing_slash(os.path.abspath(path))
+    ext = add_leading_dot(ext)
+
+    # Return an empty list if the provided path is not a directory
+    if not os.path.isdir(path):
+        return([])
+    else:
+        # Retreive subdirectory list
+        sdirs = [add_trailing_slash(path + x) for x in next(os.walk(path))[1]]
+
+        # Will contain the selected subdirectories
+        selected = []
+
+        for sdir in sdirs:
+
+            # Retreive file list
+            flist = os.listdir(sdir)
+
+            # Look for files with the proper extension
+            if 0 != len(select_files(sdir, ext)):
+                selected.append(sdir)
+
+        selected.sort()
+
+        return(selected)
+
 def select_files(path, ext):
     """Select the files with the proper .ext in the provided path.
 
@@ -87,43 +125,6 @@ def select_files(path, ext):
 
         return(selected)
 
-def select_folders(path, ext):
-    """Select subdirectories containing files with the given extension.
-
-    Args:
-      path (string): base directory path.
-      ext (string): extensions to look for.
-
-    Returns:
-      list: list of selected path's subdirectories containing file *.ext.
-    """
-
-    # Check input params
-    path = add_trailing_slash(os.path.abspath(path))
-    ext = add_leading_dot(ext)
-
-    # Return an empty list if the provided path is not a directory
-    if not os.path.isdir(path):
-        return([])
-    else:
-        # Retreive subdirectory list
-        sdirs = [add_trailing_slash(path + x) for x in next(os.walk(path))[1]]
-
-        # Will contain the selected subdirectories
-        selected = []
-
-        for sdir in sdirs:
-
-            # Retreive file list
-            flist = os.listdir(sdir)
-
-            # Look for files with the proper extension
-            if 0 != len(select_files(sdir, ext)):
-                selected.append(sdir)
-
-        selected.sort()
-
-        return(selected)
 
 def select_series(flist, reg, series_field = None):
     """Group a list of files by series based on the provided regexp.

@@ -47,7 +47,7 @@ class Condition(iot.IOinterface):
     reg += '(?P<ext>\.tif)$'
     series = []
 
-    def __init__(self, path, main = None):
+    def __init__(self, path, dna_channels, sig_channels, main = None):
         """Run IOinterface __init__ method.
 
         Args:
@@ -74,6 +74,17 @@ class Condition(iot.IOinterface):
         # Select condition's series
         self.series = pt.select_files(self.path, self.ext)
         self.series = pt.select_series(self.series, self.reg).items()
+
+        # Check that each series has at least one dna_channel and sig_channel
+        for s in self.series:
+            if not any([cdata['channel_name'] in dna_channels
+                for (cname, cdata) in s[1].items()]):
+                self.printout("No DNA channel found in '%s' of '%s'" % (
+                    s[0], self.name), -2)
+            if not any([cdata['channel_name'] in sig_channels
+                for (cname, cdata) in s[1].items()]):
+                self.printout("No Signal channel found in '%s' of '%s'" % (
+                    s[0], self.name), -2)
 
         # If no series, stop and trigger error
         if 0 == len(self.series):

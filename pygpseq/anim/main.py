@@ -897,7 +897,8 @@ class Main(Analyzer):
             self.printout('', 0)
 
         # Instantiate conditions
-        self.conds = [Condition(c, main = self) for c in self.conds]
+        self.conds = [Condition(c, self.dna_names, self.sig_names,
+            main = self) for c in self.conds]
         self.printout('', 0)
 
     def run_segmentation(self, **kwargs):
