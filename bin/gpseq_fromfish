@@ -394,6 +394,7 @@ kwargs = {
     'im2fov' : im2fov,
     'dilate_factor' : args.dilate,
     'istruct' : istruct,
+    'discard_dilation_mode' : args.dilate_for_assignment_only,
     'aspect' : args.aspect,
     'mask_dir' : args.mask_folder,
     'mask_prefix' : args.mask_prefix,

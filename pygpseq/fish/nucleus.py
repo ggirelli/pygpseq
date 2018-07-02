@@ -247,7 +247,7 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 	return((t, vcomp_table, msg))
 
 def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
-	aspect, offset, logpath, i, istruct,
+	aspect, offset, logpath, i, istruct, discard_dilation_mode,
 	dist_type = const.LD_ARG_LABELS[const.LD_DEFAULT],
 	nbins = 200, debug = False, debug_dir = ""):
 	'''
@@ -292,7 +292,8 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 
 	# Iterate through nuclei
 	for n in range(1, L.max() + 1):
-		
+		original_mask = L == n
+
 		# Make nucleus
 		if 0 != dilate_factor:
 			# With dilated mask
@@ -314,7 +315,12 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		curnuclei[n] = nucleus
 
 		# Density profile ------------------------------------------------------
-		laminD, centrD = dist.calc_nuclear_distances(dist_type, mask, aspect)
+		if discard_dilation_mode:
+			laminD, centrD = dist.calc_nuclear_distances(
+				dist_type, original_mask, aspect)
+		else:
+			laminD, centrD = dist.calc_nuclear_distances(
+				dist_type, mask, aspect)
 		laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
 		
 		if debug:
@@ -328,7 +334,6 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 			io.imsave(os.path.join(debug_dir, "centrD.%s" % ipath),
 				centrD.astype(np.uint32))
 		laminD_norm = laminD_norm[mask].flatten()
-
 		
 		dna = imt.apply_box(i, nucleus.box)[mask].flatten()
 		dp.append(nucleus.calc_density_profile(dna, laminD_norm, nbins))

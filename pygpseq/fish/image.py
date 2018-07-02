@@ -27,6 +27,7 @@ from pygpseq.tools import plot
 def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	mask_dir, mask_prefix, plotCompartments, pole_fraction,
 	outdir, noplot, labeled, compressed, dist_type, nbins,
+	discard_dilation_mode,
 	an_type, seg_type, # Required by the Binarize class
 	verbose = False, debug = False, debug_dir = ""):
 	'''Given a table with FISH data, add information on:
@@ -159,7 +160,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		dna_bg = dna_bg, sig_bg = 0,
 		aspect = aspect, offset = (1, 1, 1),
 		logpath = IOinterface().logpath,
-		dist_type = dist_type,
+		dist_type = dist_type, discard_dilation_mode = discard_dilation_mode,
 		i = im, istruct = istruct, nbins = nbins,
 		debug = debug, debug_dir = debug_dir)
 
