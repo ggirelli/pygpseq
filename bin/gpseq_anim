@@ -186,7 +186,7 @@ parser.add_argument('-y', '--do-all', action = 'store_const',
     const = True, default = False)
 
 # Version flag
-version = "2.0.0"
+version = "2.1.0"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 

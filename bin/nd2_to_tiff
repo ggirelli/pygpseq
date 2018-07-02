@@ -35,11 +35,6 @@
 # Project: bioimaging
 # Description: convert nd2 images to tiff.
 # 
-# Changelog:
-#  v1.1.0 - 20180410: fixed axes order.
-#  v1.0.1 - 20180410: added extension to output tif.
-#  v1.0.0 - 20180320: first release.
-# 
 # ------------------------------------------------------------------------------
 
 
