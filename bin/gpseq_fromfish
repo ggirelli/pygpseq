@@ -191,7 +191,7 @@ parser.add_argument('--no-compart-plot', action = 'store_const',
     help = 'Do not produce compartments-related plots.')
 
 # Version flag
-version = "6.0.1"
+version = "6.0.2"
 parser.add_argument('--version', action = 'version',
     version = '%s v%s' % (sys.argv[0], version,))
 
@@ -245,10 +245,6 @@ def print_settings(args, clear = True):
     '''
     s = " # GPSeq analysis of FISH signals v%s\n" % version
 
-    dilation_label = ""
-    if args.dilate_for_assignment_only:
-        dilation_label = "\n! Using dilation only for dot assignment !\n"
-
     s += """
     --- INPUT =======
 
@@ -273,7 +269,9 @@ def print_settings(args, clear = True):
             Labeled : %r
          Compressed : %r
       Dilate over Z : %r
-%s
+  Use dilation only
+ for dot assignment : %r
+
         Do not plot : %r
 No compartment plot : %r
 
@@ -287,7 +285,7 @@ No compartment plot : %r
         args.dotCoords, args.imdir, args.outdir, args.mask_folder,
         args.mask_prefix, args.dilate, str(args.aspect), args.dist_type,
         str(args.skip_channels), args.pole, args.nbins, args.labeled,
-        args.compressed, args.doZdilation, dilation_label,
+        args.compressed, args.doZdilation, args.dilate_for_assignment_only,
         args.noplot, args.no_compartment_plot, args.inreg, args.delim,
         args.threads, args.DEBUG_MODE
     )
@@ -426,17 +424,22 @@ with open(os.path.join(args.outdir, "fov_analysis.log"), "w+") as hlog:
     nuclei = []
     tvdata = []
     t = []
-    t_columns = set()
+    t_columns = []
     density_profile = []
     volume_profile = []
     for (curnuclei, subt, tvcomp, dp, nv, msg) in anData:
         hlog.write(msg)
+        
         nuclei.extend(curnuclei.values())
         tvdata.append(tvcomp)
         t.append(subt)
-        [t_columns.add(c) for c in subt.columns]
         density_profile.append(dp)
         volume_profile.append(nv)
+
+        for c in subt.columns:
+            if not c in t_columns:
+                t_columns.append(c)
+                
     t = pd.concat(t).loc[:, t_columns]
     tvdata = pd.concat(tvdata)
     tvdata.index = range(tvdata.shape[0])

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Minor bugs in `binarizer` that crashed the script with certain parameter combinations.
 - Local threshold behavior.
+- Order of output table columns in `gpseq_fromfish`.
 
 
 
