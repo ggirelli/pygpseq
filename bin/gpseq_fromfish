@@ -173,9 +173,11 @@ parser.add_argument('--compressed',
 #     action = 'store_const', dest = 'clearZborders',
 #     const = False, default = False,
 #     help = 'Discard nuclei in the first/last slices of the Z-stack.')
-# parser.add_argument('--center-as-percentile', action = 'store_const',
-#     help = """Define nucleus center as top percentile instead of top value.""",
-#     const = True, default = False)
+parser.add_argument('--dots-assignment-only',
+    action = 'store_const', dest = "dilate_for_assignment_only",
+    const = True, default = False,
+    help = """Discard dilated masks after dots assignment. In this way, dots
+    located outside the non-dilated mask have a lamina distance of 0.""")
 parser.add_argument('--dilate-Z',
     action = 'store_const', dest = 'doZdilation',
     const = False, default = False,
@@ -243,6 +245,10 @@ def print_settings(args, clear = True):
     '''
     s = " # GPSeq analysis of FISH signals v%s\n" % version
 
+    dilation_label = ""
+    if args.dilate_for_assignment_only:
+        dilation_label = "! Using dilation only for dot assignment !"
+
     s += """
     --- INPUT =======
 
@@ -267,7 +273,7 @@ def print_settings(args, clear = True):
             Labeled : %r
          Compressed : %r
       Dilate over Z : %r
-
+%s
         Do not plot : %r
 No compartment plot : %r
 
@@ -281,7 +287,7 @@ No compartment plot : %r
         args.dotCoords, args.imdir, args.outdir, args.mask_folder,
         args.mask_prefix, args.dilate, str(args.aspect), args.dist_type,
         str(args.skip_channels), args.pole, args.nbins, args.labeled,
-        args.compressed, args.doZdilation,
+        args.compressed, args.doZdilation, dilation_label,
         args.noplot, args.no_compartment_plot, args.inreg, args.delim,
         args.threads, args.DEBUG_MODE
     )
