@@ -176,7 +176,8 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	# Distances ----------------------------------------------------------------
 	
 	msg += printout("Calculating lamina distance...", 3, v)
-	subt, msg = dot.calc_dot_distances(msg, subt, curnuclei, aspect, dist_type)
+	subt, msg = dot.calc_dot_distances(msg, subt, curnuclei, aspect, dist_type,
+		discard_dilation_mode = discard_dilation_mode)
 
 	# Compartments -------------------------------------------------------------
 

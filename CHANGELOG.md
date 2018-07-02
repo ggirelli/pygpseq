@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Version info to package dependencies in `setup.py`.
 - More flexible adaptive threshold behavior in `tools.binarize`.
+- Option to use dilated mask only for dots assignment, and not for distance calculation, as `gpseq_fromfish --dots-assignment-only`.
 
 ### Changed
 - Now depending on `scikit-image v0.14.0` (upgraded package).

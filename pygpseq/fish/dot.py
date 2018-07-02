@@ -178,7 +178,8 @@ def add_allele_polarity(t, nuclei, aspect):
 
 	return(t)
 
-def calc_dot_distances(msg, t, nuclei, aspect, dist_type):
+def calc_dot_distances(msg, t, nuclei, aspect, dist_type,
+	discard_dilation_mode = False):
 	'''
 	Calculate distance of dots from lamina and central area
 	
@@ -210,8 +211,13 @@ def calc_dot_distances(msg, t, nuclei, aspect, dist_type):
 		cell_cond = cid == t['cell_ID']
 		if 0 == sum(cell_cond): continue
 
+		if discard_dilation_mode:
+			mask = nuclei[cid].original_mask
+		else:
+			mask = nuclei[cid].mask
+
 		laminD, centrD = dist.calc_nuclear_distances(dist_type,
-			nuclei[cid].mask, aspect)
+			mask, aspect)
 
 		t.loc[cell_cond, 'lamin_dist'] = laminD[
 			t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],

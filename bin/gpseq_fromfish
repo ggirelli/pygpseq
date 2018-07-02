@@ -247,7 +247,7 @@ def print_settings(args, clear = True):
 
     dilation_label = ""
     if args.dilate_for_assignment_only:
-        dilation_label = "! Using dilation only for dot assignment !"
+        dilation_label = "\n! Using dilation only for dot assignment !\n"
 
     s += """
     --- INPUT =======

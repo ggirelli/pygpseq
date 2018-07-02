@@ -305,9 +305,11 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		# Apply box
 		msg += "    > Applying nuclear box [%d]...\n" % (n,)
 		mask = imt.apply_box(mask, nucleus.box)
+		original_mask = imt.apply_box(original_mask, nucleus.box)
 
 		# Store nucleus
 		nucleus.mask = mask
+		nucleus.original_mask = original_mask
 		nucleus.box_origin = np.array([c[0] + 1 for c in nucleus.box])
 		nucleus.box_sides = np.array([np.diff(c) for c in nucleus.box])
 		nucleus.box_mass_center = center_of_mass(mask)
@@ -316,11 +318,10 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 
 		# Density profile ------------------------------------------------------
 		if discard_dilation_mode:
-			laminD, centrD = dist.calc_nuclear_distances(
-				dist_type, original_mask, aspect)
-		else:
-			laminD, centrD = dist.calc_nuclear_distances(
-				dist_type, mask, aspect)
+			mask = original_mask
+		
+		laminD, centrD = dist.calc_nuclear_distances(
+			dist_type, mask, aspect)
 		laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
 		
 		if debug:
