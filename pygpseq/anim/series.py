@@ -236,9 +236,11 @@ class Series(iot.IOinterface):
         
         # Check if already segmented
         already_segmented = False
-        mask_tiff_dir = None
-        if not type(None) == type(mask_tiff_dir):
+        if not "mask_folder" in kwargs.keys():
+            mask_tiff_dir = None
+        else:
             mask_tiff_dir = kwargs['mask_folder']
+        if not type(None) == type(mask_tiff_dir):
             mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
                 "%sdapi_%03d.tif" % (kwargs['mask_prefix'], self.n))
             already_segmented = os.path.isfile(mpath)
@@ -283,10 +285,12 @@ class Series(iot.IOinterface):
                 os.mkdir("%s/%s/" % (mask_tiff_dir, self.c))
 
             if kwargs['labeled']:
-                plot.save_tif(mpath, L, 'uint8', kwargs['compressed'])
+                plot.save_tif(mpath, L, 'uint8', kwargs['compressed'],
+                    bundled_axes = "ZYX")
             else:
                 L[np.nonzero(L)] = 255
-                plot.save_tif(mpath, L, 'uint8', kwargs['compressed'])
+                plot.save_tif(mpath, L, 'uint8', kwargs['compressed'],
+                    bundled_axes = "ZYX")
                 L = label(mask)
 
         # Export mask as PNG
