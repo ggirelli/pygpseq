@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [3.0.3] - 2018-06-29
+### Fixed
+- Typo in `gpseq_fromfish` that rendered the `--dilate-Z` flag useless.
+
+
+
 ## [3.0.2] - 2018-06-22
 ### Fixed
 - Bug that crashed `gpseq_anim` when option `-m` is not used.
@@ -245,6 +251,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.0.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.3
+[3.0.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.2
+[3.0.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.1
 [3.0.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.0
 [2.1.8] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.8
 [2.1.7] https://github.com/ggirelli/gpseq-img-py/releases/tag/v2.1.7
