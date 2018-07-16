@@ -245,6 +245,8 @@ class Series(iot.IOinterface):
                 "%sdna_%03d.tif" % (kwargs['mask_prefix'], self.n))
             already_segmented = os.path.isfile(mpath)
 
+        combineWith2D = not type(None) == type(kwargs['mask2d_folder'])
+
         # Skip or binarize
         if already_segmented:
             log += self.printout("Skipped binarization, using provided mask.",3)
@@ -263,6 +265,16 @@ class Series(iot.IOinterface):
             mask, tmp_log = Segmenter.filter_obj_Z_size(mask)
             log += tmp_log
 
+            if combineWith2D:
+                mask2d_path = os.path.join(kwargs['mask2d_folder'],
+                    os.path.basename(self.name))
+                if os.path.isfile(mask2d_path):
+                    mask2d = imt.read_tiff(mask2d_path)
+
+                    # If labeled, inherit nuclei labels
+                    mask = binarization.combine_2d_mask(mask, mask2d,
+                        labeled2d = kwargs['labeled'])
+
         # Estimate background 
         log += self.printout('Estimating background:', 2)
         if type(None) == type(self.dna_bg):
@@ -276,7 +288,10 @@ class Series(iot.IOinterface):
 
         # Save mask
         log += self.printout('Saving series object mask...', 2)
-        L = label(mask)
+        if 1 == np.max(imbin):
+            L = label(imbin)
+        else:
+            L = imbin
 
         # Export binary mask as TIF
         if not type(None) == type(mask_tiff_dir) and not already_segmented:

@@ -211,6 +211,38 @@ class Binarize(iot.IOinterface):
         # Output
         return((mask, log))
 
+    def combine_2d_mask(self, maskND, mask2D, labeled2d = False):
+        """Applies a 2D mask to another one (either 2D or 3D).
+        Nothing is done if the major mask is not 2/3D.
+
+        Args:
+            maskND (np.ndarray): mask to combine with 2D one.
+            mask2D (np.ndarray): 2D mask to be combined.
+            labeled2d (bool): whether the 2D mask is labeled.
+        """
+
+        assert 2 == len(mask2D.shape), "2D mask expected"
+
+        if not labeled2d:
+            mask2D = mask2d != 0
+        if labeled2d:
+            maskND = maskND.astype(np.uint8)
+
+        if 2 == len(maskND.shape):
+            assert mask2D.shape == maskND.shape
+            tmp = mask2D.copy()
+            tmp[maskND == 0] = 0
+            return(tmp)
+
+        if 3 == len(maskND.shape):
+            assert mask2D.shape == maskND.shape[-2:]
+            for i in range(maskND.shape[0]):
+                tmp = mask2D.copy()
+                tmp[maskND[i] == 0] = 0
+                maskND[i] = tmp
+
+        return(maskND)
+
     def run(self, im):
         """Binarize image with current instance settings.
         Perform, if requested, the following actions in this order:

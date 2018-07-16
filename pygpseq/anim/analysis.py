@@ -62,6 +62,7 @@ class Analyzer(iot.IOinterface):
     min_z_size = .25
     seg_type = const.SEG_SUM_PROJ
     mask_folder = None
+    mask2d_folder = None
     mask_prefix = "mask_"
     labeled = False
     compressed = False

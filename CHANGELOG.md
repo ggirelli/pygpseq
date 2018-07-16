@@ -12,6 +12,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [3.1.0] - 2018-07-16
+### Added
+- `tiff_auto3dseg`
+    + Added option to combine 2D mask with 3D ones.
+    + Allowed for labeled input (2D masks).
+- `gpseq_fromfish` & `gpseq_anim`
+    + Added option for 2D-to-3D mask combination (also labeled input).
+
+### Changed
+- `tiff_auto3dseg`
+    + Removed superfluous `nargs` argument in `add_argument`.
+
+
+
 ## [3.0.4] - 2018-07-02
 ### Added
 - Version info to package dependencies in `setup.py`.
@@ -266,6 +280,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.1.0
 [3.0.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.4
 [3.0.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.3
 [3.0.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.2
