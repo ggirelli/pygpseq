@@ -292,6 +292,8 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 
 	# Iterate through nuclei
 	for n in range(1, L.max() + 1):
+		if 0 == np.sum((L == n).astype(int)): continue
+
 		original_mask = L == n
 
 		# Make nucleus
