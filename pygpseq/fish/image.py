@@ -29,7 +29,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	outdir, noplot, labeled, compressed, dist_type, nbins,
 	discard_dilation_mode,
 	an_type, seg_type, # Required by the Binarize class
-	verbose = False, debug = False, debug_dir = ""):
+	mask2d_dir = None, verbose = False, debug = False, debug_dir = ""):
 	'''Given a table with FISH data, add information on:
 		- lamin/center absolute/normalized distance
 		- angle between homogue pairs
@@ -96,7 +96,8 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	# Skip or binarize
 	if already_segmented:
 		msg += printout("Skipped binarization, using provided mask.", 3, v)
-		imbin = imt.read_tiff(mpath) != 0 # Read and binarize
+		imbin = imt.read_tiff(mpath)       # Read
+		if not labeled: imbin = imbin != 0 # Binarize
 		thr = 0
 		already_segmented = type(None) != type(imbin)
 	
@@ -109,6 +110,14 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 		imbin, tmp = Segmenter.filter_obj_XY_size(imbin)
 		imbin, tmp = Segmenter.filter_obj_Z_size(imbin)
 
+    if not type(None) == type(mask2d_dir):
+        mask2d_path = os.path.join(mask2d_dir, os.path.basename(im2fov[sid]))
+        if os.path.isfile(mask2d_path):
+            mask2d = imt.read_tiff(mask2d_path)
+            # If labeled, inherit nuclei labels
+            imbin = Segmenter.combine_2d_mask(imbin, mask2d,
+                labeled2d = labeled)
+
 	# Estimate background
 	dna_bg = imt.estimate_background(im, imbin, seg_type)
 	msg += printout("Estimated background: %.2f a.u." % (dna_bg,), 3, v)
@@ -116,7 +125,10 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
 	# NUCLEI ===================================================================
 	
 	msg += printout("Retrieving nuclei...", 2, v)
-	L = label(imbin)
+	if 1 == np.max(imbin):
+		L = label(imbin)
+	else:
+		L = imbin
 
 	# Save mask ----------------------------------------------------------------
 	

@@ -164,15 +164,11 @@ parser.add_argument('-y', '--do-all', action = 'store_const',
 parser.add_argument('--labeled',
     action = 'store_const', dest = 'labeled',
     const = True, default = False,
-    help = 'Export labeled masks instead of binary.')
+    help = 'Import/Export masks as labeled instead of binary.')
 parser.add_argument('--compressed',
     action = 'store_const', dest = 'compressed',
     const = True, default = False,
     help = 'Generate compressed TIF binary masks (not compatible with ImageJ).')
-# parser.add_argument('--clear-Z-borders',
-#     action = 'store_const', dest = 'clearZborders',
-#     const = False, default = False,
-#     help = 'Discard nuclei in the first/last slices of the Z-stack.')
 parser.add_argument('--dots-assignment-only',
     action = 'store_const', dest = "dilate_for_assignment_only",
     const = True, default = False,
@@ -182,6 +178,9 @@ parser.add_argument('--dilate-Z',
     action = 'store_const', dest = 'doZdilation',
     const = True, default = False,
     help = 'Turn on dilation over Z.')
+parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
+    help = """Path to folder with 2D masks with matching name,
+    to combine with 3D masks.""")
 parser.add_argument('--noplot',
     action = 'store_const', dest = 'noplot',
     const = True, default = False,
@@ -191,7 +190,7 @@ parser.add_argument('--no-compart-plot', action = 'store_const',
     help = 'Do not produce compartments-related plots.')
 
 # Version flag
-version = "6.1.0"
+version = "6.2.0"
 parser.add_argument('--version', action = 'version',
     version = '%s v%s' % (sys.argv[0], version,))
 
@@ -222,6 +221,9 @@ args.threads = check_threads(args.threads)
 # Limit pole fraction
 if 0 >= args.pole: args.pole = 0
 if 0.5 < args.pole: args.pole = 0.5
+
+if not type(None) == type(args.manual_2d_masks):
+    assert os.path.isdir(args.manual_2d_masks), "folder not found."
 
 # Params -----------------------------------------------------------------------
 
@@ -266,6 +268,7 @@ def print_settings(args, clear = True):
   
     --- FLAGS =======
 
+           2D masks : '%s'
             Labeled : %r
          Compressed : %r
       Dilate over Z : %r
@@ -284,10 +287,10 @@ No compartment plot : %r
     """ % (
         args.dotCoords, args.imdir, args.outdir, args.mask_folder,
         args.mask_prefix, args.dilate, str(args.aspect), args.dist_type,
-        str(args.skip_channels), args.pole, args.nbins, args.labeled,
-        args.compressed, args.doZdilation, args.dilate_for_assignment_only,
-        args.noplot, args.no_compartment_plot, args.inreg, args.delim,
-        args.threads, args.DEBUG_MODE
+        str(args.skip_channels), args.pole, args.nbins, args.manual_2d_masks,
+        args.labeled, args.compressed, args.doZdilation,
+        args.dilate_for_assignment_only, args.noplot, args.no_compartment_plot,
+        args.inreg, args.delim, args.threads, args.DEBUG_MODE
     )
 
     if clear: print("\033[H\033[J%s" % s)
@@ -402,6 +405,7 @@ kwargs = {
     'noplot' : args.noplot,
     'labeled' : args.labeled,
     'compressed' : args.compressed,
+    'mask2d_dir' : args.manual_2d_masks,
     'an_type' : an_type,
     'seg_type' : seg_type,
     'dist_type' : gp.const.LD_ARG_LABELS.index(args.dist_type),

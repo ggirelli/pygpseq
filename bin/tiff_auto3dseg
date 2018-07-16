@@ -118,7 +118,7 @@ parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
 parser.add_argument('--labeled',
     action = 'store_const', dest = 'labeled',
     const = True, default = False,
-    help = 'Import/Export mask as labeled instead of binary.')
+    help = 'Import/Export masks as labeled instead of binary.')
 parser.add_argument('--compressed',
     action = 'store_const', dest = 'compressed',
     const = True, default = False,
