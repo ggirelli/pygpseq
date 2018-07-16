@@ -211,31 +211,34 @@ class Binarize(iot.IOinterface):
         # Output
         return((mask, log))
 
-    def combine_2d_mask(self, mask, mask2d, labeled2d = False):
+    def combine_2d_mask(self, maskND, mask2D, labeled2d = False):
         """Applies a 2D mask to another one (either 2D or 3D).
         Nothing is done if the major mask is not 2/3D.
 
         Args:
-            mask (np.ndarray): mask to combine with 2D one.
-            mask2d (np.ndarray): 2D mask to be combined.
+            maskND (np.ndarray): mask to combine with 2D one.
+            mask2D (np.ndarray): 2D mask to be combined.
             labeled2d (bool): whether the 2D mask is labeled.
         """
 
-        assert 2 == len(mask2d.shape), "2D mask expected"
+        assert 2 == len(mask2D.shape), "2D mask expected"
 
-        if not labeled:
-            mask2d = mask2d != 0
+        if not labeled2d:
+            mask2D = (mask2d != 0).astype(bool)
 
-        if 2 == len(mask.shape):
-            assert mask2d.shape == mask.shape
-            return(mask2d[mask != 0])
+        if 2 == len(maskND.shape):
+            assert mask2D.shape == maskND.shape
+            tmp = mask2D.copy()
+            tmp[maskND[i] == 0] = 0
+            return(tmp)
 
-        if 3 == len(mask.shape):
-            assert mask2d.shape == mask.shape[-2:]
-            for i in range(mask.shape[0]):
-                mask[i, :, :] = mask2d[mask[i, :, :] != 0]
+        if 3 == len(maskND.shape):
+            assert mask2D.shape == maskND.shape[-2:]
+            tmp = mask2D.copy()
+            tmp[maskND[i] == 0] = 0
+            maskND[i] = tmp
 
-        return(mask)
+        return(maskND)
 
     def run(self, im):
         """Binarize image with current instance settings.

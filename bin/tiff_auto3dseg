@@ -188,7 +188,7 @@ def run_segmentation(imgpath, imgdir):
     if combineWith2D:
         mask2d_path = os.path.join(manmaskdir, imgpath)
         if os.path.isfile(mask2d_path):
-            mask2d = imt.read_tiff(mask2d_path, 2)
+            mask2d = imt.read_tiff(mask2d_path)
             # If labeled, inherit nuclei labels
             mask = binarization.combine_2d_mask(mask, mask2d, labeled)
 
