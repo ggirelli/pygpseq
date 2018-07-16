@@ -501,16 +501,29 @@ def plot_nuclei_aggregated(t, nt, aspect, outdir = None):
 		assert c in t.columns, "missing '%s' column." % c
 	for c in ['a', 'b', 'c']:
 		assert c in nt.columns, "missing '%s' column." % c
+	
+	if not np.logical_not(np.isnan(t['xnorm'].values)).any(): return
+
+	for colname in ['xnorm', 'ynorm', 'znorm']:
+		t = t.loc[np.isfinite(t[colname].values), :]
+		if 0 == t.shape[0]: return
+
+	for colname in ['a', 'b', 'c']:
+		nt = nt.loc[np.isfinite(nt[colname].values), :]
+		if 0 == nt.shape[0]: return
 
 	# Make aggregated visualization --------------------------------------------
-	
-	# Calculate median a/b/c
-	a = np.median(nt['a'].values)
-	b = np.median(nt['b'].values)
-	c = np.median(nt['c'].values)
 
-	coords = np.vstack([ t['xnorm'].values * a, t['ynorm'].values * b,
-		t['znorm'].values * c ])
+	# Calculate median a/b/c
+	a = np.nanmedian(nt['a'].values)
+	b = np.nanmedian(nt['b'].values)
+	c = np.nanmedian(nt['c'].values)
+
+	coords = np.vstack([
+		t['xnorm'].values * a,
+		t['ynorm'].values * b,
+		t['znorm'].values * c
+	])
 
 	if 1 == len(set(t['File'].values)): fid = "f_%d" % t['File'].values[0]
 	else: fid = "f_all"

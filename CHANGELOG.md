@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - `gpseq_fromfish`
     + Allowed for missing labels.
+    + Removing `NaN` and `Inf` when plotting aggregated visualization.
 
 
 
