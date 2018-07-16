@@ -224,19 +224,22 @@ class Binarize(iot.IOinterface):
         assert 2 == len(mask2D.shape), "2D mask expected"
 
         if not labeled2d:
-            mask2D = (mask2d != 0).astype(bool)
+            mask2D = mask2d != 0
+        if labeled2d:
+            maskND = maskND.astype(np.uint8)
 
         if 2 == len(maskND.shape):
             assert mask2D.shape == maskND.shape
             tmp = mask2D.copy()
-            tmp[maskND[i] == 0] = 0
+            tmp[maskND == 0] = 0
             return(tmp)
 
         if 3 == len(maskND.shape):
             assert mask2D.shape == maskND.shape[-2:]
-            tmp = mask2D.copy()
-            tmp[maskND[i] == 0] = 0
-            maskND[i] = tmp
+            for i in range(maskND.shape[0]):
+                tmp = mask2D.copy()
+                tmp[maskND[i] == 0] = 0
+                maskND[i] = tmp
 
         return(maskND)
 

@@ -107,7 +107,7 @@ parser.add_argument('--radius', type = float, nargs = 2,
 parser.add_argument('--minZ', type = float,
     help = """Minimum fraction of stack occupied by an object to be considered a
     nucleus. Default: .25""", default = .25)
-parser.add_argument('--threads', type = int,
+parser.add_argument('-t', '--threads', type = int,
     help = """Number of threads for parallelization. Default: 1""",
     default = 1)
 parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
@@ -169,13 +169,13 @@ def run_segmentation(imgpath, imgdir):
     #   string: path to output image.
     
     # Preparation --------------------------------------------------------------
-    
+
     # Read image
     irf = imt.get_rescaling_factor(os.path.join(imgdir,imgpath))
     img = imt.read_tiff(os.path.join(imgdir, imgpath), 3, rescale = irf)
 
     # binarize -----------------------------------------------------------------
-    
+
     binarization = Binarize(an_type = const.AN_3D,
         seg_type = const.SEG_3D, verbose = False,
         radius_interval = radius_interval, min_z_size = min_z_size)
@@ -189,12 +189,16 @@ def run_segmentation(imgpath, imgdir):
         mask2d_path = os.path.join(manmaskdir, imgpath)
         if os.path.isfile(mask2d_path):
             mask2d = imt.read_tiff(mask2d_path)
+
             # If labeled, inherit nuclei labels
-            mask = binarization.combine_2d_mask(mask, mask2d, labeled)
+            mask = binarization.combine_2d_mask(mask, mask2d,
+                labeled2d = labeled)
 
     # Label nuclei if not done already
     if not (combineWith2D and labeled):
         L = label(mask)
+    else:
+        L = mask
 
     # Output -------------------------------------------------------------------
     outpath = "%s%s" % (outdir, outprefix + imgpath)
