@@ -140,6 +140,9 @@ parser.add_argument('-m', '--mask-folder', metavar = "folder", type = str,
 parser.add_argument('-M', '--mask-prefix', metavar = "prefix", type = str,
     help = """Prefix for mask selection. Default: 'mask_'.""",
     default = "mask_")
+parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
+    help = """Path to folder with 2D masks with matching name,
+    to combine with 3D masks. Used only if no mask was provided through -m.""")
 parser.add_argument('-P', '--pole', metavar = "axis_fraction", type = int,
     help = """Fraction of the major nuclear axis to identify a pole.
     Should be in the [0, .5] interval. Default: .25.""",
@@ -178,9 +181,6 @@ parser.add_argument('--dilate-Z',
     action = 'store_const', dest = 'doZdilation',
     const = True, default = False,
     help = 'Turn on dilation over Z.')
-parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
-    help = """Path to folder with 2D masks with matching name,
-    to combine with 3D masks.""")
 parser.add_argument('--noplot',
     action = 'store_const', dest = 'noplot',
     const = True, default = False,

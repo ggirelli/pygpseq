@@ -11,9 +11,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `tiff_auto3dseg`
     + Added option to combine 2D mask with 3D ones.
     + Allowed for labeled input (2D masks).
-- `gpseq_fromfish`
+- `gpseq_fromfish` & `gpseq_anim`
     + Added option for 2D-to-3D mask combination (also labeled input).
-- `gpseq_anim`
 
 ### Changed
 - `tiff_auto3dseg`

@@ -113,6 +113,9 @@ parser.add_argument('-m', '--mask-folder', metavar = "folder", type = str,
 parser.add_argument('-M', '--mask-prefix', metavar = "prefix", type = str,
     help = """Prefix for mask selection. Default: 'mask_'.""",
     default = "mask_")
+parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
+    help = """Path to folder with 2D masks with matching name,
+    to combine with 3D masks. Used only if no mask was provided through -m.""")
 parser.add_argument('--an-type', type = str,
 	help = """Analysis type. Default: '%s'""" % (
 		gp.const.AN_ARG_LABELS[gp.const.AN_DEFAULT]),
