@@ -32,7 +32,14 @@ def angle_between_points( p0, c, p1 ):
     p1c = np.sqrt(np.sum((p1 - c)**2))
     p01 = np.sqrt(np.sum((p0 - p1)**2))
 
-    tetha = math.acos( (p0c**2 + p1c**2 - p01**2) / (2 * p0c * p1c) )
+    d = round((p0c**2 + p1c**2 - p01**2), 6)
+    n = round((2 * p0c * p1c), 6)
+
+    try:
+        tetha = math.acos( d / n )
+    except ValueError as e:
+        print("Something went wrong when calculating an angle...")
+        raise
 
     return(tetha / math.pi * 180)
 
