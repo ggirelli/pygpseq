@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### Added
+- `tiff_auto3dseg`
+    + Added option to discard objects touching the Z borders during segmentation.
+
 ### Fixed
 - `gpseq_fromfish`
     + Allowed for missing labels.

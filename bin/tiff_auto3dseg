@@ -104,7 +104,7 @@ parser.add_argument('--neighbour', type = int,
 parser.add_argument('--radius', type = float, nargs = 2,
     help = """Range of object radii [vx] to be considered a nucleus.
     Default: [10, Inf]""", default = [10., float('Inf')])
-parser.add_argument('--minZ', type = float,
+parser.add_argument('--min-Z', type = float,
     help = """Minimum fraction of stack occupied by an object to be considered a
     nucleus. Default: .25""", default = .25)
 parser.add_argument('-t', '--threads', type = int,
@@ -115,6 +115,10 @@ parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
     to combine with 3D masks.""")
 
 # Flags
+parser.add_argument('--clear-Z',
+    action = 'store_const', dest = 'do_clear_Z',
+    const = True, default = False,
+    help = """Remove objects touching the bottom/top of the stack.""",)
 parser.add_argument('--labeled',
     action = 'store_const', dest = 'labeled',
     const = True, default = False,
@@ -138,7 +142,8 @@ outdir = args.outFolder
 inpattern = re.compile(args.inreg)
 outprefix = args.outprefix
 neighbour_side = args.neighbour
-min_z_size = args.minZ
+min_z_size = args.min_Z
+do_clear_Z = args.do_clear_Z
 radius_interval = [args.radius[0], args.radius[1]]
 ncores = args.threads
 labeled = args.labeled
@@ -178,7 +183,8 @@ def run_segmentation(imgpath, imgdir):
 
     binarization = Binarize(an_type = const.AN_3D,
         seg_type = const.SEG_3D, verbose = False,
-        radius_interval = radius_interval, min_z_size = min_z_size)
+        radius_interval = radius_interval, min_z_size = min_z_size,
+        do_clear_Z_borders = do_clear_Z)
     (mask, thr, log) = binarization.run(img)
 
     # Filter based on object size
