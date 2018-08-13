@@ -52,12 +52,14 @@ matplotlib.use('ps')
 import matplotlib.pyplot as plt
 
 import argparse
+import math
+import numpy as np
 import os
 import re
 import sys
 from tqdm import tqdm
 
-from pygpseq.tools import image as imt, plot
+from pygpseq.tools import image as imt, plot, stat
 
 # PARAMETERS ===================================================================
 
@@ -86,6 +88,9 @@ parser.add_argument('-p', '--pattern', type = str, nargs = 1, metavar = 'regexp'
 # Flag arguments
 parser.add_argument('-P', '--plot', action = 'store_const',
     help = """Generate pdf plot of intensity sum per Z-slice.""",
+    const = True, default = False)
+parser.add_argument('-G', '--gradient-magnitude', action = 'store_const',
+    help = """Use gradient magnitude instead of intensity sum.""",
     const = True, default = False)
 
 # Version flag
@@ -172,9 +177,14 @@ for impath in t:
 
     # Iterate through slices
     intlist = []
+
     for zi in range(im.shape[0]):
-        # Save intensity sum
-        intlist.append(im[zi].sum())
+        if args.gradient_magnitude:
+            dx = stat.gpartial(im[zi, :, :], 1, 1);
+            dy = stat.gpartial(im[zi, :, :], 2, 1);
+            intlist.append(np.mean(np.mean((dx**2 + dy**2) ** (1/2))))
+        else:
+            intlist.append(im[zi].sum())
 
         # Write output table
         fout.write("%s\t%d\t%f\n" % (impath, zi + 1, intlist[zi]))
