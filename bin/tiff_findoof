@@ -35,12 +35,6 @@
 # Project: bioimaging
 # Description: extract intensity distribution on Z.
 # 
-# Changelog:
-#  v0.2.0 - 20180410: added plotting option.
-#  v0.1.1 - 20180410: redundancy fix.
-#  v0.1.0 - 20180321: added progress bar.
-#  v0.0.1 - 20171129: first release.
-# 
 # ------------------------------------------------------------------------------
 
 
