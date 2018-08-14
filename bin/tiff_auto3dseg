@@ -113,6 +113,9 @@ parser.add_argument('-t', '--threads', type = int,
 parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
     help = """Path to folder with 2D masks with matching name,
     to combine with 3D masks.""")
+parser.add_argument('-F', '--dilate-fill-erode', type = int, metavar = "DFE",
+    help = """Number of pixels for dilation/erosion in a dilate-fill-erode
+    operation. Default: 10. Set to 0 to skip.""", default = 10)
 
 # Flags
 parser.add_argument('--clear-Z',
@@ -198,11 +201,17 @@ def run_segmentation(imgpath, imgdir):
     mask, tmp = binarization.filter_obj_XY_size(mask)
     mask, tmp = binarization.filter_obj_Z_size(mask)
 
+    # Perform dilate-fill-erode operation
+    if 0 != args.dilate_fill_erode:
+        strel = args.dilate_fill_erode
+        strel = cube(strel) if 3 == len(mask.shape) else square(strel)
+        mask = imt.dilate_fill_erode(mask, strel)
+
     # Label nuclei if not done already
     if not (combineWith2D and labeled):
         L = label(mask)
     else:
-        # Re-assigne extra-mask labels
+        # Re-assign extra-mask labels
         L = binarization.combine_2d_mask(mask, mask2d, labeled)
 
     # Output -------------------------------------------------------------------

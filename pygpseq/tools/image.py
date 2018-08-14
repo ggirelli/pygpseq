@@ -12,12 +12,13 @@ import os
 import sys
 
 import numpy as np
+from scipy import ndimage as ndi
 from scipy.ndimage.morphology import distance_transform_edt
 from skimage import filters
 from skimage.io import imread
 from skimage.measure import label, marching_cubes_lewiner, mesh_surface_area
 from skimage.morphology import closing, convex_hull_image, cube
-from skimage.morphology import square
+from skimage.morphology import dilation, erosion, square
 from skimage.segmentation import clear_border
 
 from pygpseq import const
@@ -247,6 +248,19 @@ def describe_shape(mask, spacing = None):
     else:
         return(0)
 
+def dilate_fill_erode(mask, strel):
+    '''Performs dilation-fill-erosion of mask with the provided structuring
+    element.'''
+
+    assert_msg = "structuring element and mask must have the same dimensions."
+    assert len(mask.shape) == len(strel.shape), assert_msg
+
+    mask = dilation(mask, strel)
+    mask = fill_holes(mask)
+    mask = erosion(mask, strel)
+
+    return(mask)
+
 def estimate_background(i, mask, seg_type):
     """Estimates background median.
 
@@ -264,6 +278,15 @@ def estimate_background(i, mask, seg_type):
         bg = np.median(i[mask == 0])
 
     return(bg)
+
+def fill_holes(mask):
+    '''Fill mask holes.'''
+    mask = ndi.binary_fill_holes(mask)
+    if 3 == len(mask.shape):
+        for sliceid in range(mask.shape[0]):
+            slide = mask[sliceid, :, :]
+            mask[sliceid, :, :] = ndi.binary_fill_holes(slide)
+    return(mask)
 
 def get_dtype(i):
     '''

@@ -11,7 +11,6 @@
 import math
 
 import numpy as np
-from scipy import ndimage as ndi
 from skimage.filters import threshold_otsu
 from skimage.measure import label
 
@@ -310,13 +309,7 @@ class Binarize(iot.IOinterface):
         # Fill holes -----------------------------------------------------------
         if self.do_fill_holes:
             log += self.printout('Filling holes...', 2)
-            mask = ndi.binary_fill_holes(mask)
-
-            # Single slice filling
-            if 3 == len(mask.shape):
-                for sliceid in range(mask.shape[0]):
-                    slide = mask[sliceid, :, :]
-                    mask[sliceid, :, :] = ndi.binary_fill_holes(slide)
+            mask = imt.fill_holes(mask)
 
         # Output ---------------------------------------------------------------
 
