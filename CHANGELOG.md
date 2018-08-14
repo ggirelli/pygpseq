@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     + Allowed for missing labels.
     + Removing `NaN` and `Inf` when plotting aggregated visualization.
     + Bug due to high imprecision when calculating angles.
+- `tiff_auto3dseg`
+    + Combination with 2D mask now moved before border clearing.
 
 
 

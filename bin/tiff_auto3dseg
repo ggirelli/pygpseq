@@ -129,7 +129,7 @@ parser.add_argument('--compressed',
     help = 'Generate compressed TIF binary masks (not compatible with ImageJ).')
 
 # Version flag
-version = "3.0.0"
+version = "3.1.0"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
@@ -185,20 +185,18 @@ def run_segmentation(imgpath, imgdir):
         seg_type = const.SEG_3D, verbose = False,
         radius_interval = radius_interval, min_z_size = min_z_size,
         do_clear_Z_borders = do_clear_Z)
-    (mask, thr, log) = binarization.run(img)
-
-    # Filter based on object size
-    mask, tmp = binarization.filter_obj_XY_size(mask)
-    mask, tmp = binarization.filter_obj_Z_size(mask)
 
     if combineWith2D:
         mask2d_path = os.path.join(manmaskdir, imgpath)
         if os.path.isfile(mask2d_path):
             mask2d = imt.read_tiff(mask2d_path)
+            (mask, thr, log) = binarization.run(img, mask2d, labeled)
+    else:
+        (mask, thr, log) = binarization.run(img)
 
-            # If labeled, inherit nuclei labels
-            mask = binarization.combine_2d_mask(mask, mask2d,
-                labeled2d = labeled)
+    # Filter based on object size
+    mask, tmp = binarization.filter_obj_XY_size(mask)
+    mask, tmp = binarization.filter_obj_Z_size(mask)
 
     # Label nuclei if not done already
     if not (combineWith2D and labeled):

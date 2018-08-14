@@ -243,7 +243,7 @@ class Binarize(iot.IOinterface):
 
         return(maskND)
 
-    def run(self, im):
+    def run(self, im, m = None, labeled2d = False):
         """Binarize image with current instance settings.
         Perform, if requested, the following actions in this order:
         - Make Z projection
@@ -252,7 +252,9 @@ class Binarize(iot.IOinterface):
         Fill holes
 
         Args:
-          im (np.array): image to be thresholded
+          im (np.ndarray): image to be thresholded
+          m (np.ndarray): mask to be combined after segmentation
+          labeled (bool): whether the additional m mask is labeled
 
         Returns:
           tuple: binarized image, Otsu's threshold value and log string
@@ -293,6 +295,10 @@ class Binarize(iot.IOinterface):
         # Combine masks
         if len(mask) == 2: mask = np.logical_and(mask[0], mask[1])
         else: mask = mask[0]
+
+        # Combine extra mask
+        if not type(None) == type(m):
+            mask = self.combine_2d_mask(mask, m, labeled2d)
 
         # Remove objects touching borders --------------------------------------
         if self.do_clear_borders:
