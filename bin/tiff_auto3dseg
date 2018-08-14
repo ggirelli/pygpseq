@@ -189,11 +189,13 @@ def run_segmentation(imgpath, imgdir):
         radius_interval = radius_interval, min_z_size = min_z_size,
         do_clear_Z_borders = do_clear_Z)
 
+    mask2d = None
     if combineWith2D:
         mask2d_path = os.path.join(manmaskdir, imgpath)
         if os.path.isfile(mask2d_path):
             mask2d = imt.read_tiff(mask2d_path)
-            (mask, thr, log) = binarization.run(img, mask2d, labeled)
+    if type(None) != type(mask2d):
+        (mask, thr, log) = binarization.run(img, mask2d, labeled)
     else:
         (mask, thr, log) = binarization.run(img)
 
