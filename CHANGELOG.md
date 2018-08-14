@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     + `-F` option for dilate-fill-erode operation (10 as default).
 - `tiff_findoof`
     + `-G` option for gradient magnitude mode.
+    + `-R` rename option.
 
 ### Fixed
 - `gpseq_fromfish`

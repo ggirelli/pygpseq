@@ -86,6 +86,9 @@ parser.add_argument('-P', '--plot', action = 'store_const',
 parser.add_argument('-G', '--gradient-magnitude', action = 'store_const',
     help = """Use gradient magnitude instead of intensity sum.""",
     const = True, default = False)
+parser.add_argument('-R', '--rename', action = 'store_const',
+    help = """Rename out-of-focus images by adding the '.old' suffix.""",
+    const = True, default = False)
 
 # Version flag
 version = "0.2.0"
@@ -199,6 +202,8 @@ for impath in t:
         lout.write("%s is in-focus.\n" % (impath,))
     else:
         lout.write("%s is out-of-focus.\n" % (impath,))
+        if args.rename:
+            os.rename(impath, "%s.old" % impath)
 
 # Close buffer to output file
 lout.close()
