@@ -194,6 +194,9 @@ def run_segmentation(imgpath, imgdir):
         mask2d_path = os.path.join(manmaskdir, imgpath)
         if os.path.isfile(mask2d_path):
             mask2d = imt.read_tiff(mask2d_path)
+        else:
+            print("Warning: 2D mask not found at '%s'" % mask2d_path)
+
     if type(None) != type(mask2d):
         (mask, thr, log) = binarization.run(img, mask2d, labeled)
     else:
@@ -213,8 +216,9 @@ def run_segmentation(imgpath, imgdir):
     if not (combineWith2D and labeled):
         L = label(mask)
     else:
-        # Re-assign extra-mask labels
-        L = binarization.combine_2d_mask(mask, mask2d, labeled)
+        if type(None) != type(mask2d):
+            # Re-assign extra-mask labels
+            L = binarization.combine_2d_mask(mask, mask2d, labeled)
 
     # Output -------------------------------------------------------------------
     outpath = "%s%s" % (outdir, outprefix + imgpath)
