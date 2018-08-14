@@ -319,6 +319,11 @@ class Binarize(iot.IOinterface):
                     mask[sliceid, :, :] = ndi.binary_fill_holes(slide)
 
         # Output ---------------------------------------------------------------
+
+        # Re-assigne extra-mask labels
+        if not type(None) == type(m):
+            mask = self.combine_2d_mask(mask, m, labeled2d)
+
         return((mask, thr, log))
 
 # END ==========================================================================
