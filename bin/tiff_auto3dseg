@@ -216,9 +216,10 @@ def run_segmentation(imgpath, imgdir):
     if not (combineWith2D and labeled):
         L = label(mask)
     else:
+        L = mask    
         if type(None) != type(mask2d):
             # Re-assign extra-mask labels
-            L = binarization.combine_2d_mask(mask, mask2d, labeled)
+            L = binarization.combine_2d_mask(L, mask2d, labeled)
 
     # Output -------------------------------------------------------------------
     outpath = "%s%s" % (outdir, outprefix + imgpath)
