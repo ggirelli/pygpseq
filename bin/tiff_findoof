@@ -167,7 +167,7 @@ t = tqdm(imlist)
 t.set_description(os.path.dirname(args.imdir[0]))
 for impath in t:
     # Read image
-    im = imt.read_tiff(args.imdir[0] + impath)
+    im = imt.read_tiff("%s%s" % (args.imdir[0], impath))
     
     # Select first time frame
     while 3 < len(im.shape): im = im[0]
@@ -203,7 +203,9 @@ for impath in t:
     else:
         lout.write("%s is out-of-focus.\n" % (impath,))
         if args.rename:
-            os.rename(impath, "%s.old" % impath)
+            os.rename(
+                "%s%s" % (args.imdir[0], impath),
+                "%s%s.old" % (args.imdir[0], impath))
 
 # Close buffer to output file
 lout.close()
