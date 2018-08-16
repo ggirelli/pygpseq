@@ -147,11 +147,9 @@ def calc_nuclear_distances(dist_type, mask, aspect):
         laminD = simulate_diffusion(mask, 1, aspect)
         centrD = np.absolute(laminD - np.nanmax(laminD))
     else:
-        center_as_percentile = gp.const.LD_CENTER_PERC
-        center_as_percentile = dist_type == center_as_percentile
         laminD = calc_lamina_distance(mask, aspect)
         centrD = calc_center_distance(laminD, aspect,
-            center_as_percentile)
+            dist_type == gp.const.LD_CENTER_PERC)
     return (laminD, centrD)
 
 def normalize_nuclear_distance(dist_type, laminD, centrD):
