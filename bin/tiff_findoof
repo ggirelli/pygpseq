@@ -91,7 +91,7 @@ parser.add_argument('-R', '--rename', action = 'store_const',
     const = True, default = False)
 
 # Version flag
-version = "0.2.0"
+version = "0.3.0"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
@@ -120,7 +120,10 @@ def mkPlot(pdata, path):
         plt.plot(data['x'], data['y'], linewidth = .5)
 
     plt.xlabel("Z-slice index")
-    plt.ylabel("Intensity sum [a.u.]")
+    if args.gradient_magnitude:
+        plt.ylabel("Gradient magnitude [a.u.]")
+    else:
+        plt.ylabel("Intensity sum [a.u.]")
     plt.title("Out-of-focus study")
 
     plt.legend(list(pdata.keys()),

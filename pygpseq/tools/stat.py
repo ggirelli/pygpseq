@@ -468,30 +468,32 @@ def gpartial(V, d, sigma):
 
     if 3 == len(V.shape):
         if 1 == d:
-            return(convolve(V, dg.reshape([1, 1, w+1]), 'same'))
+            V = convolve(V, dg.reshape([1, 1, w+1]), 'same')
         else:
-            return(convolve(V, g.reshape([1, 1, w+1]), 'same'))
+            V = convolve(V, g.reshape([1, 1, w+1]), 'same')
 
         if 2 == d:
-            return(convolve(V, dg.reshape([1, w+1, 1]), 'same'))
+            V = convolve(V, dg.reshape([1, w+1, 1]), 'same')
         else:
-            return(convolve(V, g.reshape([1, w+1, 1]), 'same'))
+            V = convolve(V, g.reshape([1, w+1, 1]), 'same')
 
         if 3 == d:
-            return(convolve(V, dg.reshape([w+1, 1, 1]), 'same'))
+            V = convolve(V, dg.reshape([w+1, 1, 1]), 'same')
         else:
-            return(convolve(V, g.reshape([w+1, 1, 1]), 'same'))
+            V = convolve(V, g.reshape([w+1, 1, 1]), 'same')
 
     elif 2 == len(V.shape):
         if 1 == d:
-            return(convolve(V, dg.reshape([1, w+1]), 'same'))
+            V = convolve(V, dg.reshape([1, w+1]), 'same')
         else:
-            return(convolve(V, g.reshape([1, w+1]), 'same'))
+            V = convolve(V, g.reshape([1, w+1]), 'same')
 
         if 2 == d:
-            return(convolve(V, dg.reshape([w+1, 1]), 'same'))
+            V = convolve(V, dg.reshape([w+1, 1]), 'same')
         else:
-            return(convolve(V, g.reshape([w+1, 1]), 'same'))
+            V = convolve(V, g.reshape([w+1, 1]), 'same')
+
+    return(V)
 
 def r_to_size(r_interval, size_type):
     """Convert radius interval to size (Area/Volume) interval.
