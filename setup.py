@@ -20,7 +20,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 	long_description = f.read()
 
 setup(name='pygpseq',
-	version='3.2.0',
+	version='3.2.1',
 	description='A GPSeq image analysis package',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
@@ -38,7 +38,7 @@ setup(name='pygpseq',
 	keywords='microscopy image analysis bioimaging biology cell DNA',
 	packages=find_packages(),
 	install_requires=[
-		'ggc==0.0.3',
+		'ggc>=0.0.3',
 		'jinja2==2.10',
 		'joblib==0.11',
 		'matplotlib==2.2.2',

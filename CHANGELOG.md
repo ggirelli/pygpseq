@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [3.2.1] - 2018-08-20
 ### Fixed
 - Now writing `tiff` files with proper `axes` metadata.
 
@@ -303,6 +309,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.2.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.2.1
 [3.2.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.2.0
 [3.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.1.0
 [3.0.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.4
