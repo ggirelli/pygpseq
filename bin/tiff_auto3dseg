@@ -226,10 +226,10 @@ def run_segmentation(imgpath, imgdir):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         if labeled:
-            plot.save_tif(outpath, L, 'uint8', compressed)
+            plot.save_tif(outpath, L, 'uint8', compressed, "ZYX")
         else:
             L[np.nonzero(L)] = 255
-            plot.save_tif(outpath, L, 'uint8', compressed)
+            plot.save_tif(outpath, L, 'uint8', compressed, "ZYX")
     print("Segmentation output written to %s" % (outpath,))
 
     return(outpath)

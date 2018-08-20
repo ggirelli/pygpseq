@@ -7,8 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
-### ...
-- ...
+### Fixed
+- Now writing `tiff` files with proper `axes` metadata.
+
+### Changed
+- `gpseq_fromfish`
+    + Removed double-negation in plot settings confirmation.
 
 
 

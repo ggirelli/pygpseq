@@ -870,11 +870,18 @@ def profile_density_scatterplot(pp, field_label, nbins, xyrange,
         return(fig)
 
 def save_tif(path, img, dtype, compressed, bundled_axes = "CZYX"):
+    # Add channel axis for ImageJ compatibility
     if not "C" in bundled_axes:
+        bundled_axes = "C" + bundled_axes
+
+    # Add missing axes
+    while len(bundled_axes) > len(img.shape):
         new_shape = [1]
         [new_shape.append(n) for n in img.shape]
         img.shape = new_shape
-        bundled_axes = "C" + bundled_axes
+
+    assert_msg = "shape mismatch between bundled axes and image."
+    assert len(bundled_axes) == len(img.shape), assert_msg
 
     if compressed:
         tifffile.imsave(path, img.astype(dtype),
