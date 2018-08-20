@@ -275,8 +275,8 @@ def print_settings(args, clear = True):
   Use dilation only
  for dot assignment : %r
 
-        Do not plot : %r
-No compartment plot : %r
+           Plot all : %r
+  Plot compartments : %r
 
     --- ADVANCED ====
 
@@ -289,7 +289,8 @@ No compartment plot : %r
         args.mask_prefix, args.dilate, str(args.aspect), args.dist_type,
         str(args.skip_channels), args.pole, args.nbins, args.manual_2d_masks,
         args.labeled, args.compressed, args.doZdilation,
-        args.dilate_for_assignment_only, args.noplot, args.no_compartment_plot,
+        args.dilate_for_assignment_only,
+        not args.noplot, not args.no_compartment_plot,
         args.inreg, args.delim, args.threads, args.DEBUG_MODE
     )
 
