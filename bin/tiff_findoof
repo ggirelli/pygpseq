@@ -59,7 +59,7 @@ from pygpseq.tools import image as imt, plot, stat
 
 # Add script description
 parser = argparse.ArgumentParser(description = '''
-Extract intensity distribution on Z for every image in the input folder with a
+Calculate gradient magnitude over Z for every image in the input folder with a
 filename matching the --pattern. Use --range to change the in-focus definition.
 ''', formatter_class = argparse.RawDescriptionHelpFormatter)
 
@@ -83,15 +83,15 @@ parser.add_argument('-p', '--pattern', type = str, nargs = 1, metavar = 'regexp'
 parser.add_argument('-P', '--plot', action = 'store_const',
     help = """Generate pdf plot of intensity sum per Z-slice.""",
     const = True, default = False)
-parser.add_argument('-G', '--gradient-magnitude', action = 'store_const',
-    help = """Use gradient magnitude instead of intensity sum.""",
+parser.add_argument('-S', '--intensity-sum', action = 'store_const',
+    help = """Use intensity sum instead of gradient magnitude.""",
     const = True, default = False)
 parser.add_argument('-R', '--rename', action = 'store_const',
     help = """Rename out-of-focus images by adding the '.old' suffix.""",
     const = True, default = False)
 
 # Version flag
-version = "0.3.0"
+version = "0.3.1"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
@@ -120,10 +120,10 @@ def mkPlot(pdata, path):
         plt.plot(data['x'], data['y'], linewidth = .5)
 
     plt.xlabel("Z-slice index")
-    if args.gradient_magnitude:
-        plt.ylabel("Gradient magnitude [a.u.]")
-    else:
+    if args.intensity_sum:
         plt.ylabel("Intensity sum [a.u.]")
+    else:
+        plt.ylabel("Gradient magnitude [a.u.]")
     plt.title("Out-of-focus study")
 
     plt.legend(list(pdata.keys()),
@@ -179,12 +179,12 @@ for impath in t:
     intlist = []
 
     for zi in range(im.shape[0]):
-        if args.gradient_magnitude:
+        if args.intensity_sum:
+            intlist.append(im[zi].sum())
+        else:
             dx = stat.gpartial(im[zi, :, :], 1, 1);
             dy = stat.gpartial(im[zi, :, :], 2, 1);
             intlist.append(np.mean(np.mean((dx**2 + dy**2) ** (1/2))))
-        else:
-            intlist.append(im[zi].sum())
 
         # Write output table
         fout.write("%s\t%d\t%f\n" % (impath, zi + 1, intlist[zi]))

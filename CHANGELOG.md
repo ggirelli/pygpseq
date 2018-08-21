@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - `gpseq_fromfish_merge`
     + Clarified `no copy pairs found` warning message.
+- `tiff_findoof`
+    + Gradient magnitude mode now default, switch to intensity sum mode with `-S` or `--intensity-sum`.
+
 
 
 ## [3.2.1] - 2018-08-20
