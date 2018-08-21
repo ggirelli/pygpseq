@@ -102,6 +102,13 @@ with the -P (--pole) option specifying a different axis fraction. Information on
 goodnes of fit is reported and a plot is provided with each nucleus rotated and
 centered.
 
+Also, each dot is assigned an `Allele` label: -1 to dots from cells with more
+than 2 dots in that channel, 0 to dots from cells with less than 2 dots in that
+channel, and in the case of cells with exactly 2 dots in that channel the most
+peripheral dot is labeled with 1, and the most central with 2. This is useful
+when expecting 2 dots per cell-channel, i.e., in the case of one probe per
+channel in a diploid cell line.
+
 Plotting can be turned off generally with the --noplot flag, and specifically
 with the --no-compartment-plot flag.
 ''', formatter_class = argparse.RawDescriptionHelpFormatter)

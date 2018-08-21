@@ -7,9 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
-### ...
-- ...
+### Added
+- Clearer documentation for homologue copy pairs to `gpseq_fromfish` and `gpseq_fromfish_merge`.
 
+### Changed
+- `gpseq_fromfish_merge`
+    + Clarified `no copy pairs found` warning message.
 
 
 ## [3.2.1] - 2018-08-20

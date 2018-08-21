@@ -67,6 +67,9 @@ subfolders must be named as dataset_series, with series being in XXX format with
 leading zeros (e.g., iJC001_001, iJC001_002, iJC002_001). Please, note that the
 channel is enforced as lower-case by the merge operation.
 
+The script will not only merge the input, but also produce a table of
+informative homologue copy pairs features, if any pair is found in the input.
+
 Example 1: output in current directory.
 gpseq_fromfish_merge -m meta.tsv -i HAP1/dots_auto IMR90/dots_auto
 
@@ -326,7 +329,8 @@ def extract_data(did, sid):
 			alleles.index = range(alleles.shape[0])
 			alleles.columns = cols
 		else:
-			print("Warning! No copy pairs found in %s.\n" % flag)
+			msg = "Warning! No homologue copy pairs found in %s" % flag
+			print("%s, homologue copy calculation skipped.\n" % msg)
 			alleles = np.nan
 	else:
 		print("Warning! No dots found in %s.\n" % flag)
