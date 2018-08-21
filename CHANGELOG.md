@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - `gpseq_fromfish_merge`
     + Clarified `no copy pairs found` warning message.
+    + `--aspect` default changed to `300. 130. 130.` (ZYX).
 - `tiff_findoof`
     + Gradient magnitude mode now default, switch to intensity sum mode with `-S` or `--intensity-sum`.
 

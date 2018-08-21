@@ -92,8 +92,8 @@ parser.add_argument('-o', '--outdir', metavar = "outdir", type = str, nargs = 1,
 	position.""", default = ".")
 parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 	help = """Physical size of Z, Y and X voxel sides.
-	Default: 300.0 132.0 132.0""",
-	metavar = ('Z', 'Y', 'X'), default = [300., 132.0, 132.0])
+	Default: 300.0 130.0 130.0""",
+	metavar = ('Z', 'Y', 'X'), default = [300., 130.0, 130.0])
 parser.add_argument('-d', '--delimiter', metavar = "sep", type = str, nargs = 1,
 	help = """Column separator in input tables.""", default = "\t")
 parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
