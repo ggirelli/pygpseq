@@ -93,7 +93,8 @@ specified with -m.
 The G1 selection is actually a selection of the most represented cell sub-
 -population based on flatten area and integral of DNA stain intensity. In other
 words, it will selected the most represented cell cycle phase in your cell
-population (generally, G1).
+population (generally, G1). Basically, the major peak is identified and its FWHM
+is used as a range for the filter on both nuclear features.
 
 Then, each dot is assigned to the poles (2), bottom center (1) or top center (0)
 compartments. The pole compartments are defined as the 25%% of the whole volume,
