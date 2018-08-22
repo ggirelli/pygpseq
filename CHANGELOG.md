@@ -9,13 +9,31 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Added
 - Clearer documentation for homologue copy pairs to `gpseq_fromfish` and `gpseq_fromfish_merge`.
+- `gpseq_fromfish`
+    + Additional help page with `-H`.
+    + Option for 0-indexed input.
+    + New columns to output nuclear table:
+        * Using `slice`, `row` and `col` for coordinates, instead of `z`, `y` and `x`.
+        * `box_start_slice`, `box_start_row`, `box_start_col`: nuclear box starting point 1-indexed coordinates (integer).
+        * `box_end_slice`, `box_end_row`, `box_end_col`: nuclear box ending point 1-indexed coordinates (integer).
+        * `com_slice`, `com_row`, `com_col`: nuclear mask center of mass 0-indexed coordinates (float).
 
 ### Changed
+- Clarified warning when input image axes do not match with metadata.
+- `gpseq_fromfish`
+    + Split script help page in `-h` for attributes and standard help, and `-H` for more descriptive and readable text.
+    + FISH coordinates can now be floating point (integer is not enforced anymore). Lamina/Center distances are interpolated on the regulard grid.
+    + Silenced low contrast warnings when saving stacks in debugging mode.
+    + Changed extension of output tables to `.tsv`, for consistency with actual formatting.
 - `gpseq_fromfish_merge`
     + Clarified `no copy pairs found` warning message.
     + `--aspect` default changed to `300. 130. 130.` (ZYX).
 - `tiff_findoof`
     + Gradient magnitude mode now default, switch to intensity sum mode with `-S` or `--intensity-sum`.
+
+### Removed
+- `gpseq_fromfish`
+    + Removed `com` (center of mass) column from the output dot table. Now the same information is available in the nuclei table (although the CoM coordinates are box-wise, and not image-wise).
 
 
 

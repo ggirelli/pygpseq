@@ -1,6 +1,7 @@
 ## General
 
 - Move each constant to its appropriate module.
+- Standardize XYZ coordinates across submodules. (e.g., anim.nucleus.Nucleus.box_origin has ZYX where Y are the rows and X the columns, while the input of gpseq_fromfish expects X as the rows and Y as the columns).
 
 ## `gpseq_fromfish`
 

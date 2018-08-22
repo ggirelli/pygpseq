@@ -20,6 +20,7 @@ from skimage.measure import label, marching_cubes_lewiner, mesh_surface_area
 from skimage.morphology import closing, convex_hull_image, cube
 from skimage.morphology import dilation, erosion, square
 from skimage.segmentation import clear_border
+import warnings
 
 from pygpseq import const
 from pygpseq.tools import vector as vt
@@ -584,7 +585,13 @@ def read_tiff(impath, k = None, noSelection = False, rescale = 1):
     assert os.path.isfile(impath), "trying to read missing file"
 
     # Read TIFF (capture any parsing issues)
-    try: im = imread(impath)
+    try:
+        with warnings.catch_warnings(record = True) as wlist:
+            im = imread(impath)
+            if 0 != len(wlist):
+                if "axes do not match shape" in str(wlist[0]):
+                    printout("image axes do not match metadata in '%s'. %s" % (
+                        impath, "Using the image axes."), -1)
     except (ValueError, TypeError) as e:
         msg = "Something went wrong while trying to read a file"
         printout("%s (possibly corrupt):\n%s\n" % (msg, impath), -2,

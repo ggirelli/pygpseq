@@ -15,10 +15,10 @@ import math
 import numpy as np
 import os
 import pandas as pd
-from scipy.ndimage.measurements import center_of_mass
 from skimage import draw
 import skimage.io as io
 from skimage.morphology import dilation
+import warnings
 
 from pygpseq import const
 from pygpseq.anim import Nucleus
@@ -312,9 +312,6 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		# Store nucleus
 		nucleus.mask = mask
 		nucleus.original_mask = original_mask
-		nucleus.box_origin = np.array([c[0] + 1 for c in nucleus.box])
-		nucleus.box_sides = np.array([np.diff(c) for c in nucleus.box])
-		nucleus.box_mass_center = center_of_mass(mask)
 		nucleus.dilate_factor = dilate_factor
 		curnuclei[n] = nucleus
 
@@ -327,15 +324,17 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
 		
 		if debug:
-			ipath = "series%d.nucleus%d.tif" % (series_id, n)
-			io.imsave(os.path.join(debug_dir, "mask.%s" % ipath),
-				mask.astype('u4'))
-			io.imsave(os.path.join(debug_dir, "laminD.%s" % ipath),
-				laminD.astype(np.uint32))
-			io.imsave(os.path.join(debug_dir, "laminD_norm.%s" % ipath),
-				(laminD_norm * 255).astype(np.uint32))
-			io.imsave(os.path.join(debug_dir, "centrD.%s" % ipath),
-				centrD.astype(np.uint32))
+			with warnings.catch_warnings():
+				warnings.simplefilter("ignore")
+				ipath = "series%d.nucleus%d.tif" % (series_id, n)
+				io.imsave(os.path.join(debug_dir, "mask.%s" % ipath),
+					mask.astype('u4'))
+				io.imsave(os.path.join(debug_dir, "laminD.%s" % ipath),
+					laminD.astype(np.uint32))
+				io.imsave(os.path.join(debug_dir, "laminD_norm.%s" % ipath),
+					(laminD_norm * 255).astype(np.uint32))
+				io.imsave(os.path.join(debug_dir, "centrD.%s" % ipath),
+					centrD.astype(np.uint32))
 		laminD_norm = laminD_norm[mask].flatten()
 		
 		dna = imt.apply_box(i, nucleus.box)[mask].flatten()

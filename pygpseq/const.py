@@ -122,7 +122,10 @@ _const.DLAMIN_NORM_LABEL = "lamin_dnorm"
 # Nuclear summary
 _const.DTYPE_NUCLEAR_SUMMARY = [('s', 'u4'), ('n', 'u4'),
 	('flat_size', 'u8'), ('size', 'u8'), ('surf', 'f8'),
-	('sumI', 'f8'), ('flat_sumI', 'f8'), ('meanI', 'f8'), ('shape', 'f8')]
+	('sumI', 'f8'), ('flat_sumI', 'f8'), ('meanI', 'f8'), ('shape', 'f8'),
+	('box_start_slice', 'u4'), ('box_start_row', 'u4'), ('box_start_col', 'u4'),
+	('box_end_slice', 'u4'), ('box_end_row', 'u4'), ('box_end_col', 'u4'),
+	('com_slice', 'f8'), ('com_row', 'f8'), ('com_col', 'f8')]
 
 # Single pixel nuclear data
 _const.DTYPE_NUCLEAR_DATA = [('s', 'u4'), ('n', 'u4'), ('dna', 'u8'),
