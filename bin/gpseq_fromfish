@@ -517,8 +517,9 @@ tvdata.to_csv(outname, sep = '\t', index = False)
 with open("%s/nuclei.pickle" % args.outdir, "wb+") as f: pickle.dump(nuclei, f)
 
 # Export table before allele labeling
-outname = "%s/wCentr.out.noAllele.dilate%d.%s" % (args.outdir, args.dilate, bname)
-t.to_csv(outname, sep = '\t', index = False)
+# outname = "%s/wCentr.out.noAllele.dilate%d.%s" % (
+#   args.outdir, args.dilate, bname)
+# t.to_csv(outname, sep = '\t', index = False)
 
 # Add allele information -------------------------------------------------------
 print("  - Adding allele information...")

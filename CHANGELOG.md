@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Removed
 - `gpseq_fromfish`
     + Removed `com` (center of mass) column from the output dot table. Now the same information is available in the nuclei table (although the CoM coordinates are box-wise, and not image-wise).
+    + Exporting dot table before `Allele` (homologue copy pair) labeling.
 
 
 
