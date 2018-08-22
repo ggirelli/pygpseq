@@ -123,8 +123,8 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 			axes = [xv, yv, zv]
 			for i in range(len(axes)):
 				cols = [
-					'%s_col_component' % axes_labels[i],
 					'%s_row_component' % axes_labels[i],
+					'%s_col_component' % axes_labels[i],
 					'%s_slice_component' % axes_labels[i]
 				]
 				vcomp_table.loc[cid, cols] = axes[i]
