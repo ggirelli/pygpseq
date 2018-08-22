@@ -35,7 +35,7 @@ _const.PACK_NAME = 'pygpseq'
 
 # kwargs automatic update
 _const.KWARGS_TYPELIST = (type([]), type(()), type(0), type(''),
-	type(True), type({}), type(0.0))
+	type(True), type({}), type(0.0), type(None))
 _const.KWARGS_AVOIDLIST = ('conds')
 
 # Step-related main() class parameters
