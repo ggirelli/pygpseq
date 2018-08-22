@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
         * `box_start_slice`, `box_start_row`, `box_start_col`: nuclear box starting point 1-indexed coordinates (integer).
         * `box_end_slice`, `box_end_row`, `box_end_col`: nuclear box ending point 1-indexed coordinates (integer).
         * `com_slice`, `com_row`, `com_col`: nuclear mask center of mass 0-indexed coordinates (float).
+    + New columns to output compartment table:
+        * `*_slice_component`, `*_row_component`, `*_col_component`: with the components of the three major nuclear axes over the image dimensions.
 
 ### Changed
 - Clarified warning when input image axes do not match with metadata.

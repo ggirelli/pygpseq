@@ -85,6 +85,15 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 	vcomp_table['a'] = np.nan
 	vcomp_table['b'] = np.nan
 	vcomp_table['c'] = np.nan
+	vcomp_table['a_slice_component'] = np.nan
+	vcomp_table['a_row_component'] = np.nan
+	vcomp_table['a_col_component'] = np.nan
+	vcomp_table['b_slice_component'] = np.nan
+	vcomp_table['b_row_component'] = np.nan
+	vcomp_table['b_col_component'] = np.nan
+	vcomp_table['c_slice_component'] = np.nan
+	vcomp_table['c_row_component'] = np.nan
+	vcomp_table['c_col_component'] = np.nan
 
 	for cid in range(int(subt['cell_ID'].max()) + 1):
 		if cid in nuclei.keys():
@@ -106,13 +115,26 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 
 			# Rotate data ------------------------------------------------------
 			
-			# First axis
+			# First round
 			xv, yv, zv = stt.extract_3ev(coords)
+
+			# Store axes components in compartment table
+			axes_labels = ['a', 'b', 'c']
+			axes = [xv, yv, zv]
+			for i in range(len(axes)):
+				cols = [
+					'%s_col_component' % axes_labels[i],
+					'%s_row_component' % axes_labels[i],
+					'%s_slice_component' % axes_labels[i]
+				]
+				vcomp_table.loc[cid, cols] = axes[i]
+
+			# Rotate nuclei
 			theta1 = stt.calc_theta(xv[0], yv[0])
 			xt, yt, zt = stt.rotate3d(coords, theta1, 2)
 			tcoords = np.vstack([xt, yt, zt])
 
-			# # Third axis
+			# # Second round
 			# xv, yv, zv = stt.extract_3ev(tcoords)
 			# theta3 = stt.calc_theta(xv[2], zv[2])
 			# if np.abs(theta3) > np.pi / 2.:
@@ -125,7 +147,7 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 			# xt, yt, zt = stt.rotate3d(tcoords, theta3, 1)
 			# tcoords = np.vstack([xt, yt, zt])
 
-			# # Second axis
+			# # Third round
 			# xv, yv, zv = stt.extract_3ev(tcoords)
 			# theta2 = stt.calc_theta(yv[1], zv[1])
 			# xt, yt, zt = stt.rotate3d(tcoords, theta2, 0)
