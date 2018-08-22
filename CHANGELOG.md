@@ -27,9 +27,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     + FISH coordinates can now be floating point (integer is not enforced anymore). Lamina/Center distances are interpolated on the regulard grid.
     + Silenced low contrast warnings when saving stacks in debugging mode.
     + Changed extension of output tables to `.tsv`, for consistency with actual formatting.
+    + Output compartment table renamed to `nuclear_compartment.out.dilate*.*`.
 - `gpseq_fromfish_merge`
     + Clarified `no copy pairs found` warning message.
     + `--aspect` default changed to `300. 130. 130.` (ZYX).
+    + Now compatible with both new and old nuclear compartment table naming.
 - `tiff_findoof`
     + Gradient magnitude mode now default, switch to intensity sum mode with `-S` or `--intensity-sum`.
 

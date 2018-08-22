@@ -102,7 +102,7 @@ parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
 	number of threads might increase the required amount of RAM.""")
 
 # Version flag
-version = "3.1.1"
+version = "3.2.0"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -202,7 +202,7 @@ def extract_data(did, sid):
 		flist = os.listdir(ipath)
 		nuclei = [x for x in flist if "nuclei.out" in x]
 		dots = [x for x in flist if "wCentr.out" in x and "noAllele" not in x]
-		comps = [x for x in flist if "nuclear_compartment.volume.tsv" in x]
+		comps = [x for x in flist if "nuclear_compartment." in x]
 		dens = [x for x in flist if "density_profile.tsv" in x]
 		vols = [x for x in flist if "volume_profile.tsv" in x]
 

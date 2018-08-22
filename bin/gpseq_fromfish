@@ -510,7 +510,8 @@ t = flag_G1_cells(t, nuclei, args.outdir, args.dilate, bname)
 # Export -----------------------------------------------------------------------
 
 # Export compartment volume data
-outname = "%s/nuclear_compartment.volume.tsv" % (args.outdir,)
+outname = "%s/nuclear_compartment.out.dilate%d.%s" % (
+    args.outdir, args.dilate, bname)
 tvdata.to_csv(outname, sep = '\t', index = False)
 
 # Export nuclei object vector
