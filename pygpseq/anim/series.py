@@ -288,10 +288,10 @@ class Series(iot.IOinterface):
 
         # Save mask
         log += self.printout('Saving series object mask...', 2)
-        if 1 == np.max(imbin):
-            L = label(imbin)
+        if 1 == np.max(mask):
+            L = label(mask)
         else:
-            L = imbin
+            L = mask
 
         # Export binary mask as TIF
         if not type(None) == type(mask_tiff_dir) and not already_segmented:

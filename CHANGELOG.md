@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - `gpseq_anim`
     + Crash when 2D mask folder is not provided.
+    + Wrong variable name in `anim.series.Series`.
 
 ### Removed
 - `gpseq_fromfish`
