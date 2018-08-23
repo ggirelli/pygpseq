@@ -117,7 +117,7 @@ Plotting can be turned off generally with the --noplot flag, and specifically
 with the --no-compartment-plot flag.
 
 More details can be found in the online documentation, at:
-https://github.com/ggirelli/pygpseq/wiki/GPSeq-FISH-analysis
+https://github.com/ggirelli/pygpseq/wiki/
 ''')
     sys.exit()
 
