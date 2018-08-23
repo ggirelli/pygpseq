@@ -67,6 +67,60 @@ from pygpseq.fish.image import analyze_field_of_view
 
 # PARAMETERS ===================================================================
 
+if any([x in sys.argv for x in ["--help2", "-H"]]):
+    print('''
+"gpseq_fromfish" can be used to calculate radial position of FISH signals (dots)
+in nuclei. Dots coordinates are expected to be 1-indexed. If 0-indexed, use the
+'-0' flag. The image dimensions are expected to be: Z (slices), Y (columns) and
+X (rows).
+
+Images are expected to follow DOTTER filename notation: "channel_series.tif".
+Identified images are first re-scaled (if deconvolved with Huygens software),
+then a global (Otsu) and local (median) thresholds are combined to binarize the
+image in 3D. Holes are filled in 3D and a closing operation is performed
+to remove small objects. Objects are filtered based on volume and Z size, and
+those touching the XY contour of the image are discarded. If the --labeled
+option is used, the generated images have identified objects labeled with
+different intensity values. Both compressed and normal TIFF files are
+compatible as input/output. To produce compressed TIFF files as output use the
+--compressed option.
+
+If you previously segmented your images (i.e., produced masks), provide the path
+to the folder containing the masks using -m, and the prefix for the mask name
+with -m. For example, with '-m /ex/mask_dir/ -M mask_', in the case of the image
+file '1.tif', the script will look for the mask at "/ex/mask_dir/mask_1.tif".
+If the mask can be found, it will be used, otherwise it will be generated and
+then saved. This can be used also to export masks as tifs to the folder
+specified with -m.
+
+The G1 selection is actually a selection of the most represented cell sub-
+-population based on flatten area and integral of DNA stain intensity. In other
+words, it will selected the most represented cell cycle phase in your cell
+population (generally, G1). Basically, the major peak is identified and its FWHM
+is used as a range for the filter on both nuclear features.
+
+Then, each dot is assigned to the poles (2), bottom center (1) or top center (0)
+compartments. The pole compartments are defined as the 25%% of the whole volume,
+by cutting perpendicularly to the major axis. Such definition can be changed
+with the -P (--pole) option specifying a different axis fraction. Information on
+goodnes of fit is reported and a plot is provided with each nucleus rotated and
+centered.
+
+Also, each dot is assigned an `Allele` label: -1 to dots from cells with more
+than 2 dots in that channel, 0 to dots from cells with less than 2 dots in that
+channel, and in the case of cells with exactly 2 dots in that channel the most
+peripheral dot is labeled with 1, and the most central with 2. This is useful
+when expecting 2 dots per cell-channel, i.e., in the case of one probe per
+channel in a diploid cell line.
+
+Plotting can be turned off generally with the --noplot flag, and specifically
+with the --no-compartment-plot flag.
+
+More details can be found in the online documentation, at:
+https://github.com/ggirelli/pygpseq/wiki/GPSeq-FISH-analysis
+''')
+    sys.exit()
+
 # Add script description
 parser = argparse.ArgumentParser(description = "",
     formatter_class = argparse.RawDescriptionHelpFormatter)
@@ -167,60 +221,6 @@ parser.add_argument('--version', action = 'version',
 
 # Parse arguments
 args = parser.parse_args()
-
-if args.help2:
-    print('''
-"gpseq_fromfish" can be used to calculate radial position of FISH signals (dots)
-in nuclei. Dots coordinates are expected to be 1-indexed. If 0-indexed, use the
-'-0' flag. The image dimensions are expected to be: Z (slices), Y (columns) and
-X (rows).
-
-Images are expected to follow DOTTER filename notation: "channel_series.tif".
-Identified images are first re-scaled (if deconvolved with Huygens software),
-then a global (Otsu) and local (median) thresholds are combined to binarize the
-image in 3D. Holes are filled in 3D and a closing operation is performed
-to remove small objects. Objects are filtered based on volume and Z size, and
-those touching the XY contour of the image are discarded. If the --labeled
-option is used, the generated images have identified objects labeled with
-different intensity values. Both compressed and normal TIFF files are
-compatible as input/output. To produce compressed TIFF files as output use the
---compressed option.
-
-If you previously segmented your images (i.e., produced masks), provide the path
-to the folder containing the masks using -m, and the prefix for the mask name
-with -m. For example, with '-m /ex/mask_dir/ -M mask_', in the case of the image
-file '1.tif', the script will look for the mask at "/ex/mask_dir/mask_1.tif".
-If the mask can be found, it will be used, otherwise it will be generated and
-then saved. This can be used also to export masks as tifs to the folder
-specified with -m.
-
-The G1 selection is actually a selection of the most represented cell sub-
--population based on flatten area and integral of DNA stain intensity. In other
-words, it will selected the most represented cell cycle phase in your cell
-population (generally, G1). Basically, the major peak is identified and its FWHM
-is used as a range for the filter on both nuclear features.
-
-Then, each dot is assigned to the poles (2), bottom center (1) or top center (0)
-compartments. The pole compartments are defined as the 25%% of the whole volume,
-by cutting perpendicularly to the major axis. Such definition can be changed
-with the -P (--pole) option specifying a different axis fraction. Information on
-goodnes of fit is reported and a plot is provided with each nucleus rotated and
-centered.
-
-Also, each dot is assigned an `Allele` label: -1 to dots from cells with more
-than 2 dots in that channel, 0 to dots from cells with less than 2 dots in that
-channel, and in the case of cells with exactly 2 dots in that channel the most
-peripheral dot is labeled with 1, and the most central with 2. This is useful
-when expecting 2 dots per cell-channel, i.e., in the case of one probe per
-channel in a diploid cell line.
-
-Plotting can be turned off generally with the --noplot flag, and specifically
-with the --no-compartment-plot flag.
-
-More details can be found in the online documentation, at:
-https://github.com/ggirelli/pygpseq/wiki/GPSeq-FISH-analysis
-''')
-    sys.exit()
 
 # Manipulate input -------------------------------------------------------------
 
