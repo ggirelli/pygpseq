@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [3.3.1] - 2018-08-23
+### Fixed
+- `gpseq_fromfish`
+    + Bug in nuclear semi-axes length calculation.
+
+
+
 ## [3.3.0] - 2018-08-22
 ### Added
 - Clearer documentation for homologue copy pairs to `gpseq_fromfish` and `gpseq_fromfish_merge`.
@@ -350,6 +357,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.3.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.1
 [3.3.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.0
 [3.2.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.2.1
 [3.2.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.2.0

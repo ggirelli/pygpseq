@@ -129,29 +129,43 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 				]
 				vcomp_table.loc[cid, cols] = axes[i]
 
-			# Rotate nuclei
+			# Rotate nuclei once for compartment analysis
 			theta1 = stt.calc_theta(xv[0], yv[0])
 			xt, yt, zt = stt.rotate3d(coords, theta1, 2)
 			tcoords = np.vstack([xt, yt, zt])
 
-			# # Second round
-			# xv, yv, zv = stt.extract_3ev(tcoords)
-			# theta3 = stt.calc_theta(xv[2], zv[2])
-			# if np.abs(theta3) > np.pi / 2.:
-			# 	if theta3 > 0:
-			# 		theta3 = -np.abs(theta3 - np.pi / 2.)
-			# 	else:
-			# 		theta3 = np.abs(theta3 + np.pi / 2.)
-			# else:
-			# 	theta3 = -np.abs(theta3 + np.pi / 2.)
-			# xt, yt, zt = stt.rotate3d(tcoords, theta3, 1)
-			# tcoords = np.vstack([xt, yt, zt])
+			# Keep rotating for semi-axes length
+			# Second round
+			xv, yv, zv = stt.extract_3ev(tcoords)
+			theta3 = stt.calc_theta(xv[2], zv[2])
+			if np.abs(theta3) > np.pi / 2.:
+				if theta3 > 0:
+					theta3 = -np.abs(theta3 - np.pi / 2.)
+				else:
+					theta3 = np.abs(theta3 + np.pi / 2.)
+			else:
+				theta3 = -np.abs(theta3 + np.pi / 2.)
+			xt, yt, zt = stt.rotate3d(tcoords, theta3, 1)
+			t2coords = np.vstack([xt, yt, zt])
 
-			# # Third round
-			# xv, yv, zv = stt.extract_3ev(tcoords)
-			# theta2 = stt.calc_theta(yv[1], zv[1])
-			# xt, yt, zt = stt.rotate3d(tcoords, theta2, 0)
-			# tcoords = np.vstack([xt, yt, zt])
+			# Third round
+			xv, yv, zv = stt.extract_3ev(t2coords)
+			theta2 = stt.calc_theta(yv[1], zv[1])
+			xt, yt, zt = stt.rotate3d(t2coords, theta2, 0)
+			t2coords = np.vstack([xt, yt, zt])
+
+			# Calculate semi-axes length ---------------------------------------
+
+			# Round up rotated coordinates
+			trcoords = t2coords.astype('i')
+
+			# Convert to rotated image
+			icoords = np.transpose(trcoords) + abs(trcoords.min(1))
+			trbin = np.zeros((icoords.max(0) + 1).tolist()[::-1])
+			trbin[icoords[:, 2], icoords[:, 1], icoords[:, 0]] = 1
+
+			# Calculate axes size
+			zax_true_size, yax_true_size, xax_true_size = trbin.shape
 
 			# Fit ellipsoid ----------------------------------------------------
 
@@ -238,9 +252,9 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 			vcomp_table.loc[cid, 'ndots_poles'] = (status == 2).sum()
 
 			# Store nucleus dimensions
-			vcomp_table.loc[cid, 'a'] = xax_size / 2.
-			vcomp_table.loc[cid, 'b'] = yax_size / 2.
-			vcomp_table.loc[cid, 'c'] = zax_size / 2.
+			vcomp_table.loc[cid, 'a'] = xax_true_size / 2.
+			vcomp_table.loc[cid, 'b'] = yax_true_size / 2.
+			vcomp_table.loc[cid, 'c'] = zax_true_size / 2.
 
 			# Assign volume information
 			volume = np.zeros(dot_coords.shape[1])
