@@ -87,7 +87,7 @@ compatible as input/output. To produce compressed TIFF files as output use the
 
 If you previously segmented your images (i.e., produced masks), provide the path
 to the folder containing the masks using -m, and the prefix for the mask name
-with -m. For example, with '-m /ex/mask_dir/ -M mask_', in the case of the image
+with -M. For example, with '-m /ex/mask_dir/ -M mask_', in the case of the image
 file '1.tif', the script will look for the mask at "/ex/mask_dir/mask_1.tif".
 If the mask can be found, it will be used, otherwise it will be generated and
 then saved. This can be used also to export masks as tifs to the folder
