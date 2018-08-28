@@ -12,6 +12,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 
+## [3.3.2] - 2018-08-28
+### Fixed
+- `gpseq_fromfish`
+    + Incompatibility with newer version of `tiff_auto3dseg` (`v3.1.0+`) script caused by unexpected channel axis in input mask.
+
+### Added
+- `gpseq_fromfish`
+    + Enforcing re-slicing to 3 axes of the input masks, to match the input images.
+    + Readable error message in case of inconsistent shape between input mask and image, reverting to binarization in that case.
+
+
+
 ## [3.3.1] - 2018-08-23
 ### Fixed
 - `gpseq_fromfish`
@@ -357,6 +369,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.3.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.2
 [3.3.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.1
 [3.3.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.0
 [3.2.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.2.1

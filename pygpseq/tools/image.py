@@ -593,14 +593,13 @@ def read_tiff(impath, k = None, noSelection = False, rescale = 1):
                     printout("image axes do not match metadata in '%s'. %s" % (
                         impath, "Using the image axes."), -1)
     except (ValueError, TypeError) as e:
-        msg = "Something went wrong while trying to read a file"
+        msg = "Something went wrong while trynig to read a file"
         printout("%s (possibly corrupt):\n%s\n" % (msg, impath), -2,
             canAbort = False)
         return(None)
 
     # Reshape and re-slice
-    while 0 == im.shape[0] and not noSelection:
-        im = im[0]
+    while 0 == im.shape[0] and not noSelection: im = im[0]
     if type(0) == type(k): im = slice_k_d_img(im, k)
 
     # Rescale
