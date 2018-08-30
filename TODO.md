@@ -7,6 +7,7 @@
 
 - Allow for different segmentation/analysis methods.
 - Implement gaussian sum fitting for G1 selection.
+- Assign dots to closest nucleus in case of ambiguities. (sort by nucleus unique ID if needed)
 
 ## `tiff_auto3dseg`
 
