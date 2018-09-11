@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [3.3.3] - 2018-09-11
 ### Added
 - `tiff_split v1.1.0`
     + Allowed for splitting into non-square/cubic images.
@@ -370,6 +376,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.3.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.3
 [3.3.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.2
 [3.3.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.1
 [3.3.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.0
