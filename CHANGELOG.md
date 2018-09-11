@@ -7,8 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
-### ...
-- ...
+### Added
+- `tiff_split v1.1.0`
+    + Allowed for splitting into non-square/cubic images.
 
 
 
