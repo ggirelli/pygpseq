@@ -61,7 +61,7 @@ from pygpseq.tools.io import printout
 # Add script description
 parser = argparse.ArgumentParser(description = '''
 Split a TIFF image in smaller TIFF images of the specified side(s). If two
-different sides are provided, the smaller images will be rectangulare. The
+different sides are provided, the smaller images will be rectangular. The
 first side corresponds to the X (columns) and the second to the Y (rows).
 By default, only one side is required, which is used by the script for both
 X and Y sides. I.e., square smaller images are produced.
