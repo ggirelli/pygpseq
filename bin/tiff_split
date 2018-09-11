@@ -216,8 +216,8 @@ def tiff_split_2d(img, x_side, y_side, outdir, imgpath):
 
     # Iterate over sub image top-left corner positions
     ic = 1
-    ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side < img.shape[-2]]
-    xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side < img.shape[-1]]
+    ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side <= img.shape[-2]]
+    xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side <= img.shape[-1]]
     with tqdm(range(n)) as pbar:
         for x_start in xs:
             for y_start in ys:
@@ -256,8 +256,8 @@ def tiff_split_3d(img, x_side, y_side, outdir, imgpath):
 
     # Iterate over sub image top-left corner positions
     ic = 1
-    ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side < img.shape[-2]]
-    xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side < img.shape[-1]]
+    ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side <= img.shape[-2]]
+    xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side <= img.shape[-1]]
     with tqdm(range(n)) as pbar:
         for x_start in xs:
             for y_start in ys:
