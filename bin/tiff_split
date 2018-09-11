@@ -74,10 +74,15 @@ If the input image is a 3D stack, it will be split only on XY and the output
 images will have the same number of slices. Using the -2 option, only the first
 slice is split (i.e., the output will be in 2D).
 
-Split images are generated left-to-right, top-to-bottom, e.g.,
+By default, split images are generated left-to-right, top-to-bottom, e.g.,
 1 2 3
 4 5 6
 7 8 9
+
+Use the option -I to generate them top-to-bottom, left-to-right, e.g.,
+1 4 7
+2 5 8
+3 6 9
 
 Examples:
 
@@ -107,6 +112,10 @@ parser.add_argument('-2', '--2d',
     const = True, default = False,
     help = '''Enforce 2D split even if the image is a 3D stack.
     In that case the first slice will be split.''')
+parser.add_argument('-I', '--invert',
+    action = 'store_const', dest = 'inverted',
+    const = True, default = False,
+    help = '''Split top-to-bottom, left-to-right.''')
 parser.add_argument('-y', '--do-all', action = 'store_const',
     help = """Do not ask for settings confirmation and proceed.""",
     const = True, default = False)
@@ -192,7 +201,7 @@ def calc_split_loss(img, x_side, y_side):
     
     return(loss)
 
-def tiff_split_2d(img, x_side, y_side, outdir, imgpath):
+def tiff_split_2d(img, x_side, y_side, outdir, imgpath, inverted = False):
     '''Split 2D image in sub-images of x_side x y_side.
     Output is saved to outdir with the suffix .subN,
     where N is the sub-image index.
@@ -203,6 +212,7 @@ def tiff_split_2d(img, x_side, y_side, outdir, imgpath):
         y_side (int): row side in px.
         outdir (str): path to output directory.
         imgpath (str): path to input image.
+        inverted (bool): split top-to-bottom, left-to-right.
     '''
  
     # Get output file name parts
@@ -218,21 +228,28 @@ def tiff_split_2d(img, x_side, y_side, outdir, imgpath):
     ic = 1
     ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side <= img.shape[-2]]
     xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side <= img.shape[-1]]
+
+    if inverted:
+        print("Image split top-to-bottom, left-to-right.")
+        xy_gen = ((x, y) for x in xs for y in ys)
+    else:
+        print("Image split left-to-right, top-to-bottom.")
+        xy_gen = ((x, y) for y in ys for x in xs)
+
     with tqdm(range(n)) as pbar:
-        for x_start in xs:
-            for y_start in ys:
-                # Identify sub-image
-                oimg = img[y_start:(y_start+y_side), x_start:(x_start+x_side)]
+        for (x_start, y_start) in xy_gen:
+            # Identify sub-image
+            oimg = img[y_start:(y_start+y_side), x_start:(x_start+x_side)]
 
-                # Output image
-                opath = os.path.join(outdir, "%s.sub%d%s" % (prefix, ic, ext))
-                plot.save_tif(opath, oimg, imt.get_dtype(oimg.max()), False)
+            # Output image
+            opath = os.path.join(outdir, "%s.sub%d%s" % (prefix, ic, ext))
+            plot.save_tif(opath, oimg, imt.get_dtype(oimg.max()), False)
 
-                # Increase counter
-                ic += 1
-                pbar.update(1)
+            # Increase counter
+            ic += 1
+            pbar.update(1)
 
-def tiff_split_3d(img, x_side, y_side, outdir, imgpath):
+def tiff_split_3d(img, x_side, y_side, outdir, imgpath, inverted = False):
     '''Split 2D image in sub-images of x_side x y_side x stack_depth.
     Output is saved to outdir with the suffix .subN,
     where N is the sub-image index.
@@ -243,6 +260,7 @@ def tiff_split_3d(img, x_side, y_side, outdir, imgpath):
         y_side (int): row side in px.
         outdir (str): path to output directory.
         imgpath (str): path to input image.
+        inverted (bool): split top-to-bottom, left-to-right.
     '''
  
     # Get output file name parts
@@ -258,9 +276,16 @@ def tiff_split_3d(img, x_side, y_side, outdir, imgpath):
     ic = 1
     ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side <= img.shape[-2]]
     xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side <= img.shape[-1]]
+
+    if inverted:
+        print("Image split top-to-bottom, left-to-right.")
+        xy_gen = ((x, y) for x in xs for y in ys)
+    else:
+        print("Image split left-to-right, top-to-bottom.")
+        xy_gen = ((x, y) for y in ys for x in xs)
+
     with tqdm(range(n)) as pbar:
-        for x_start in xs:
-            for y_start in ys:
+        for (x_start, y_start) in xy_gen:
                 # Identify sub-image
                 oimg = img[:,
                     y_start:(y_start + y_side),
@@ -295,7 +320,9 @@ def print_settings(args, clear = True):
 
            Enlarge : %r
         Enforce 2D : %r
-    """ % (args.input, args.outdir, x_side, y_side, args.enlarge, args.force2D)
+          Inverted : %r
+    """ % (args.input, args.outdir, x_side, y_side,
+        args.enlarge, args.force2D, args.inverted)
 
     if clear: print("\033[H\033[J%s" % s)
     else: print(s)
@@ -314,7 +341,7 @@ img = imt.read_tiff(args.input, k = 3)
 
 status = np.nan
 if 3 == len(img.shape):
-    print("> 3D stack found: %s" % str(img.shape))
+    print("3D stack found: %s" % str(img.shape))
     if args.force2D:
         print("Enforcing 2D split (extracting 1st slice only).")
         status = "2D"
@@ -343,9 +370,9 @@ else:
 # Split image ------------------------------------------------------------------
 
 if "2D" == status:
-    tiff_split_2d(img, x_side, y_side, args.outdir, args.input)
+    tiff_split_2d(img, x_side, y_side, args.outdir, args.input, args.inverted)
 elif "3D" == status:
-    tiff_split_3d(img, x_side, y_side, args.outdir, args.input)
+    tiff_split_3d(img, x_side, y_side, args.outdir, args.input, args.inverted)
 else:
     printout("Unrecognized analysis mode.", -2)
 

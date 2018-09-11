@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - `tiff_split v1.1.0`
     + Allowed for splitting into non-square/cubic images.
+    + option to change splitting orientation.
 
 
 
