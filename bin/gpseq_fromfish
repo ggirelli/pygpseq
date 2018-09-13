@@ -165,7 +165,7 @@ parser.add_argument('-M', '--mask-prefix', metavar = "prefix", type = str,
 parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
     help = """Path to folder with 2D masks with matching name,
     to combine with 3D masks. Used only if no mask was provided through -m.""")
-parser.add_argument('-P', '--pole', metavar = "axis_fraction", type = int,
+parser.add_argument('-P', '--pole', metavar = "axis_fraction", type = float,
     help = """Fraction of the major nuclear axis to identify a pole.
     Should be in the [0, .5] interval. Default: .25.""",
     default = .25)
