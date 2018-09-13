@@ -7,8 +7,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
-### ...
-- ...
+### Added
+- `gpseq_fromfish_merge`
+    + Option for no-date prefix to output.
+    + Support for date in dataset name.
+- `tiff_findoof`
+    + Silent mode with `-s`.
+
+### Changed
+- `gpseq_anim`
+    + Now using `ggc.check_threads()`.
+- `tiff_auto3dseg`
+    + Now using `ggc.check_threads()`.
 
 
 

@@ -189,7 +189,7 @@ parser.add_argument('-y', '--do-all', action = 'store_const',
     const = True, default = False)
 
 # Version flag
-version = "2.1.0"
+version = "2.1.1"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -197,11 +197,7 @@ parser.add_argument('--version', action = 'version',
 args = parser.parse_args()
 
 # Additional checks
-maxncores = multiprocessing.cpu_count()
-if maxncores < args.threads:
-	printout("Lowered number of threads to maximum available: %d" % (
-		maxncores), -1)
-	args.threads = maxncores
+args.threads = check_threads(args.threads)
 
 # FUNCTION =====================================================================
 

@@ -89,6 +89,9 @@ parser.add_argument('-S', '--intensity-sum', action = 'store_const',
 parser.add_argument('-R', '--rename', action = 'store_const',
     help = """Rename out-of-focus images by adding the '.old' suffix.""",
     const = True, default = False)
+parser.add_argument('-s', '--silent', action = 'store_const',
+    help = """Silent run.""",
+    const = True, default = False)
 
 # Version flag
 version = "0.3.1"
@@ -166,8 +169,11 @@ immatch = lambda f: not type(None) == type(re.match(args.pattern[0], f))
 imlist = [f for f in flist if immatch(f)]
 
 # Iterate through fields of view
-t = tqdm(imlist)
-t.set_description(os.path.dirname(args.imdir[0]))
+if args.silent:
+    t = imlist
+else:
+    t = tqdm(imlist)
+    t.set_description(os.path.dirname(args.imdir[0]))
 for impath in t:
     # Read image
     im = imt.read_tiff("%s%s" % (args.imdir[0], impath))
