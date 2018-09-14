@@ -105,7 +105,7 @@ parser.add_argument('--no-date', action = 'store_const', dest = 'addDate',
 	help = 'Do not add date as prefix to output.')
 
 # Version flag
-version = "4.0.0"
+version = "4.0.1"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
@@ -156,6 +156,13 @@ def look_for_data(d, flist, k, flag, dataset, ipath):
 	else:
 		d[k] = pd.read_csv("%s/%s" % (ipath, flist[0]), args.delim)
 	return(d)
+
+def add_dataset_info(data, did, date, sid, ct):
+	dots['dataset'] = did
+	dots['data'] = data
+	dots['session'] = sid
+	dots['cell_type'] = ct
+	return(data)
 
 def extract_data(did, date, sid):
 	# Subset metadata
@@ -231,8 +238,7 @@ def extract_data(did, date, sid):
 	# Extract dot data ---------------------------------------------------------
 	if type(pd.DataFrame()) == type(d['dots']):
 		dots = d['dots']
-		dots['dataset'] = dataset
-		dots['session'] = session
+		dots = add_dataset_info(dots, did, date, sid, cell_type)
 		dch = {}
 		for i in subt.index:
 			dch[subt.loc[i, 'channel'].lower()] = subt.loc[i, 'probe_label']
@@ -241,43 +247,34 @@ def extract_data(did, date, sid):
 			c = dots.loc[i, 'Channel'].lower()
 			if c in dch.keys():
 				dots.loc[i, 'probe_label'] = dch[c]
-		dots['cell_type'] = cell_type
 	else:
 		dots = np.nan
 
 	# Extract nuclei data ------------------------------------------------------
 	if type(pd.DataFrame()) == type(d['nuclei']):
 		nuclei = d['nuclei']
-		nuclei['dataset'] = dataset
-		nuclei['session'] = session
-		nuclei['cell_type'] = cell_type
+		nuclei = add_dataset_info(nuclei, did, date, sid, cell_type)
 	else:
 		nuclei = np.nan
 
 	# Extract compartments data ------------------------------------------------
 	if type(pd.DataFrame()) == type(d['compartments']):
 		comps = d['compartments']
-		comps['dataset'] = dataset
-		comps['session'] = session
-		comps['cell_type'] = cell_type
+		comps = add_dataset_info(comps, did, date, sid, cell_type)
 	else:
 		comps = np.nan
 
 	# Extract density profile --------------------------------------------------
 	if type(pd.DataFrame()) == type(d['density_profile']):
 		dens = d['density_profile']
-		dens['dataset'] = dataset
-		dens['session'] = session
-		dens['cell_type'] = cell_type
+		dens = add_dataset_info(dens, did, date, sid, cell_type)
 	else:
 		dens = np.nan
 
 	# Extract volume profile ---------------------------------------------------
 	if type(pd.DataFrame()) == type(d['volume_profile']):
 		vols = d['volume_profile']
-		vols['dataset'] = dataset
-		vols['session'] = session
-		vols['cell_type'] = cell_type
+		vols = add_dataset_info(vols, did, date, sid, cell_type)
 	else:
 		vols = np.nan
 
@@ -316,10 +313,8 @@ def extract_data(did, date, sid):
 				d['d_centr_norm'] = np.abs(np.diff(
 					alt['centr_dist_norm'].values))[0]
 				d['angle'] = alt['angle'].values[0]
-				d['dataset'] = dataset
-				d['session'] = session
+				d = add_dataset_info(d, did, date, sid, cell_type)
 				d['probe_label'] = alt['probe_label'].values[0]
-				d['cell_type'] = cell_type
 
 				dl.append(d.loc[0, :])
 				cols = d.columns
