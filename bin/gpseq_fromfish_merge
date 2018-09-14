@@ -159,7 +159,7 @@ def look_for_data(d, flist, k, flag, dataset, ipath):
 
 def add_dataset_info(data, did, date, sid, ct):
 	data['dataset'] = did
-	data['data'] = data
+	data['date'] = date
 	data['session'] = sid
 	data['cell_type'] = ct
 	return(data)
