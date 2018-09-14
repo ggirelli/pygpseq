@@ -158,10 +158,10 @@ def look_for_data(d, flist, k, flag, dataset, ipath):
 	return(d)
 
 def add_dataset_info(data, did, date, sid, ct):
-	dots['dataset'] = did
-	dots['data'] = data
-	dots['session'] = sid
-	dots['cell_type'] = ct
+	data['dataset'] = did
+	data['data'] = data
+	data['session'] = sid
+	data['cell_type'] = ct
 	return(data)
 
 def extract_data(did, date, sid):
