@@ -55,7 +55,7 @@ from pygpseq.tools.io import printout
 
 # Add script description
 parser = argparse.ArgumentParser(description = '''
-Convert an nd2 file into single channel tiff images.
+Convert a nd2 file into single channel tiff images.
 Output file name is either in GPSeq (default) or DOTTER notation.
 Channel names are lower-cased.
 
@@ -83,7 +83,7 @@ parser.add_argument('-m', '--mode', type = str,
 parser.add_argument('--compressed',
     action = 'store_const', dest = 'doCompress',
     const = True, default = False,
-    help = 'Force compressed TIFF as output (not compatible with ImageJ).')
+    help = 'Force compressed TIFF as output.')
 
 # Version flag
 version = "2.0.0"

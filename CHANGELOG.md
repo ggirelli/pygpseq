@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     + Now using `ggc.check_threads()`.
 - `tiff_auto3dseg`
     + Now using `ggc.check_threads()`.
+- Fixed `--compressed` option label (now compatible with ImageJ).
 
 
 

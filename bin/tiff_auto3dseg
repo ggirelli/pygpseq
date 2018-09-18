@@ -131,7 +131,7 @@ parser.add_argument('--labeled',
 parser.add_argument('--compressed',
     action = 'store_const', dest = 'compressed',
     const = True, default = False,
-    help = 'Generate compressed TIF binary masks (not compatible with ImageJ).')
+    help = 'Generate compressed TIF binary masks.')
 
 # Version flag
 version = "3.1.1"

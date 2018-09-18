@@ -172,7 +172,7 @@ parser.add_argument('--labeled',
 parser.add_argument('--compressed',
     action = 'store_const', dest = 'compressed',
     const = True, default = False,
-    help = 'Generate compressed TIF binary masks (not compatible with ImageJ).')
+    help = 'Generate compressed TIF binary masks.')
 parser.add_argument('-r', '--rescale-deconvolved', action = 'store_const',
 	help = """Perform rescaling of deconvolved images. Requires Huygens
 	Professional v4.5 log file for an image to be rescaled.""",
