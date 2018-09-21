@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 ### Added
+- `czi_to_tiff`: to convert CZI files to TIFF.
 - `gpseq_fromfish_merge`
     + Option for no-date prefix to output.
     + Support for date in dataset name.

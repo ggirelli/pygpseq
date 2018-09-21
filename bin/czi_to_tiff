@@ -42,10 +42,11 @@
 # DEPENDENCIES =================================================================
 
 import argparse
-from nd2reader import ND2Reader
+import czifile
 import os
 import sys
 import tifffile
+import warnings
 
 from pygpseq.tools import image as imt
 from pygpseq.tools import plot
@@ -114,11 +115,73 @@ def export_fov(fov, metadata, fid, bundled_axes):
 
     Args:
         fov (np.ndarray): input multi-channel field of view array.
-        metadata (dict): nd2 metadata dictionary.
+        metadata (dict): czi metadata dictionary.
         fid (int): field of view 0-based index.
     '''
     pass
 
 # RUN ==========================================================================
+
+# Create buffer pointer to czi image
+images = czifile.CziFile(args.input)
+
+with warnings.catch_warnings(record = True) as wlist:
+    pixels = images.asarray()
+axes = images.axes
+
+assert "S" in axes, "missing sample axis."
+assert "C" in axes, "missing channel axis."
+
+Si = axes.index("S")
+Ci = axes.index("C")
+
+print("Found %d fields of view, with %d channels each." % (
+    images.shape[Si], images.shape[Ci]))
+
+channel_path = "Metadata/DisplaySetting/Channels/Channel/DyeName"
+channel_names = [x.text for x in images.metadata.findall(channel_path)]
+channel_names = [x.replace(" ", "").lower() for x in channel_names]
+
+# Remove previous axes
+if 0 != Si:
+    for i in range(Si):
+        assert_msg = "axis '%s' with size >1 [%d] not supported." % (
+            axes[i], images.shape[i])
+        assert 1 == images.shape[i], assert_msg
+pixels = pixels.reshape(pixels.shape[Si:len(pixels.shape)])
+axes = axes[Si:]
+
+# Remove axis 0 (if last)
+if axes.endswith("0"):
+    pixels = pixels.reshape(pixels.shape[:-1])
+    axes = axes[:-1]
+
+for si in range(images.shape[Si]):
+    for ci in range(images.shape[Ci]):
+        stack = pixels[si, ci]
+
+        # Select first timeframe
+        stack_axes = axes[2:]
+        if "T" in stack_axes:
+            Ti = stack_axes.index("T")
+
+            assert_msg = "time-lapse iamges not supported."
+            assert 1 == stack.shape[Ti], assert_msg
+
+            stack_shape = list(stack.shape)
+            stack_shape.pop(Ti)
+            stack = stack.reshape(stack_shape)
+
+        # Identify ouytput file name notation
+        if "GPSeq" == args.mode:
+            outpath = "%s.channel%03d.series%03d.tif" % (
+                channel_names[ci], ci + 1, si + 1)
+        elif "DOTTER" == args.mode:
+            outpath = "%s_%03d.tif" % (
+                channel_names[ci], si + 1)
+
+        plot.save_tif(os.path.join(args.outdir, outpath),
+            stack, imt.get_dtype(stack.max()), args.doCompress,
+            bundled_axes = stack_axes)
 
 ################################################################################
