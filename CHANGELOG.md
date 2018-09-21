@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [3.3.4] - 2018-09-21
 ### Added
 - `czi_to_tiff`: to convert CZI files to TIFF.
 - `gpseq_fromfish_merge`
@@ -393,6 +399,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.3.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.4
 [3.3.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.3
 [3.3.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.2
 [3.3.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.1
