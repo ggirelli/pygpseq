@@ -869,7 +869,9 @@ def profile_density_scatterplot(pp, field_label, nbins, xyrange,
     if new_figure:
         return(fig)
 
-def save_tif(path, img, dtype, compressed, bundled_axes = "CZYX"):
+def save_tif(path, img, dtype, compressed, bundled_axes = "CZYX",
+    inMicrons = False, ResolutionZ = None, forImageJ = False,
+    **kwargs):
     # Add channel axis for ImageJ compatibility
     if not "C" in bundled_axes:
         bundled_axes = "C" + bundled_axes
@@ -883,14 +885,20 @@ def save_tif(path, img, dtype, compressed, bundled_axes = "CZYX"):
     assert_msg = "shape mismatch between bundled axes and image."
     assert len(bundled_axes) == len(img.shape), assert_msg
 
+    metadata = {'axes' : bundled_axes}
+    if inMicrons: metadata['unit'] = "um"
+    if not type(None) == ResolutionZ: metadata['spacing'] = ResolutionZ
+
     if compressed:
         tifffile.imsave(path, img.astype(dtype),
             shape = img.shape, compress = 9,
-            dtype = dtype, imagej = False, metadata = {'axes' : bundled_axes})
+            dtype = dtype, imagej = forImageJ,
+            metadata = metadata, **kwargs)
     else:
         tifffile.imsave(path, img.astype(dtype),
             shape = img.shape, compress = 0,
-            dtype = dtype, imagej = False, metadata = {'axes' : bundled_axes})
+            dtype = dtype, imagej = forImageJ,
+            metadata = metadata, **kwargs)
 
 def set_font_size(size):
     """Set plot font size."""

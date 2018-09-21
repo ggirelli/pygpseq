@@ -46,6 +46,7 @@ import czifile
 import os
 import sys
 import tifffile
+from tqdm import tqdm
 import warnings
 
 from pygpseq.tools import image as imt
@@ -142,6 +143,12 @@ channel_path = "Metadata/DisplaySetting/Channels/Channel/DyeName"
 channel_names = [x.text for x in images.metadata.findall(channel_path)]
 channel_names = [x.replace(" ", "").lower() for x in channel_names]
 
+res_path = "Metadata/Scaling/Items/Distance"
+resolution = [x for x in images.metadata.findall(res_path)
+    if x.attrib['Id'] in ["X", "Y", "Z"]]
+resolution = dict([(x.attrib['Id'], float(x[0].text)) for x in resolution])
+resolutionXY = (1e-6/resolution["X"], 1e-6/resolution["Y"])
+
 # Remove previous axes
 if 0 != Si:
     for i in range(Si):
@@ -156,7 +163,7 @@ if axes.endswith("0"):
     pixels = pixels.reshape(pixels.shape[:-1])
     axes = axes[:-1]
 
-for si in range(images.shape[Si]):
+for si in tqdm(range(images.shape[Si])):
     for ci in range(images.shape[Ci]):
         stack = pixels[si, ci]
 
@@ -182,6 +189,8 @@ for si in range(images.shape[Si]):
 
         plot.save_tif(os.path.join(args.outdir, outpath),
             stack, imt.get_dtype(stack.max()), args.doCompress,
-            bundled_axes = stack_axes)
+            bundled_axes = stack_axes, resolution = resolutionXY,
+            inMicrons = True, ResolutionZ = resolution["Z"]*1e6,
+            forImageJ = True)
 
 ################################################################################

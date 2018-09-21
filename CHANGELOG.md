@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `tiff_auto3dseg`
     + Now using `ggc.check_threads()`.
 - Fixed `--compressed` option label (now compatible with ImageJ).
+- `tools.plot.save_tif`
+    + Added support to retain voxel resolution in TIFF metadata (ImageJ compatible).
+- `nd2_to_tiff`
+    + Now saves Resolution (XYZ) metadata when exporting.
 
 
 
