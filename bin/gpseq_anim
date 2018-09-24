@@ -53,7 +53,7 @@ import pygpseq as gp
 import sys
 
 from ggc.prompt import ask
-from ggc.args import check_threads
+from ggc.args import check_threads, export_settings
 
 from pygpseq.tools.io import printout
 
@@ -373,7 +373,7 @@ if not None is args.note:
 gpi.debugging = args.DEBUG_MODE
 
 # Show current settings
-settings_string = print_settings(gpi, args)
+ssettings = print_settings(gpi, args)
 if not args.do_all: ask("Confirm settings and proceed?")
 
 # Save settings
@@ -381,7 +381,7 @@ with open("%s.settings.txt" % os.path.splitext(gpi.logpath)[0], 'w+') as OH:
 	OH.write("%s\n" % " ".join(sys.argv))
 	OH.write("@%s\n\n" % datetime.datetime.now())
 	OH.write("%s\n" % sys.version)
-	OH.write(settings_string)
+	export_settings(OH, ssettings)
 
 # Start the analysis
 gpi = gpi.run()

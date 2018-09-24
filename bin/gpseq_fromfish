@@ -56,7 +56,7 @@ import re
 import sys
 
 from ggc.prompt import ask
-from ggc.args import check_threads
+from ggc.args import check_threads, export_settings
 
 import pygpseq as gp
 from pygpseq.tools import image as imt
@@ -324,7 +324,7 @@ def print_settings(args, clear = True):
 
 # RUN ==========================================================================
 
-settings_string = print_settings(args)
+ssettings = print_settings(args)
 if not args.do_all: ask("Confirm settings and proceed?")
 
 # Create output folder
@@ -333,10 +333,7 @@ if not os.path.isdir(args.outdir):
 
 # Save settings
 with open("%s/settings.txt" % args.outdir, 'w+') as OH:
-    OH.write("%s\n" % " ".join(sys.argv))
-    OH.write("@%s\n\n" % datetime.datetime.now())
-    OH.write("%s\n" % sys.version)
-    OH.write(settings_string)
+    export_settings(OH, ssettings)
 
 ddir = ""
 if args.DEBUG_MODE:

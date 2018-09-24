@@ -14,8 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     + Parallelization.
 
 ### Changed
-- `tiff_auto3dseg`
-    + Now using `gcc` functions to export settings.
+- Now using `ggc` functions to export settings in: `gpseq_anim`, `gpseq_fromfish` and `tiff_auto3dseg`.
 
 ### Fixed
 - Missing dependencies in `setup.py`.
