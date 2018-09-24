@@ -46,6 +46,7 @@ matplotlib.use('ps')
 import matplotlib.pyplot as plt
 
 import argparse
+from joblib import Parallel, delayed
 import math
 import numpy as np
 import os
@@ -53,6 +54,7 @@ import re
 import sys
 from tqdm import tqdm
 
+from ggc.args import check_threads
 from pygpseq.tools import image as imt, plot, stat
 
 # PARAMETERS ===================================================================
@@ -78,6 +80,9 @@ parser.add_argument('-p', '--pattern', type = str, nargs = 1, metavar = 'regexp'
     help = '''Provide a regular expression pattern matching the images in the
     image folder that you want to check. Default: "^.*\.tif$"''',
     default = ["^.*\.tif$"])
+parser.add_argument('-t', '--threads', metavar = "nthreads", type = int,
+    help = """Number of threads for parallelization. Default: 1""",
+    default = 1)
 
 # Flag arguments
 parser.add_argument('-P', '--plot', action = 'store_const',
@@ -100,6 +105,9 @@ parser.add_argument('--version', action = 'version',
 
 # Parse arguments
 args = parser.parse_args()
+
+# Adjust number of threads
+args.threads = check_threads(args.threads)
 
 # FUNCTIONS ====================================================================
 
@@ -143,38 +151,7 @@ def mkPlot(pdata, path):
 
     plt.show()
 
-# RUN ==========================================================================
-
-# Add trailing slash to image folder path
-if not "/" == args.imdir[0][-1]:
-    args.imdir[0] += "/"
-
-# Check that image folder path exists
-if not os.path.isdir(args.imdir[0]):
-    sys.exit("!ERROR: specified imdir does not exist.\n%s" % (args.imdir[0],))
-
-# Open buffer to output file
-fout = open(args.output[0], "w+")
-lout = open(os.path.splitext(args.output[0])[0] + ".log", "w+")
-
-# If plot is required, prepare plot_data
-if args.plot: profile_data = {}
-
-# Identify tiff images
-flist = []
-for (dirpath, dirnames, filenames) in os.walk(args.imdir[0]):
-    flist.extend(filenames)
-    break
-immatch = lambda f: not type(None) == type(re.match(args.pattern[0], f))
-imlist = [f for f in flist if immatch(f)]
-
-# Iterate through fields of view
-if args.silent:
-    t = imlist
-else:
-    t = tqdm(imlist)
-    t.set_description(os.path.dirname(args.imdir[0]))
-for impath in t:
+def isOOF(args, impath):
     # Read image
     im = imt.read_tiff("%s%s" % (args.imdir[0], impath))
     
@@ -184,6 +161,8 @@ for impath in t:
     # Iterate through slices
     intlist = []
 
+    profile_data = {}
+    sout = ""
     for zi in range(im.shape[0]):
         if args.intensity_sum:
             intlist.append(im[zi].sum())
@@ -192,8 +171,8 @@ for impath in t:
             dy = stat.gpartial(im[zi, :, :], 2, 1);
             intlist.append(np.mean(np.mean((dx**2 + dy**2) ** (1/2))))
 
-        # Write output table
-        fout.write("%s\t%d\t%f\n" % (impath, zi + 1, intlist[zi]))
+        # Output string
+        sout += "%s\t%d\t%f\n" % (impath, zi + 1, intlist[zi])
 
         # If plot is required, update profile data
         if args.plot:
@@ -208,17 +187,60 @@ for impath in t:
     hrange = im.shape[0] * args.range[0] / 2.
     hstack = im.shape[0] / 2.
     if maxid >= (hstack - hrange) and maxid <= (hstack + hrange):
-        lout.write("%s is in-focus.\n" % (impath,))
+        summary = ("%s is in-focus.\n" % (impath,))
     else:
-        lout.write("%s is out-of-focus.\n" % (impath,))
+        summary = ("%s is out-of-focus.\n" % (impath,))
         if args.rename:
             os.rename(
                 "%s%s" % (args.imdir[0], impath),
                 "%s%s.old" % (args.imdir[0], impath))
 
-# Close buffer to output file
-lout.close()
-fout.close()
+    return((sout, summary, profile_data))
+
+# RUN ==========================================================================
+
+# Add trailing slash to image folder path
+if not "/" == args.imdir[0][-1]:
+    args.imdir[0] += "/"
+
+# Check that image folder path exists
+if not os.path.isdir(args.imdir[0]):
+    sys.exit("!ERROR: specified imdir does not exist.\n%s" % (args.imdir[0],))
+
+# If plot is required, prepare plot_data
+if args.plot: profile_data = {}
+
+# Identify tiff images
+flist = []
+for (dirpath, dirnames, filenames) in os.walk(args.imdir[0]):
+    flist.extend(filenames)
+    break
+immatch = lambda f: not type(None) == type(re.match(args.pattern[0], f))
+imlist = [f for f in flist if immatch(f)]
+
+# Iterate through fields of view
+if 1 == args.threads:
+    if args.silent:
+        t = imlist
+    else:
+        t = tqdm(imlist)
+        t.set_description(os.path.dirname(args.imdir[0]))
+
+    data = []
+    for impath in t:
+        data.append(isOOF(args, impath))
+else:
+    verbosity = 11 if not args.silent else 0
+    data = Parallel(n_jobs = args.threads, verbose = verbosity)(
+        delayed(isOOF)(args, impath)
+        for impath in imlist)
+
+with open(args.output[0], "w+") as fout:
+    with open("%s.log" % os.path.splitext(args.output[0])[0], "w+") as lout:
+        for (s, summary, pdata) in data:
+            fout.write(s)
+            lout.write(summary)
+            if args.plot: profile_data.update(pdata)
 
 # Generate plot
 outpath = os.path.splitext(args.output[0])[0] + ".pdf"
