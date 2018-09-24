@@ -54,7 +54,8 @@ import tifffile
 from tqdm import tqdm
 import warnings
 
-from ggc.args import check_threads
+from ggc.prompt import ask
+from ggc.args import check_threads, export_settings
 
 from skimage.filters import threshold_local, threshold_otsu
 import skimage.io as io
@@ -132,6 +133,9 @@ parser.add_argument('--compressed',
     action = 'store_const', dest = 'compressed',
     const = True, default = False,
     help = 'Generate compressed TIF binary masks.')
+parser.add_argument('-y', '--do-all', action = 'store_const',
+    help = """Do not ask for settings confirmation and proceed.""",
+    const = True, default = False)
 
 # Version flag
 version = "3.1.1"
@@ -142,26 +146,18 @@ parser.add_argument('--version', action = 'version',
 args = parser.parse_args()
 
 # Assign to in-script variables
-imgdir = args.imgFolder
-outdir = args.outFolder
-inpattern = re.compile(args.inreg)
-outprefix = args.outprefix
-neighbour_side = args.neighbour
-min_z_size = args.min_Z
-do_clear_Z = args.do_clear_Z
+inreg = re.compile(args.inreg)
 radius_interval = [args.radius[0], args.radius[1]]
-ncores = args.threads
-labeled = args.labeled
-compressed = args.compressed
-if compressed and "mask_" == outprefix:
-    outprefix = 'cmask_'
-manmaskdir = args.manual_2d_masks
-combineWith2D = type(None) != type(manmaskdir)
+
+if args.compressed and "mask_" == args.outprefix:
+    args.outprefix = 'cmask_'
+
+combineWith2D = type(None) != type(args.manual_2d_masks)
 if combineWith2D:
-    assert os.path.isdir(manmaskdir)
+    assert os.path.isdir(args.manual_2d_masks)
 
 # Additional checks
-ncores = check_threads(ncores)
+args.threads = check_threads(args.threads)
 
 # FUNCTIONS ====================================================================
 
@@ -183,21 +179,26 @@ def run_segmentation(imgpath, imgdir):
 
     # binarize -----------------------------------------------------------------
 
-    binarization = Binarize(an_type = const.AN_3D,
-        seg_type = const.SEG_3D, verbose = False,
-        radius_interval = radius_interval, min_z_size = min_z_size,
-        do_clear_Z_borders = do_clear_Z)
+    binarization = Binarize(
+        an_type = const.AN_3D,
+        seg_type = const.SEG_3D,
+        verbose = False,
+        radius_interval = radius_interval,
+        min_z_size = args.min_Z,
+        do_clear_Z_borders = args.do_clear_Z,
+        adp_neigh = args.neighbour
+    )
 
     mask2d = None
     if combineWith2D:
-        mask2d_path = os.path.join(manmaskdir, imgpath)
+        mask2d_path = os.path.join(args.manual_2d_masks, imgpath)
         if os.path.isfile(mask2d_path):
             mask2d = imt.read_tiff(mask2d_path)
         else:
             print("Warning: 2D mask not found at '%s'" % mask2d_path)
 
     if type(None) != type(mask2d):
-        (mask, thr, log) = binarization.run(img, mask2d, labeled)
+        (mask, thr, log) = binarization.run(img, mask2d, args.labeled)
     else:
         (mask, thr, log) = binarization.run(img)
 
@@ -212,57 +213,108 @@ def run_segmentation(imgpath, imgdir):
         mask = imt.dilate_fill_erode(mask, strel)
 
     # Label nuclei if not done already
-    if not (combineWith2D and labeled):
+    if not (combineWith2D and args.labeled):
         L = label(mask)
     else:
         L = mask    
         if type(None) != type(mask2d):
             # Re-assign extra-mask labels
-            L = binarization.combine_2d_mask(L, mask2d, labeled)
+            L = binarization.combine_2d_mask(L, mask2d, args.labeled)
 
     # Output -------------------------------------------------------------------
-    outpath = "%s%s" % (outdir, outprefix + imgpath)
+    outpath = "%s%s" % (args.outFolder, args.outprefix + imgpath)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        if labeled:
-            plot.save_tif(outpath, L, 'uint8', compressed, "ZYX")
+        if args.labeled:
+            plot.save_tif(outpath, L, 'uint8', args.compressed, "ZYX")
         else:
             L[np.nonzero(L)] = 255
-            plot.save_tif(outpath, L, 'uint8', compressed, "ZYX")
+            plot.save_tif(outpath, L, 'uint8', args.compressed, "ZYX")
     print("Segmentation output written to %s" % (outpath,))
 
     return(outpath)
 
+
+def print_settings(args, clear = True):
+    '''Show input settings, for confirmation.
+
+    Args:
+        args (Namespace): arguments parsed by argparse.
+        clear (bool): clear screen before printing.
+    '''
+    s = " # Automatic 3D segmentation v%s\n" % version
+
+    s += """
+---------- SETTING :  VALUE ----------
+
+   Input directory :  '%s'
+  Output directory :  '%s'
+
+       Mask prefix :  '%s'
+     Neighbourhood :  %d
+          2D masks : '%s'
+           Labeled :  %r
+        Compressed :  %r
+
+ Dilate-fill-erode :  %d
+ Minimum Z portion :  %.2f
+    Minimum radius :  [%.2f, %.2f] vx
+           Clear Z :  %r
+
+           Threads :  %d
+            Regexp :  '%s'
+
+    """ % (
+        args.imgFolder, args.outFolder,
+        args.outprefix, args.neighbour, args.manual_2d_masks,
+        args.labeled, args.compressed,
+        args.dilate_fill_erode, args.min_Z,
+        radius_interval[0], radius_interval[1],
+        args.do_clear_Z, args.threads, args.inreg
+    )
+
+    if clear: print("\033[H\033[J%s" % s)
+    else: print(s)
+    return(s)
+
 # RUN ==========================================================================
 
+# Show current settings
+ssettings = print_settings(args)
+if not args.do_all: ask("Confirm settings and proceed?")
+
 # Add trailing slashes
-imgdir = pt.add_trailing_slash(imgdir)
-outdir = pt.add_trailing_slash(outdir)
+args.imgFolder = pt.add_trailing_slash(args.imgFolder)
+args.outFolder = pt.add_trailing_slash(args.outFolder)
 
 # Stop if input folder does not exist
-if not os.path.isdir(imgdir):
-    sys.exit("!ERROR! Image folder not found: %s" % (imgdir,))
+if not os.path.isdir(args.imgFolder):
+    sys.exit("!ERROR! Image folder not found: %s" % (args.imgFolder,))
 
 # Create output folder
-if not os.path.isdir(outdir):
-    os.mkdir(outdir)
+if not os.path.isdir(args.outFolder):
+    os.mkdir(args.outFolder)
+
+# Save confirmed settings
+with open(os.path.join(args.outFolder, "settings.txt"), "w+") as OH:
+    export_settings(OH, ssettings)
 
 # Identify images --------------------------------------------------------------
 
 # Identify tiff images
-imglist = [f for f in os.listdir(imgdir) 
-    if os.path.isfile(os.path.join(imgdir, f))
-    and not type(None) == type(re.match(inpattern, f))]
+imglist = [f for f in os.listdir(args.imgFolder) 
+    if os.path.isfile(os.path.join(args.imgFolder, f))
+    and not type(None) == type(re.match(inreg, f))]
 print("Found %d image(s) to segment. Starting..." % len(imglist))
 
 # Start iteration --------------------------------------------------------------
 
-if 1 == ncores:
+if 1 == args.threads:
     for imgpath in tqdm(imglist):
-        run_segmentation(imgpath, imgdir)
+        run_segmentation(imgpath, args.imgFolder)
 else:
-    outlist = Parallel(n_jobs = ncores, verbose = 11)(
-        delayed(run_segmentation)(imgpath, imgdir)
+    outlist = Parallel(n_jobs = args.threads, verbose = 11)(
+        delayed(run_segmentation)(imgpath, args.imgFolder)
         for imgpath in imglist)
 
 # END ==========================================================================

@@ -13,8 +13,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `tiff_findoof`
     + Parallelization.
 
+### Changed
+- `tiff_auto3dseg`
+    + Now using `gcc` functions to export settings.
+
 ### Fixed
 - Missing dependencies in `setup.py`.
+- `tiff_auto3dseg`
+    + `--neighbour` now works properly.
 
 
 
