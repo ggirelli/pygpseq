@@ -127,7 +127,7 @@ def getOutpath(args, metadata, cid, fid):
     return(outpath)
 
 def export_channel(args, ch, outpath, metadata,
-    bundled_axes, resolutionZ):
+    bundled_axes, resolutionZ = None):
     resolutionXY = (1/metadata['pixel_microns'],
         1/metadata['pixel_microns'])
 
@@ -138,7 +138,7 @@ def export_channel(args, ch, outpath, metadata,
         inMicrons = True, forImageJ = True,
         ResolutionZ = resolutionZ)
 
-def export_fov(fov, metadata, fid, bundled_axes):
+def export_fov_3d(fov, metadata, fid, bundled_axes):
     '''Export a field of view after bundling the axes to separate channel TIFF.
 
     Args:
@@ -181,6 +181,29 @@ def export_fov(fov, metadata, fid, bundled_axes):
         export_channel(args, fov, outpath, metadata,
             bundled_axes, resolutionZ)
 
+def export_fov_2d(fov, metadata, fid, bundled_axes):
+    '''Export a field of view after bundling the axes to separate channel TIFF.
+
+    Args:
+        fov (np.ndarray): input multi-channel field of view array.
+        metadata (dict): nd2 metadata dictionary.
+        fid (int): field of view 0-based index.
+    '''
+
+    if "c" in bundled_axes:
+        # Iterate over channels
+        for cid in range(fov.shape[3]):
+            outpath = getOutpath(args, metadata, cid, fid)
+            if type(None) == type(outpath): return()
+            ch = fov[:, :, cid]
+            export_channel(args, ch, outpath, metadata,
+                bundled_axes)
+    else:
+        outpath = getOutpath(args, metadata, 0, fid)
+        if type(None) == type(outpath): return()
+        export_channel(args, fov, outpath, metadata,
+            bundled_axes)
+
 # RUN ==========================================================================
 
 if not type(None) == type(args.deltaZ):
@@ -189,21 +212,50 @@ if not type(None) == type(args.deltaZ):
 # Create buffer pointer to nd2 image
 images = ND2Reader(args.input)
 
-# Check if multiple fields of view are present
-axes_for_bundling = "zyxc" if "c" in images.axes else "zyx"
-if 'v' not in images.axes:
-    print("Found 1 field of view, with %d channels." % (images.sizes['c']))
-    # Export single field of view
-    images.bundle_axes = axes_for_bundling
-    export_fov(images[0], images.metadata, 0, axes_for_bundling)
-else:
-    print("Found %d fields of view, with %d channels each." % (
-        images.sizes['v'], images.sizes['c']))
-    # Export multiple fields of view
-    images.iter_axes = 'v'
-    images.bundle_axes = axes_for_bundling
-    for fid in tqdm(range(images.sizes['v'])):
-        fov = images[fid]
-        export_fov(fov, images.metadata, fid, axes_for_bundling)
+if 'z' in images.axes: # 3D
+    axes_for_bundling = "zyxc" if "c" in images.axes else "zyx"
+
+    if 'v' not in images.axes:
+        if 'c' in images.axes:
+            print("Found 1 field of view, with %d channels." % (images.sizes['c']))
+        else:
+            print("Found 1 field of view, with 1 channel.")
+
+        # Export single field of view
+        images.bundle_axes = axes_for_bundling
+        export_fov_3d(images[0], images.metadata, 0, axes_for_bundling)
+    else:
+        print("Found %d fields of view, with %d channels each." % (
+            images.sizes['v'], images.sizes['c']))
+
+        # Export multiple fields of view
+        images.iter_axes = 'v'
+        images.bundle_axes = axes_for_bundling
+        for fid in tqdm(range(images.sizes['v'])):
+            fov = images[fid]
+            export_fov_3d(fov, images.metadata, fid, axes_for_bundling)
+else: # 2D
+    axes_for_bundling = "yxc" if "c" in images.axes else "yx"
+
+    if 'v' not in images.axes:
+        if 'c' in images.axes:
+            print("Found 1 field of view, with %d channels." % (images.sizes['c']))
+        else:
+            print("Found 1 field of view, with 1 channel.")
+
+        # Export single field of view
+        images.bundle_axes = axes_for_bundling
+        export_fov_2d(images[0], images.metadata, 0, axes_for_bundling)
+    else:
+        print("Found %d fields of view, with %d channels each." % (
+            images.sizes['v'], images.sizes['c']))
+
+        # Export multiple fields of view
+        images.iter_axes = 'v'
+        images.bundle_axes = axes_for_bundling
+        for fid in tqdm(range(images.sizes['v'])):
+            fov = images[fid]
+            export_fov_2d(fov, images.metadata, fid, axes_for_bundling)
+
 
 ################################################################################
