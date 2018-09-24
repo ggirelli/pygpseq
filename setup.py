@@ -39,6 +39,8 @@ setup(name='pygpseq',
 	packages=find_packages(),
 	install_requires=[
 		'ggc>=0.0.3',
+		'czifile>=0.1.5',
+		'cython',
 		'jinja2==2.10',
 		'joblib==0.11',
 		'matplotlib==2.2.2',
