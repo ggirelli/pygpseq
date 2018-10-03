@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 ### Added
+- `czi_to_tiff`
+    + Support for 2D conversion.
 - `nd2_to_tiff`
     + Support for 2D conversion.
 - `tiff_findoof`
@@ -15,6 +17,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Now using `ggc` functions to export settings in: `gpseq_anim`, `gpseq_fromfish` and `tiff_auto3dseg`.
+- `czi_to_tiff`
+    + Refactored for easier development.
 
 ### Fixed
 - Missing dependencies in `setup.py`.
