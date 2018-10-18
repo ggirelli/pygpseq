@@ -154,7 +154,8 @@ if args.compressed and "mask_" == args.outprefix:
 
 combineWith2D = type(None) != type(args.manual_2d_masks)
 if combineWith2D:
-    assert os.path.isdir(args.manual_2d_masks)
+    assert_msg = "2D mask folder not found, '%s'" % args.manual_2d_masks
+    assert os.path.isdir(args.manual_2d_masks), assert_msg
 
 # Additional checks
 args.threads = check_threads(args.threads)
