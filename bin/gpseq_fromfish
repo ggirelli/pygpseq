@@ -162,7 +162,7 @@ parser.add_argument('-M', '--mask-prefix', metavar = "prefix", type = str,
     help = """Prefix for mask selection. Default: 'mask_'.""",
     default = "mask_")
 parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
-    help = """Path to folder with 2D masks with matching name,
+    help = """Path to folder with 2D masks as tiff files with matching name,
     to combine with 3D masks. Used only if no mask was provided through -m.""")
 parser.add_argument('-P', '--pole', metavar = "axis_fraction", type = float,
     help = """Fraction of the major nuclear axis to identify a pole.
