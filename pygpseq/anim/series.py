@@ -252,7 +252,6 @@ class Series(iot.IOinterface):
             log += self.printout("Skipped binarization, using provided mask.",3)
             log += self.printout("'%s'" % mpath, 4)
             mask = imt.read_tiff(mpath, 3) != 0 # Read and binarize
-            print(filist)
             thr = 0
         else:
             log += self.printout("Binarizing...", 2)
@@ -288,10 +287,10 @@ class Series(iot.IOinterface):
 
         # Save mask
         log += self.printout('Saving series object mask...', 2)
-        if 1 == np.max(imbin):
-            L = label(imbin)
+        if 1 == np.max(mask):
+            L = label(mask)
         else:
-            L = imbin
+            L = mask
 
         # Export binary mask as TIF
         if not type(None) == type(mask_tiff_dir) and not already_segmented:

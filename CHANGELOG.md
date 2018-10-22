@@ -8,6 +8,128 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 ### Added
+- `czi_to_tiff`
+    + Support for 2D conversion.
+- `nd2_to_tiff`
+    + Support for 2D conversion.
+- `tiff_findoof`
+    + Parallelization.
+
+### Changed
+- Now using `ggc` functions to export settings in: `gpseq_anim`, `gpseq_fromfish` and `tiff_auto3dseg`.
+- `czi_to_tiff`
+    + Refactored for easier development.
+
+### Fixed
+- Missing dependencies in `setup.py`.
+- `tiff_auto3dseg`
+    + `--neighbour` now works properly.
+    + Provided better error message when 2D mask folder not found.
+
+
+
+## [3.3.4] - 2018-09-21
+### Added
+- `czi_to_tiff`: to convert CZI files to TIFF.
+- `gpseq_fromfish_merge`
+    + Option for no-date prefix to output.
+    + Support for date in dataset name.
+- `tiff_findoof`
+    + Silent mode with `-s`.
+
+### Changed
+- `gpseq_anim`
+    + Now using `ggc.check_threads()`.
+- `tiff_auto3dseg`
+    + Now using `ggc.check_threads()`.
+- Fixed `--compressed` option label (now compatible with ImageJ).
+- `tools.plot.save_tif`
+    + Added support to retain voxel resolution in TIFF metadata (ImageJ compatible).
+- `nd2_to_tiff`
+    + Now saves Resolution (XYZ) metadata when exporting.
+
+
+
+## [3.3.3] - 2018-09-11
+### Added
+- `tiff_split v1.1.0`
+    + Allowed for splitting into non-square/cubic images.
+    + Option to change splitting orientation.
+
+
+
+## [3.3.2] - 2018-08-28
+### Fixed
+- `gpseq_fromfish`
+    + Incompatibility with newer version of `tiff_auto3dseg` (`v3.1.0+`) script caused by unexpected channel axis in input mask.
+
+### Added
+- `gpseq_fromfish`
+    + Enforcing re-slicing to 3 axes of the input masks, to match the input images.
+    + Readable error message in case of inconsistent shape between input mask and image, reverting to binarization in that case.
+
+
+
+## [3.3.1] - 2018-08-23
+### Fixed
+- `gpseq_fromfish`
+    + Bug in nuclear semi-axes length calculation.
+
+
+
+## [3.3.0] - 2018-08-22
+### Added
+- Clearer documentation for homologue copy pairs to `gpseq_fromfish` and `gpseq_fromfish_merge`.
+- `gpseq_fromfish`
+    + Additional help page with `-H`.
+    + Option for 0-indexed input.
+    + New columns to output nuclear table:
+        * Using `slice`, `row` and `col` for coordinates, instead of `z`, `y` and `x`.
+        * `box_start_slice`, `box_start_row`, `box_start_col`: nuclear box starting point 1-indexed coordinates (integer).
+        * `box_end_slice`, `box_end_row`, `box_end_col`: nuclear box ending point 1-indexed coordinates (integer).
+        * `com_slice`, `com_row`, `com_col`: nuclear mask center of mass 0-indexed coordinates (float).
+    + New columns to output compartment table:
+        * `*_slice_component`, `*_row_component`, `*_col_component`: with the components of the three major nuclear axes over the image dimensions.
+
+### Changed
+- Clarified warning when input image axes do not match with metadata.
+- `gpseq_fromfish`
+    + Split script help page in `-h` for attributes and standard help, and `-H` for more descriptive and readable text.
+    + FISH coordinates can now be floating point (integer is not enforced anymore). Lamina/Center distances are interpolated on the regulard grid.
+    + Silenced low contrast warnings when saving stacks in debugging mode.
+    + Changed extension of output tables to `.tsv`, for consistency with actual formatting.
+    + Output compartment table renamed to `nuclear_compartment.out.dilate*.*`.
+- `gpseq_fromfish_merge`
+    + Clarified `no copy pairs found` warning message.
+    + `--aspect` default changed to `300. 130. 130.` (ZYX).
+    + Now compatible with both new and old nuclear compartment table naming.
+- `tiff_findoof`
+    + Gradient magnitude mode now default, switch to intensity sum mode with `-S` or `--intensity-sum`.
+
+### Fixed
+- `gpseq_anim`
+    + Crash when 2D mask folder is not provided.
+    + Wrong variable name in `anim.series.Series`.
+
+### Removed
+- `gpseq_fromfish`
+    + Removed `com` (center of mass) column from the output dot table. Now the same information is available in the nuclei table (although the CoM coordinates are box-wise, and not image-wise).
+    + Exporting dot table before `Allele` (homologue copy pair) labeling.
+
+
+
+## [3.2.1] - 2018-08-20
+### Fixed
+- Now writing `tiff` files with proper `axes` metadata.
+
+### Changed
+- `gpseq_fromfish`
+    + Removed double-negation in plot settings confirmation.
+
+
+
+## [3.2.0] - 2018-08-16
+### Added
 - `tiff_auto3dseg`
     + Added option to discard objects touching the Z borders during segmentation.
     + `-F` option for dilate-fill-erode operation (10 as default).
@@ -293,6 +415,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
+[3.3.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.4
+[3.3.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.3
+[3.3.2] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.2
+[3.3.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.1
+[3.3.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.0
+[3.2.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.2.1
+[3.2.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.2.0
 [3.1.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.1.0
 [3.0.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.4
 [3.0.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.0.3

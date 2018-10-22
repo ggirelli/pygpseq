@@ -63,9 +63,12 @@ from pygpseq.tools.io import printout
 parser = argparse.ArgumentParser(description = """
 Merge gpseq_fromfish outputs, add dataset and cell type information. The script
 looks for the output in subfolders of the specified input directories. These
-subfolders must be named as dataset_series, with series being in XXX format with
-leading zeros (e.g., iJC001_001, iJC001_002, iJC002_001). Please, note that the
-channel is enforced as lower-case by the merge operation.
+subfolders must be named as dataset_date_session, with session being in XXX
+format with leading zeros (e.g., iJC001_YYYYMMDD_001, iJC001_YYYYMMDD_002,...).
+Please, note that the channel is enforced as lower-case by the merge operation.
+
+The script will not only merge the input, but also produce a table of
+informative homologue copy pairs features, if any pair is found in the input.
 
 Example 1: output in current directory.
 gpseq_fromfish_merge -m meta.tsv -i HAP1/dots_auto IMR90/dots_auto
@@ -77,56 +80,49 @@ gpseq_fromfish_merge -m meta.tsv -i HAP1/dots_auto IMR90/dots_auto
 
 # Positional parameters
 parser.add_argument('-m', '--meta', metavar = "metadata", required = True,
-	type = str, nargs = 1, help = """Path to metadata table. Required columns:
-	dataset, series, channel, cell_line, probe_label.""")
+	type = str, help = """Path to metadata table. Required columns:
+	dataset, date, session, cell_line, probe_label, channel.""")
 parser.add_argument('-i', '--indir', metavar = "indir", required = True,
 	type = str, nargs = "+", help = """List of space-separated input folder
 	paths with gpseq_fromfish output as subfolders.""")
 
 # Optional parameters
-parser.add_argument('-o', '--outdir', metavar = "outdir", type = str, nargs = 1,
+parser.add_argument('-o', '--outdir', metavar = "outdir", type = str,
 	help = """Path to output folder, created if missing. Defaults to current
 	position.""", default = ".")
 parser.add_argument('-a', '--aspect', type = float, nargs = 3,
 	help = """Physical size of Z, Y and X voxel sides.
-	Default: 300.0 132.0 132.0""",
-	metavar = ('Z', 'Y', 'X'), default = [300., 132.0, 132.0])
-parser.add_argument('-d', '--delimiter', metavar = "sep", type = str, nargs = 1,
-	help = """Column separator in input tables.""", default = "\t")
-parser.add_argument('-t', '--threads', metavar = 'nthreads', type = int,
-	nargs = 1, default = [1],
-	help = """Number of threads to be used for parallelization. Increasing the
-	number of threads might increase the required amount of RAM.""")
+	Default: 300.0 130.0 130.0""",
+	metavar = ('Z', 'Y', 'X'), default = [300., 130.0, 130.0])
+parser.add_argument('-d', '--delim', metavar = "sep", type = str,
+	help = """Column separator in input tables. Default: TAB""", default = "\t")
+parser.add_argument('-t', '--threads', metavar = 'threads', type = int,
+	default = 1, help = """Number of threads to be used for parallelization.
+	Increasing the number of threads might increase the required amount of RAM.
+	""")
+parser.add_argument('--no-date', action = 'store_const', dest = 'addDate',
+	const = False, default = True,
+	help = 'Do not add date as prefix to output.')
 
 # Version flag
-version = "3.1.1"
+version = "4.0.1"
 parser.add_argument('--version', action = 'version',
 	version = '%s v%s' % (sys.argv[0], version,))
 
 # Parse arguments
 args = parser.parse_args()
 
-# Assign arguments
-meta_path = args.meta[0]
-indirlist = args.indir
-if type([]) != type(indirlist): indirlist = [indirlist]
-outdir = args.outdir[0]
-nthreads = args.threads[0]
-aspect = args.aspect
-delim = args.delimiter[0]
-
 # Additional checks
-if not os.path.isfile(meta_path):
-	printout("Metadata file not found: %s" % meta_path, -2)
-for idp in indirlist:
-	if not os.path.isdir(idp):
-		printout("Input folder not found: %s" % idp, -2)
+if type([]) != type(args.indir): args.indir = [args.indir]
+assert os.path.isfile(args.meta), "metadata file not found: %s" % args.meta
+for idp in args.indir:
+	assert os.path.isdir(idp), "input folder not found: %s" % idp
 maxncores = multiprocessing.cpu_count()
-if maxncores < args.threads[0]:
+if maxncores < args.threads:
 	printout("Lowered number of threads to maximum available: %d\n" % (
 		maxncores), -1)
-	args.threads[0] = maxncores
-if 0 >= args.threads[0]: args.threads[0] = 1
+	args.threads = maxncores
+if 0 >= args.threads: args.threads = 1
 
 # FUNCTION =====================================================================
 
@@ -158,30 +154,41 @@ def look_for_data(d, flist, k, flag, dataset, ipath):
 		d['partial'] = True
 		d[k] = np.nan
 	else:
-		d[k] = pd.read_csv("%s/%s" % (ipath, flist[0]), delim)
+		d[k] = pd.read_csv("%s/%s" % (ipath, flist[0]), args.delim)
 	return(d)
 
-def extract_data(did, sid):
+def add_dataset_info(data, did, date, sid, ct):
+	data['dataset'] = did
+	data['date'] = date
+	data['session'] = sid
+	data['cell_type'] = ct
+	return(data)
+
+def extract_data(did, date, sid):
 	# Subset metadata
 	time.sleep(1) # To avoid automatic batch resizing
+	log = []
 
-	sub_cond = np.logical_and(md['dataset'].values == did,
-		md['series'].values == sid)
+	sub_cond = np.logical_and.reduce((
+		md['dataset'].values == did,
+		md['date'].values == date,
+		md['session'].values == sid))
 	subt = md.loc[sub_cond,]
 	subt.index = range(subt.shape[0])
 
 	# Extract dataset and series information -----------------------------------
 	dataset = did
+	date = date
 	session = "%03d" % sid
-	flag = "%s_%s" % (dataset, session)
+	flag = "%s_%s_%s" % (dataset, date, session)
 	cell_type = subt.loc[0, 'cell_line']
 
 	# Log current status
-	print("Working on %s..." % flag)
+	log.append("Working on %s..." % flag)
 
 	# Identify input folder and skip if missing --------------------------------
 	outl = []
-	for indir in indirlist:
+	for indir in args.indir:
 		ipath = "%s/%s" % (indir, flag)
 
 		# Prepare flag output
@@ -190,8 +197,9 @@ def extract_data(did, sid):
 		out['partial'] = False
 
 		if not os.path.isdir(ipath):
-			print("Warning! Cannot find folder for %s. Skipped. Folder: %s" % (
-				flag, ipath))
+			msg = "Warning! Cannot find folder for %s." % flag
+			msg += "\nSkipped. Folder: %s" % ipath
+			log.append(msg)
 			out['good'] = False
 			continue
 
@@ -199,7 +207,7 @@ def extract_data(did, sid):
 		flist = os.listdir(ipath)
 		nuclei = [x for x in flist if "nuclei.out" in x]
 		dots = [x for x in flist if "wCentr.out" in x and "noAllele" not in x]
-		comps = [x for x in flist if "nuclear_compartment.volume.tsv" in x]
+		comps = [x for x in flist if "nuclear_compartment." in x]
 		dens = [x for x in flist if "density_profile.tsv" in x]
 		vols = [x for x in flist if "volume_profile.tsv" in x]
 
@@ -215,13 +223,14 @@ def extract_data(did, sid):
 	if not any([d['good'] for d in outl]):
 		if any([d['partial'] for d in outl]):
 			# Print error due to partial information present
-			[print(d['error']) for d in outl if d['partial']]
+			[log.append(d['error']) for d in outl if d['partial']]
 			d = [d for d in outl if d['partial']][0]
 		else:
 			# Print error due to not-found information
-			print("Warning! Cannot find information on dataset %s %s" % (
-				 dataset, "in any of the input directories."))
-			print("Finished %s" % flag)
+			msg = "Warning! Cannot find information on dataset %s %s" % (
+				 dataset, "in any of the input directories.")
+			msg += "\nSkipped %s.\n" % flag
+			print(msg)
 			return(np.nan)
 	else:
 		d = [d for d in outl if d['good']][0]
@@ -229,8 +238,7 @@ def extract_data(did, sid):
 	# Extract dot data ---------------------------------------------------------
 	if type(pd.DataFrame()) == type(d['dots']):
 		dots = d['dots']
-		dots['dataset'] = dataset
-		dots['session'] = session
+		dots = add_dataset_info(dots, did, date, sid, cell_type)
 		dch = {}
 		for i in subt.index:
 			dch[subt.loc[i, 'channel'].lower()] = subt.loc[i, 'probe_label']
@@ -239,43 +247,34 @@ def extract_data(did, sid):
 			c = dots.loc[i, 'Channel'].lower()
 			if c in dch.keys():
 				dots.loc[i, 'probe_label'] = dch[c]
-		dots['cell_type'] = cell_type
 	else:
 		dots = np.nan
 
 	# Extract nuclei data ------------------------------------------------------
 	if type(pd.DataFrame()) == type(d['nuclei']):
 		nuclei = d['nuclei']
-		nuclei['dataset'] = dataset
-		nuclei['session'] = session
-		nuclei['cell_type'] = cell_type
+		nuclei = add_dataset_info(nuclei, did, date, sid, cell_type)
 	else:
 		nuclei = np.nan
 
 	# Extract compartments data ------------------------------------------------
 	if type(pd.DataFrame()) == type(d['compartments']):
 		comps = d['compartments']
-		comps['dataset'] = dataset
-		comps['session'] = session
-		comps['cell_type'] = cell_type
+		comps = add_dataset_info(comps, did, date, sid, cell_type)
 	else:
 		comps = np.nan
 
 	# Extract density profile --------------------------------------------------
 	if type(pd.DataFrame()) == type(d['density_profile']):
 		dens = d['density_profile']
-		dens['dataset'] = dataset
-		dens['session'] = session
-		dens['cell_type'] = cell_type
+		dens = add_dataset_info(dens, did, date, sid, cell_type)
 	else:
 		dens = np.nan
 
 	# Extract volume profile ---------------------------------------------------
 	if type(pd.DataFrame()) == type(d['volume_profile']):
 		vols = d['volume_profile']
-		vols['dataset'] = dataset
-		vols['session'] = session
-		vols['cell_type'] = cell_type
+		vols = add_dataset_info(vols, did, date, sid, cell_type)
 	else:
 		vols = np.nan
 
@@ -304,7 +303,7 @@ def extract_data(did, sid):
 				d_3d = alt.loc[0, ['x', 'y', 'z']].values
 				d_3d -= alt.loc[1, ['x', 'y', 'z']].values
 
-				d['d_3d'] = np.sqrt(np.sum(np.power(d_3d * aspect, 2)))
+				d['d_3d'] = np.sqrt(np.sum(np.power(d_3d * args.aspect, 2)))
 				d['d_lamin'] = np.abs(np.diff(
 					alt['lamin_dist'].values))[0]
 				d['d_lamin_norm'] = np.abs(np.diff(
@@ -314,10 +313,8 @@ def extract_data(did, sid):
 				d['d_centr_norm'] = np.abs(np.diff(
 					alt['centr_dist_norm'].values))[0]
 				d['angle'] = alt['angle'].values[0]
-				d['dataset'] = dataset
-				d['session'] = session
+				d = add_dataset_info(d, did, date, sid, cell_type)
 				d['probe_label'] = alt['probe_label'].values[0]
-				d['cell_type'] = cell_type
 
 				dl.append(d.loc[0, :])
 				cols = d.columns
@@ -326,14 +323,15 @@ def extract_data(did, sid):
 			alleles.index = range(alleles.shape[0])
 			alleles.columns = cols
 		else:
-			print("Warning! No copy pairs found in %s.\n" % flag)
+			msg = "Warning! No homologue copy pairs found in %s" % flag
+			log.append("%s, homologue copy calculation skipped.\n" % msg)
 			alleles = np.nan
 	else:
-		print("Warning! No dots found in %s.\n" % flag)
+		log.append("Warning! No dots found in %s.\n" % flag)
 		dots = np.nan
 		alleles = np.nan
 
-	print("Finished %s" % flag)
+	log.append("Finished %s" % flag)
 	dout = {
 		'dots' : dots,
 		'nuclei' : nuclei,
@@ -348,21 +346,25 @@ def extract_data(did, sid):
 # RUN ==========================================================================
 
 # Read metadata table
-md = pd.read_csv(meta_path, delim)
+md = pd.read_csv(args.meta, args.delim)
 
 # Check that all mandatory metadata columns 
-req_col = ["dataset", "channel", "series", "cell_line",
-	"probe_label"]
+req_col = ["dataset", "date", "session", "cell_line", "probe_label", "channel"]
 for c in req_col:
-	if not c in md.columns:
-		printout("""Missing mandatory column '%s' in metadata table.
-Meta: %s\n""" % (c, meta_path), -2)
+	assert_msg = "%s '%s' in metadata table.\nMeta: %s\n" % (
+		"Missing mandatory column", c, args.meta)
+	assert c in md.columns, assert_msg
 
 # Iterate through Fields of View (FoVs)
-uniID = set(zip(md['dataset'].values, md['series'].values))
+uniID = set(zip(
+	md['dataset'].values,
+	md['date'].values,
+	md['session'].values
+))
+
 print("Start parallel")
-l2 = Parallel(n_jobs = nthreads, verbose = 11)(
-	delayed(extract_data)(did, sid) for did, sid in uniID)
+l2 = Parallel(n_jobs = args.threads, verbose = 11)(
+	delayed(extract_data)(did, date, sid) for (did, date, sid) in uniID)
 print("End parallel")
 
 # Remove skipped
@@ -389,19 +391,20 @@ print("Merging volume profile information...")
 vols = merge_DataFrameDict_byKey(l2, 'vols')
 
 # Write output
-if not os.path.isdir(outdir): os.mkdir(outdir)
-curdate = datetime.datetime.now().isoformat().split("T")[0]
-dots.to_csv("%s/%s%s" % (outdir, curdate, "_dots.merged.tsv"), delim,
+if not os.path.isdir(args.outdir): os.mkdir(args.outdir)
+curdate = datetime.datetime.now().isoformat().split("T")[0] + "_"
+if not args.addDate: curdate = ""
+dots.to_csv("%s/%s%s" % (args.outdir, curdate, "dots.merged.tsv"), args.delim,
 	index = False, na_rep = "NA")
-alleles.to_csv("%s/%s%s" % (outdir, curdate, "_copies.merged.tsv"), delim,
+alleles.to_csv("%s/%s%s" % (args.outdir, curdate, "copies.merged.tsv"), args.delim,
 	index = False, na_rep = "NA")
-nuclei.to_csv("%s/%s%s" % (outdir, curdate, "_nuclei.merged.tsv"), delim,
+nuclei.to_csv("%s/%s%s" % (args.outdir, curdate, "nuclei.merged.tsv"), args.delim,
 	index = False, na_rep = "NA")
-dens.to_csv("%s/%s%s" % (outdir, curdate, "_density_profile.merged.tsv"), delim,
+dens.to_csv("%s/%s%s" % (args.outdir, curdate, "density_profile.merged.tsv"), args.delim,
 	index = False, na_rep = "NA")
-vols.to_csv("%s/%s%s" % (outdir, curdate, "_volume_profile.merged.tsv"), delim,
+vols.to_csv("%s/%s%s" % (args.outdir, curdate, "volume_profile.merged.tsv"), args.delim,
 	index = False, na_rep = "NA")
-comps.to_csv("%s/%s%s" % (outdir, curdate, "_ncomps.merged.tsv"), delim,
+comps.to_csv("%s/%s%s" % (args.outdir, curdate, "ncomps.merged.tsv"), args.delim,
 	index = False, na_rep = "NA")
 
 # End --------------------------------------------------------------------------

@@ -11,6 +11,7 @@
 import numpy as np
 import pandas as pd
 
+from scipy.interpolate import RegularGridInterpolator
 from scipy.ndimage.morphology import distance_transform_edt
 
 from pygpseq.tools import distance as dist, image as imt, stat as stt
@@ -135,7 +136,7 @@ def add_allele_polarity(t, nuclei, aspect):
 
 	# Set default value for angle and com columns
 	t['angle'] = np.nan
-	t['com'] = np.nan
+	#t['com'] = np.nan
 
 	# Go through cells ---------------------------------------------------------
 	for uid in subt['universalID']:
@@ -160,7 +161,7 @@ def add_allele_polarity(t, nuclei, aspect):
 		# Calculate nucleus center of mass coordinates
 		C = (nucleus.box_mass_center+nucleus.box_origin).astype('i')
 		C = C[[1, 2, 0]]
-		t.loc[idx, 'com'] = "_".join([str(x) for x in C.tolist()])
+		#t.loc[idx, 'com'] = "_".join([str(x) for x in C.tolist()])
 
 		# Calculate angle
 		P1 = focus.loc[focus.index[0],:]
@@ -216,33 +217,37 @@ def calc_dot_distances(msg, t, nuclei, aspect, dist_type,
 		else:
 			mask = nuclei[cid].mask
 
+		# Perform EDT and normalize
 		laminD, centrD = dist.calc_nuclear_distances(dist_type,
 			mask, aspect)
-
-		t.loc[cell_cond, 'lamin_dist'] = laminD[
-			t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
-			t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
-			t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
-		]
-
-		t.loc[cell_cond, 'centr_dist'] = centrD[
-			t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
-			t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
-			t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
-		]
-
-		# Normalize distances --------------------------------------------------
-
 		laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
 
-		t.loc[cell_cond, 'lamin_dist_norm'] = laminD_norm[
-			t.loc[cell_cond, 'z'] - nuclei[cid].box_origin[0],
-			t.loc[cell_cond, 'x'] - nuclei[cid].box_origin[1],
-			t.loc[cell_cond, 'y'] - nuclei[cid].box_origin[2]
-		]
+		# Interpolate EDT maps
+		gridShape = np.array(laminD.shape)
+		regularGrid = [np.linspace(0, gridShape[i]-1, gridShape[i])
+			for i in range(len(gridShape))]
+		laminD_gradient = RegularGridInterpolator(regularGrid, laminD,
+			method = "linear", bounds_error = False, fill_value = 0)
+		centrD_gradient = RegularGridInterpolator(regularGrid, centrD,
+			method = "linear", bounds_error = False, fill_value = 0)
+		laminD_norm_gradient = RegularGridInterpolator(regularGrid, laminD_norm,
+			method = "linear", bounds_error = False, fill_value = 0)
 
-		ldn = t.loc[cell_cond, 'lamin_dist_norm'].values
-		t.loc[cell_cond, 'centr_dist_norm'] = np.absolute(ldn - np.nanmax(ldn))
+		# Store distances
+		st = t.loc[cell_cond, :].copy()
+		for i in t.loc[cell_cond,:].index:
+			absolute_coords = t.loc[i, ['z', 'x', 'y']].tolist()
+			nuclear_box_origin = nuclei[cid].box_origin
+			relative_coords =  absolute_coords - nuclear_box_origin
+			st.loc[i, 'lamin_dist'] = laminD_gradient(relative_coords)
+			st.loc[i, 'centr_dist'] = centrD_gradient(relative_coords)
+			st.loc[i, 'lamin_dist_norm'] = laminD_norm_gradient(relative_coords)
+		cols = ['lamin_dist', 'centr_dist', 'lamin_dist_norm']
+		t.loc[cell_cond, cols] = st.loc[:, cols].values
+
+		lamin_dist_norm_values = t.loc[cell_cond, 'lamin_dist_norm'].values
+		t.loc[cell_cond, 'centr_dist_norm'] = np.absolute(
+			1 - lamin_dist_norm_values)
 
 	# Output
 	return((t, msg))
@@ -262,7 +267,7 @@ def dots2cells(t, nuclei, dilate_factor):
 	
 	t['cell_ID'] = np.nan
 	for idx in t.index:
-		coords = ( t.loc[idx, 'z'], t.loc[idx, 'x'], t.loc[idx, 'y'] )
+		coords = ( t.loc[idx, 'zi'], t.loc[idx, 'xi'], t.loc[idx, 'yi'] )
 		for (nid, n) in nuclei.items():
 			if imt.in_mask(coords - n.box_origin, n.mask):
 				t.loc[idx, 'cell_ID'] = nid

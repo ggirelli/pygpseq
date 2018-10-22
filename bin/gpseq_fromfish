@@ -48,7 +48,6 @@ import matplotlib.pyplot as plt
 import argparse
 import datetime
 from joblib import Parallel, delayed
-import multiprocessing
 import numpy as np
 import os
 import pandas as pd
@@ -57,7 +56,7 @@ import re
 import sys
 
 from ggc.prompt import ask
-from ggc.args import check_threads
+from ggc.args import check_threads, export_settings
 
 import pygpseq as gp
 from pygpseq.tools import image as imt
@@ -67,14 +66,17 @@ from pygpseq.fish.image import analyze_field_of_view
 
 # PARAMETERS ===================================================================
 
-# Add script description
-parser = argparse.ArgumentParser(description = '''
-Calculate radial position of FISH signals (dots) in nuclei.
+if any([x in sys.argv for x in ["--help2", "-H"]]):
+    print('''
+"gpseq_fromfish" can be used to calculate radial position of FISH signals (dots)
+in nuclei. Dots coordinates are expected to be 1-indexed. If 0-indexed, use the
+'-0' flag. The image dimensions are expected to be: Z (slices), Y (columns) and
+X (rows).
 
 Images are expected to follow DOTTER filename notation: "channel_series.tif".
 Identified images are first re-scaled (if deconvolved with Huygens software),
 then a global (Otsu) and local (median) thresholds are combined to binarize the
-image in 3D. Then, holes are filled in 3D and a closing operation is performed
+image in 3D. Holes are filled in 3D and a closing operation is performed
 to remove small objects. Objects are filtered based on volume and Z size, and
 those touching the XY contour of the image are discarded. If the --labeled
 option is used, the generated images have identified objects labeled with
@@ -84,7 +86,7 @@ compatible as input/output. To produce compressed TIFF files as output use the
 
 If you previously segmented your images (i.e., produced masks), provide the path
 to the folder containing the masks using -m, and the prefix for the mask name
-with -m. For example, with '-m /ex/mask_dir/ -M mask_', in the case of the image
+with -M. For example, with '-m /ex/mask_dir/ -M mask_', in the case of the image
 file '1.tif', the script will look for the mask at "/ex/mask_dir/mask_1.tif".
 If the mask can be found, it will be used, otherwise it will be generated and
 then saved. This can be used also to export masks as tifs to the folder
@@ -100,7 +102,8 @@ skipped (e.g., if a mask is provided as input with -m), this is skipped too.
 The G1 selection is actually a selection of the most represented cell sub-
 -population based on flatten area and integral of DNA stain intensity. In other
 words, it will selected the most represented cell cycle phase in your cell
-population (generally, G1).
+population (generally, G1). Basically, the major peak is identified and its FWHM
+is used as a range for the filter on both nuclear features.
 
 Then, each dot is assigned to the poles (2), bottom center (1) or top center (0)
 compartments. The pole compartments are defined as the 25%% of the whole volume,
@@ -109,9 +112,24 @@ with the -P (--pole) option specifying a different axis fraction. Information on
 goodnes of fit is reported and a plot is provided with each nucleus rotated and
 centered.
 
+Also, each dot is assigned an `Allele` label: -1 to dots from cells with more
+than 2 dots in that channel, 0 to dots from cells with less than 2 dots in that
+channel, and in the case of cells with exactly 2 dots in that channel the most
+peripheral dot is labeled with 1, and the most central with 2. This is useful
+when expecting 2 dots per cell-channel, i.e., in the case of one probe per
+channel in a diploid cell line.
+
 Plotting can be turned off generally with the --noplot flag, and specifically
 with the --no-compartment-plot flag.
-''', formatter_class = argparse.RawDescriptionHelpFormatter)
+
+More details can be found in the online documentation, at:
+https://github.com/ggirelli/pygpseq/wiki/
+''')
+    sys.exit()
+
+# Add script description
+parser = argparse.ArgumentParser(description = "",
+    formatter_class = argparse.RawDescriptionHelpFormatter)
 
 # Add mandatory arguments
 parser.add_argument('dotCoords', type = str,
@@ -122,6 +140,9 @@ parser.add_argument('outdir', type = str,
     help = 'Path to output folder (created if does not exist).')
 
 # Optional parameters
+parser.add_argument('-H', '--help2', action = 'store_const',
+    help = """Shows additional information in a readable format and quit.""",
+    const = True, default = False)
 parser.add_argument('-a', '--aspect', type = float, nargs = 3,
     help = """Physical size of Z, Y and X voxel sides.
     Default: 300.0 130.0 130.0""",
@@ -148,9 +169,9 @@ parser.add_argument('-M', '--mask-prefix', metavar = "prefix", type = str,
     help = """Prefix for mask selection. Default: 'mask_'.""",
     default = "mask_")
 parser.add_argument('-2', '--manual-2d-masks', type = str, metavar = "MAN2DDIR",
-    help = """Path to folder with 2D masks with matching name,
+    help = """Path to folder with 2D masks as tiff files with matching name,
     to combine with 3D masks. Used only if no mask was provided through -m.""")
-parser.add_argument('-P', '--pole', metavar = "axis_fraction", type = int,
+parser.add_argument('-P', '--pole', metavar = "axis_fraction", type = float,
     help = """Fraction of the major nuclear axis to identify a pole.
     Should be in the [0, .5] interval. Default: .25.""",
     default = .25)
@@ -171,6 +192,9 @@ parser.add_argument('-u', '--DEBUG-MODE', action = 'store_const',
 parser.add_argument('-y', '--do-all', action = 'store_const',
     help = """Do not ask for settings confirmation and proceed.""",
     const = True, default = False)
+parser.add_argument('-0', '--zero-indexed', action = 'store_const',
+    help = """Coordinates are 0-indexed instead of 1-indexed (default).""",
+    const = True, default = False)
 parser.add_argument('--labeled',
     action = 'store_const', dest = 'labeled',
     const = True, default = False,
@@ -178,7 +202,7 @@ parser.add_argument('--labeled',
 parser.add_argument('--compressed',
     action = 'store_const', dest = 'compressed',
     const = True, default = False,
-    help = 'Generate compressed TIF binary masks (not compatible with ImageJ).')
+    help = 'Generate compressed TIF binary masks.')
 parser.add_argument('--dots-assignment-only',
     action = 'store_const', dest = "dilate_for_assignment_only",
     const = True, default = False,
@@ -197,7 +221,7 @@ parser.add_argument('--no-compart-plot', action = 'store_const',
     help = 'Do not produce compartments-related plots.')
 
 # Version flag
-version = "6.2.0"
+version = "7.0.2"
 parser.add_argument('--version', action = 'version',
     version = '%s v%s' % (sys.argv[0], version,))
 
@@ -282,8 +306,8 @@ def print_settings(args, clear = True):
   Use dilation only
  for dot assignment : %r
 
-        Do not plot : %r
-No compartment plot : %r
+           Plot all : %r
+  Plot compartments : %r
 
     --- ADVANCED ====
 
@@ -296,7 +320,8 @@ No compartment plot : %r
         args.mask_prefix, args.dilate, str(args.aspect), args.dist_type,
         str(args.skip_channels), args.pole, args.nbins, args.manual_2d_masks,
         args.labeled, args.compressed, args.doZdilation,
-        args.dilate_for_assignment_only, args.noplot, args.no_compartment_plot,
+        args.dilate_for_assignment_only,
+        not args.noplot, not args.no_compartment_plot,
         args.inreg, args.delim, args.threads, args.DEBUG_MODE
     )
 
@@ -306,7 +331,7 @@ No compartment plot : %r
 
 # RUN ==========================================================================
 
-settings_string = print_settings(args)
+ssettings = print_settings(args)
 if not args.do_all: ask("Confirm settings and proceed?")
 
 # Create output folder
@@ -315,10 +340,7 @@ if not os.path.isdir(args.outdir):
 
 # Save settings
 with open("%s/settings.txt" % args.outdir, 'w+') as OH:
-    OH.write("%s\n" % " ".join(sys.argv))
-    OH.write("@%s\n\n" % datetime.datetime.now())
-    OH.write("%s\n" % sys.version)
-    OH.write(settings_string)
+    export_settings(OH, ssettings)
 
 ddir = ""
 if args.DEBUG_MODE:
@@ -368,13 +390,19 @@ t['version'] = version
 # Extract FoV number
 t['File'] = [int(os.path.splitext(os.path.basename(f))[0]) for f in t['File']]
 
-# Round up coordinates !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! NEEDS TO BE CHANGED TO INTERPOLATE!
-t['x'] = np.round(t['x']).astype('i')
-t['y'] = np.round(t['y']).astype('i')
-t['z'] = np.round(t['z']).astype('i')
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# Round up float coordinates and convert to integer to get matricial coordinates
+t['xi'] = np.round(t['x']).astype('i')
+t['yi'] = np.round(t['y']).astype('i')
+t['zi'] = np.round(t['z']).astype('i')
+
+# Switch to 0-indexing (e.g., Python) if 1-indexing (e.g., MATLAB)
+if not args.zero_indexed:
+    t['x'] = t['x'] - 1.
+    t['y'] = t['y'] - 1.
+    t['z'] = t['z'] - 1.
+    t['xi'] = t['xi'] - 1
+    t['yi'] = t['yi'] - 1
+    t['zi'] = t['zi'] - 1
 
 # Identify tiff images
 imlist = []
@@ -477,22 +505,25 @@ outname = "%s/volume_profile.tsv" % (args.outdir,)
 nv.to_csv(outname, sep = '\t', index = False)
 
 # Identify G1 cells ------------------------------------------------------------
-t = flag_G1_cells(t, nuclei, args.outdir, args.dilate,
-    os.path.basename(args.dotCoords))
+bname = os.path.basename(args.dotCoords).split(".")
+bname[-1] = "tsv"
+bname = ".".join(bname)
+t = flag_G1_cells(t, nuclei, args.outdir, args.dilate, bname)
 
 # Export -----------------------------------------------------------------------
 
 # Export compartment volume data
-outname = "%s/nuclear_compartment.volume.tsv" % (args.outdir,)
+outname = "%s/nuclear_compartment.out.dilate%d.%s" % (
+    args.outdir, args.dilate, bname)
 tvdata.to_csv(outname, sep = '\t', index = False)
 
 # Export nuclei object vector
 with open("%s/nuclei.pickle" % args.outdir, "wb+") as f: pickle.dump(nuclei, f)
 
 # Export table before allele labeling
-outname = "%s/wCentr.out.noAllele.dilate%d.%s" % (
-    args.outdir, args.dilate, os.path.basename(args.dotCoords))
-t.to_csv(outname, sep = '\t', index = False)
+# outname = "%s/wCentr.out.noAllele.dilate%d.%s" % (
+#   args.outdir, args.dilate, bname)
+# t.to_csv(outname, sep = '\t', index = False)
 
 # Add allele information -------------------------------------------------------
 print("  - Adding allele information...")
@@ -503,8 +534,7 @@ print("  - Adding allele polarity information...")
 t = add_allele_polarity(t, nuclei, args.aspect)
 
 # Write output -----------------------------------------------------------------
-outname = "%s/wCentr.out.dilate%d.%s" % (
-    args.outdir, args.dilate, os.path.basename(args.dotCoords))
+outname = "%s/wCentr.out.dilate%d.%s" % (args.outdir, args.dilate, bname)
 t.to_csv(outname, sep = '\t', index = False)
 
 # END ==========================================================================

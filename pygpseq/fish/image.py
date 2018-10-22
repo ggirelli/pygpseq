@@ -96,10 +96,21 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
     # Skip or binarize
     if already_segmented:
         msg += printout("Skipped binarization, using provided mask.", 3, v)
-        imbin = imt.read_tiff(mpath)       # Read
-        if not labeled: imbin = imbin != 0 # Binarize
-        thr = 0
-        already_segmented = type(None) != type(imbin)
+        imbin = imt.read_tiff(mpath, k = 3)
+
+        # Check input mask for shape match
+        if imbin.shape != im.shape:
+            errmsg = "Inconsistent shape of provided mask and image: "
+            errmsg += "%s and %s\n" % (str(im.shape), str(imbin.shape))
+            msg += printout(errmsg, -2, v, False)
+
+            msg += printout("Reverting to binarization.", 2, v)
+            imbin = None
+            already_segmented = False
+        else:
+            if not labeled: imbin = imbin != 0 # Binarize
+            thr = 0
+            already_segmented = type(None) != type(imbin)
     
     if not already_segmented:
         msg += printout("Binarizing...", 2, v)
@@ -114,7 +125,7 @@ def analyze_field_of_view(sid, data, im2fov, dilate_factor, istruct, aspect,
             mask2d_path = os.path.join(mask2d_dir,
                 os.path.basename(im2fov[sid]))
             if os.path.isfile(mask2d_path):
-                mask2d = imt.read_tiff(mask2d_path)
+                mask2d = imt.read_tiff(mask2d_path, k = 2)
                 # If labeled, inherit nuclei labels
                 imbin = Segmenter.combine_2d_mask(imbin, mask2d,
                     labeled2d = labeled)

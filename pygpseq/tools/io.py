@@ -12,6 +12,7 @@ from datetime import datetime
 import numpy as np
 import os, sys, tempfile
 from time import time
+import warnings
 
 from pygpseq import const
 
@@ -205,7 +206,7 @@ def printout(s, lvl, verbose = True, canAbort = True):
             print("\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s\nTerminated.\n" % s)
             raise Exception(s)
     elif -1 == lvl:
-        s = '\n~~ WARNING ~~ (ノ ゜Д゜)ノ ︵ ┻━┻\n%s' % s
+        s = 'WARNING: %s' % s
     elif 0 == lvl:
         s = ' %s' % s
     elif 1 == lvl:

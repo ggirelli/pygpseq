@@ -10,10 +10,12 @@
 
 import numpy as np
 from scipy import ndimage as ndi
+from scipy.ndimage.measurements import center_of_mass
 from scipy.ndimage.morphology import distance_transform_edt
 import skimage.io as io
 from skimage.measure import label, mesh_surface_area
 from skimage.measure import marching_cubes_lewiner as marching_cubes
+import warnings
 
 from pygpseq import const
 from pygpseq.tools import distance as dist, io as iot, image as imt
@@ -48,6 +50,9 @@ class Nucleus(iot.IOinterface):
 	s = 0
 	n = 0
 	box = ()
+	box_origin = ()
+	box_sides = ()
+	box_mass_center = ()
 	aspect = (1, 1, 1)
 	dna_bg = 0
 	sig_bg = 0
@@ -122,6 +127,10 @@ class Nucleus(iot.IOinterface):
 			self.surf = imt.calc_surface(mask, self.aspect)
 		else:
 			self.surf = self.size
+
+		self.box_origin = np.array([c[0] + 1 for c in self.box])
+		self.box_sides = np.array([np.diff(c) for c in self.box])
+		self.box_mass_center = center_of_mass(mask)
 
 	def __getitem__(self, key):
 		""" Allow get item. """
@@ -367,16 +376,18 @@ class Nucleus(iot.IOinterface):
 		if debugging:
 			fname = kwargs['out_dir'] + const.OUTDIR_DEBUG
 			fname += 's' + str(self.s) + 'n' + str(self.n)
-			if kwargs['plotting']: io.imsave('%s%s%s.tif' % (
-				fname, self.c, suffix), mask.astype('u4'))
-			if kwargs['plotting']: io.imsave('%s%s.laminD%s.tif' % (
-				fname, self.c, suffix), laminD.astype(np.uint32))
-			if kwargs['plotting']: io.imsave('%s%s.centrD%s.tif' % (
-				fname, self.c, suffix), centrD.astype(np.uint32))
-			if kwargs['plotting']: io.imsave('%s%s.dna%s.tif' % (
-				fname, self.c, suffix), dna.astype(np.uint32))
-			if kwargs['plotting']: io.imsave('%s%s.sig%s.tif' % (
-				fname, self.c, suffix), sig.astype(np.uint32))
+			with warnings.catch_warnings():
+				warnings.simplefilter("ignore")
+				if kwargs['plotting']: io.imsave('%s%s%s.tif' % (
+					fname, self.c, suffix), mask.astype('u4'))
+				if kwargs['plotting']: io.imsave('%s%s.laminD%s.tif' % (
+					fname, self.c, suffix), laminD.astype(np.uint32))
+				if kwargs['plotting']: io.imsave('%s%s.centrD%s.tif' % (
+					fname, self.c, suffix), centrD.astype(np.uint32))
+				if kwargs['plotting']: io.imsave('%s%s.dna%s.tif' % (
+					fname, self.c, suffix), dna.astype(np.uint32))
+				if kwargs['plotting']: io.imsave('%s%s.sig%s.tif' % (
+					fname, self.c, suffix), sig.astype(np.uint32))
 
 		# Select pixels for partial 3D nuclear analysis
 		sm = np.zeros(mask.shape, dtype = 'u4')
@@ -428,9 +439,12 @@ class Nucleus(iot.IOinterface):
 		"""Get nuclear summary. """
 
 		# Output
-		data = np.array(
-			(self.s, self.n, self.flat_size, self.size, self.surf, self.sumI,
-			self.flat_sumI, self.meanI, self.shape),
+		data = [self.s, self.n, self.flat_size, self.size, self.surf, self.sumI,
+			self.flat_sumI, self.meanI, self.shape]
+		data.extend([c[0]+1 for c in self.box])
+		data.extend([c[1]+1 for c in self.box])
+		data.extend([x+1 for x in self.box_mass_center])
+		data = np.array(tuple(data),
 			dtype = const.DTYPE_NUCLEAR_SUMMARY)
 
 		return(data)

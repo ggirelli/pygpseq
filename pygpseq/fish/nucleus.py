@@ -15,10 +15,10 @@ import math
 import numpy as np
 import os
 import pandas as pd
-from scipy.ndimage.measurements import center_of_mass
 from skimage import draw
 import skimage.io as io
 from skimage.morphology import dilation
+import warnings
 
 from pygpseq import const
 from pygpseq.anim import Nucleus
@@ -85,6 +85,15 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 	vcomp_table['a'] = np.nan
 	vcomp_table['b'] = np.nan
 	vcomp_table['c'] = np.nan
+	vcomp_table['a_slice_component'] = np.nan
+	vcomp_table['a_row_component'] = np.nan
+	vcomp_table['a_col_component'] = np.nan
+	vcomp_table['b_slice_component'] = np.nan
+	vcomp_table['b_row_component'] = np.nan
+	vcomp_table['b_col_component'] = np.nan
+	vcomp_table['c_slice_component'] = np.nan
+	vcomp_table['c_row_component'] = np.nan
+	vcomp_table['c_col_component'] = np.nan
 
 	for cid in range(int(subt['cell_ID'].max()) + 1):
 		if cid in nuclei.keys():
@@ -106,30 +115,57 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 
 			# Rotate data ------------------------------------------------------
 			
-			# First axis
+			# First round
 			xv, yv, zv = stt.extract_3ev(coords)
+
+			# Store axes components in compartment table
+			axes_labels = ['a', 'b', 'c']
+			axes = [xv, yv, zv]
+			for i in range(len(axes)):
+				cols = [
+					'%s_row_component' % axes_labels[i],
+					'%s_col_component' % axes_labels[i],
+					'%s_slice_component' % axes_labels[i]
+				]
+				vcomp_table.loc[cid, cols] = axes[i]
+
+			# Rotate nuclei once for compartment analysis
 			theta1 = stt.calc_theta(xv[0], yv[0])
 			xt, yt, zt = stt.rotate3d(coords, theta1, 2)
 			tcoords = np.vstack([xt, yt, zt])
 
-			# # Third axis
-			# xv, yv, zv = stt.extract_3ev(tcoords)
-			# theta3 = stt.calc_theta(xv[2], zv[2])
-			# if np.abs(theta3) > np.pi / 2.:
-			# 	if theta3 > 0:
-			# 		theta3 = -np.abs(theta3 - np.pi / 2.)
-			# 	else:
-			# 		theta3 = np.abs(theta3 + np.pi / 2.)
-			# else:
-			# 	theta3 = -np.abs(theta3 + np.pi / 2.)
-			# xt, yt, zt = stt.rotate3d(tcoords, theta3, 1)
-			# tcoords = np.vstack([xt, yt, zt])
+			# Keep rotating for semi-axes length
+			# Second round
+			xv, yv, zv = stt.extract_3ev(tcoords)
+			theta3 = stt.calc_theta(xv[2], zv[2])
+			if np.abs(theta3) > np.pi / 2.:
+				if theta3 > 0:
+					theta3 = -np.abs(theta3 - np.pi / 2.)
+				else:
+					theta3 = np.abs(theta3 + np.pi / 2.)
+			else:
+				theta3 = -np.abs(theta3 + np.pi / 2.)
+			xt, yt, zt = stt.rotate3d(tcoords, theta3, 1)
+			t2coords = np.vstack([xt, yt, zt])
 
-			# # Second axis
-			# xv, yv, zv = stt.extract_3ev(tcoords)
-			# theta2 = stt.calc_theta(yv[1], zv[1])
-			# xt, yt, zt = stt.rotate3d(tcoords, theta2, 0)
-			# tcoords = np.vstack([xt, yt, zt])
+			# Third round
+			xv, yv, zv = stt.extract_3ev(t2coords)
+			theta2 = stt.calc_theta(yv[1], zv[1])
+			xt, yt, zt = stt.rotate3d(t2coords, theta2, 0)
+			t2coords = np.vstack([xt, yt, zt])
+
+			# Calculate semi-axes length ---------------------------------------
+
+			# Round up rotated coordinates
+			trcoords = t2coords.astype('i')
+
+			# Convert to rotated image
+			icoords = np.transpose(trcoords) + abs(trcoords.min(1))
+			trbin = np.zeros((icoords.max(0) + 1).tolist()[::-1])
+			trbin[icoords[:, 2], icoords[:, 1], icoords[:, 0]] = 1
+
+			# Calculate axes size
+			zax_true_size, yax_true_size, xax_true_size = trbin.shape
 
 			# Fit ellipsoid ----------------------------------------------------
 
@@ -216,9 +252,9 @@ def annotate_compartments(msg, t, nuclei, outdir, pole_fraction, aspect):
 			vcomp_table.loc[cid, 'ndots_poles'] = (status == 2).sum()
 
 			# Store nucleus dimensions
-			vcomp_table.loc[cid, 'a'] = xax_size / 2.
-			vcomp_table.loc[cid, 'b'] = yax_size / 2.
-			vcomp_table.loc[cid, 'c'] = zax_size / 2.
+			vcomp_table.loc[cid, 'a'] = xax_true_size / 2.
+			vcomp_table.loc[cid, 'b'] = yax_true_size / 2.
+			vcomp_table.loc[cid, 'c'] = zax_true_size / 2.
 
 			# Assign volume information
 			volume = np.zeros(dot_coords.shape[1])
@@ -312,9 +348,6 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		# Store nucleus
 		nucleus.mask = mask
 		nucleus.original_mask = original_mask
-		nucleus.box_origin = np.array([c[0] + 1 for c in nucleus.box])
-		nucleus.box_sides = np.array([np.diff(c) for c in nucleus.box])
-		nucleus.box_mass_center = center_of_mass(mask)
 		nucleus.dilate_factor = dilate_factor
 		curnuclei[n] = nucleus
 
@@ -327,15 +360,17 @@ def build_nuclei(msg, L, dilate_factor, series_id, thr, dna_bg, sig_bg,
 		laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)
 		
 		if debug:
-			ipath = "series%d.nucleus%d.tif" % (series_id, n)
-			io.imsave(os.path.join(debug_dir, "mask.%s" % ipath),
-				mask.astype('u4'))
-			io.imsave(os.path.join(debug_dir, "laminD.%s" % ipath),
-				laminD.astype(np.uint32))
-			io.imsave(os.path.join(debug_dir, "laminD_norm.%s" % ipath),
-				(laminD_norm * 255).astype(np.uint32))
-			io.imsave(os.path.join(debug_dir, "centrD.%s" % ipath),
-				centrD.astype(np.uint32))
+			with warnings.catch_warnings():
+				warnings.simplefilter("ignore")
+				ipath = "series%d.nucleus%d.tif" % (series_id, n)
+				io.imsave(os.path.join(debug_dir, "mask.%s" % ipath),
+					mask.astype('u4'))
+				io.imsave(os.path.join(debug_dir, "laminD.%s" % ipath),
+					laminD.astype(np.uint32))
+				io.imsave(os.path.join(debug_dir, "laminD_norm.%s" % ipath),
+					(laminD_norm * 255).astype(np.uint32))
+				io.imsave(os.path.join(debug_dir, "centrD.%s" % ipath),
+					centrD.astype(np.uint32))
 		laminD_norm = laminD_norm[mask].flatten()
 		
 		dna = imt.apply_box(i, nucleus.box)[mask].flatten()
