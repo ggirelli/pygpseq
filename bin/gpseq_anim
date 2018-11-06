@@ -242,7 +242,7 @@ Voxel aspect (ZYX) :  %s
    Sigma (density) :  %.4f
              #bins :  %d
 
-  Condition descr. :  %s
+  Condition descr. : %s
 
  Nuclear selection :  %s
 
