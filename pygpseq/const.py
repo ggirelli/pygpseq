@@ -156,10 +156,6 @@ _const.OUTDIR_DEBUG = 'debugging/'
 
 # Plot-related------------------------------------------------------------------
 
-# Colors
-_const.PALETTE = ('#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99',
-	'#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99', '#b15928')
-
 # Plot constants
 _const.SCI_FORMAT = '%2.e'
 

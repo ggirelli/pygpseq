@@ -125,7 +125,6 @@ def select_files(path, ext):
 
         return(selected)
 
-
 def select_series(flist, reg, series_field = None):
     """Group a list of files by series based on the provided regexp.
 

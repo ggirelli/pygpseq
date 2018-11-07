@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Now using `ggc` functions to export settings in: `gpseq_anim`, `gpseq_fromfish` and `tiff_auto3dseg`.
 - `czi_to_tiff`
     + Refactored for easier development.
+- Now using `seaborn` for color palettes.
 
 ### Fixed
 - Missing dependencies in `setup.py`.

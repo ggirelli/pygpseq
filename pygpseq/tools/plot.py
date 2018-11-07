@@ -21,6 +21,7 @@ from matplotlib.patches import Ellipse
 import numpy as np
 import os
 import scipy
+import seaborn as sns
 import tifffile
 
 from pygpseq import const
@@ -628,12 +629,18 @@ def multi_condition_profiles(profiles, font_size = None,
     fig = plt.figure(figsize = (12, 10))
     fig.subplots_adjust(top = 0.9 - 0.01 * (len(profiles) / 2), bottom = 0.1)
     
+    # Prepare palette
+    if len(profiles) <= 12:
+        palette = sns.palplot(sns.color_palette("Paired"))
+    else:
+        palette = sns.color_palette("hls", len(profiles))
+
     # Setup subplots spacing
     for i in range(len(profiles)):
         profile = profiles[i]
         n_nuclei = profile['n']
 
-        single_condition_profiles(profile, color = const.PALETTE[i],
+        single_condition_profiles(profile, color = palette[i],
             n_nuclei = n_nuclei, new_figure = False, yfield = yfield, **kwargs)
 
     # Add legend

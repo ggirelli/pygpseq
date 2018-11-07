@@ -382,7 +382,7 @@ with open("%s.settings.txt" % os.path.splitext(gpi.logpath)[0], 'w+') as OH:
 	OH.write("@%s\n\n" % datetime.datetime.now())
 	OH.write("%s\n" % sys.version)
 	export_settings(OH, ssettings)
-
+print(args.regexp)
 # Start the analysis
 gpi = gpi.run()
 
