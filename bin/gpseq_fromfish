@@ -92,6 +92,13 @@ If the mask can be found, it will be used, otherwise it will be generated and
 then saved. This can be used also to export masks as tifs to the folder
 specified with -m.
 
+If needed, 2D masks can be 'enforced' to the 3D masks. This is performed by
+applying a logical AND operation between each slice of the 3D mask and the 2D
+mask. To achieve this, use the -2 option, specifying the path to a folder
+containing the 2D mask tiff files (filename should match input image). The
+enforcing is performed during the segmentation process. Thus, if segmentation is
+skipped (e.g., if a mask is provided as input with -m), this is skipped too.
+
 The G1 selection is actually a selection of the most represented cell sub-
 -population based on flatten area and integral of DNA stain intensity. In other
 words, it will selected the most represented cell cycle phase in your cell
