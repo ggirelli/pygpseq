@@ -631,7 +631,7 @@ def multi_condition_profiles(profiles, font_size = None,
     
     # Prepare palette
     if len(profiles) <= 12:
-        palette = sns.palplot(sns.color_palette("Paired"))
+        palette = sns.color_palette("Paired")
     else:
         palette = sns.color_palette("hls", len(profiles))
 
