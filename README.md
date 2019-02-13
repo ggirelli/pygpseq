@@ -3,9 +3,9 @@ pyGPSeq v3.3.5
 
 A Python3 package that provides tools to analyze images of GPSeq samples.
 
-* Read the (public) [documentation](https://ggirelli.github.io/pygpseq/) for more details.
-* Read the (private) [documentation](https://github.com/ggirelli/pygpseq/wiki) for more details.  
-*Once the repo goes public, private docs will be merged with public ones.*
+* Read the GitHub pages [documentation](https://ggirelli.github.io/pygpseq/) for more details.
+* Read the Wiki [documentation](https://github.com/ggirelli/pygpseq/wiki) for more details.  
+*Wiki docs will be merged with GitHub pages ones soon.*
 
 Installation
 -------------
