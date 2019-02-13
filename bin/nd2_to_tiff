@@ -176,7 +176,7 @@ def export_fov_3d(fov, metadata, fid, bundled_axes):
             export_channel(args, ch, outpath, metadata,
                 bundled_axes, resolutionZ)
     else:
-        outpath = getOutpath(args, metadata, 1, fid)
+        outpath = getOutpath(args, metadata, 0, fid)
         if type(None) == type(outpath): return()
         export_channel(args, fov, outpath, metadata,
             bundled_axes, resolutionZ)
@@ -217,7 +217,8 @@ if 'z' in images.axes: # 3D
 
     if 'v' not in images.axes:
         if 'c' in images.axes:
-            print("Found 1 field of view, with %d channels." % (images.sizes['c']))
+            print("Found 1 field of view, with %d channels." % (
+                images.sizes['c']))
         else:
             print("Found 1 field of view, with 1 channel.")
 
@@ -225,8 +226,11 @@ if 'z' in images.axes: # 3D
         images.bundle_axes = axes_for_bundling
         export_fov_3d(images[0], images.metadata, 0, axes_for_bundling)
     else:
-        print("Found %d fields of view, with %d channels each." % (
-            images.sizes['v'], images.sizes['c']))
+        if 'c' in images.axes:
+            print("Found %d field of view, with %d channels." % (
+                images.sizes['v'], images.sizes['c']))
+        else:
+            print("Found %d field of view, with 1 channel." % images.sizes['v'])
 
         # Export multiple fields of view
         images.iter_axes = 'v'
@@ -239,7 +243,8 @@ else: # 2D
 
     if 'v' not in images.axes:
         if 'c' in images.axes:
-            print("Found 1 field of view, with %d channels." % (images.sizes['c']))
+            print("Found 1 field of view, with %d channels." % (
+                images.sizes['c']))
         else:
             print("Found 1 field of view, with 1 channel.")
 

@@ -23,9 +23,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Missing dependencies in `setup.py`.
+    + Installation through pypi.org.
 - `tiff_auto3dseg`
     + `--neighbour` now works properly.
     + Provided better error message when 2D mask folder not found.
+- `nd2_to_tiff`: case of single-channel stacks.
 
 
 
