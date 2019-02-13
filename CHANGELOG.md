@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## Unreleased
+### ...
+- ...
+
+
+
+## [3.3.5] - 2019-02-13
 ### Added
 - `czi_to_tiff`
     + Support for 2D conversion.
@@ -28,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
     + `--neighbour` now works properly.
     + Provided better error message when 2D mask folder not found.
 - `nd2_to_tiff`: case of single-channel stacks.
+- `gpseq_anim`: fixed skipping of boxplot step (previously broke skipping)
 
 
 
