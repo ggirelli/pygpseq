@@ -20,7 +20,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 	long_description = f.read()
 
 setup(name='pygpseq',
-	version='3.3.4',
+	version='3.3.4.post1',
 	description='A GPSeq image analysis package',
 	long_description=long_description,
 	long_description_content_type='text/markdown',
@@ -53,7 +53,14 @@ setup(name='pygpseq',
 		'tifffile>=0.15.1',
 		'tqdm>=4.23.4',
 		'weasyprint>=0.42.2'],
-	scripts=[os.path.join(bindir, fp) for fp in os.listdir(bindir)],
+	package_data={
+		'pygpseq': ['static/*']
+	},
+	scripts=[
+		'bin/czi_to_tiff', 'bin/nd2_to_tiff',
+		'bin/gpseq_anim', 'bin/gpseq_fromfish', 'gpseq_fromfish_merge',
+		'bin/tiff_auto3dseg', 'bin/tiff_findoof', 'bin/tiff_split', 'bin/tiffcu'
+	],
 	test_suite="nose.collector",
 	tests_require=["nose"],
 )
