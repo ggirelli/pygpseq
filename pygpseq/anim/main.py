@@ -184,7 +184,8 @@ class Main(Analyzer):
                 checked = False
             elif not 0 == len(value):
                 # Require integer list
-                types = [-1 for i in value if type(i) != type(0)]
+                types = [-1 for i in value
+                    if type(i) not in [type(0), type(0.0)]]
                 types = 0 == len(types)
                 if not types:
                     checked = False
