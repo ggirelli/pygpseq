@@ -147,7 +147,6 @@ def export_fov_3d(fov, metadata, fid, bundled_axes):
         fid (int): field of view 0-based index.
     '''
 
-
     # Get Z resolution
     if not type(None) == type(args.deltaZ):
         resolutionZ = args.deltaZ
