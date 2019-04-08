@@ -10,12 +10,12 @@
 
 import numpy as np
 from scipy import ndimage as ndi
+from scipy.ndimage.interpolation import shift
 from scipy.ndimage.measurements import center_of_mass
 from scipy.ndimage.morphology import distance_transform_edt
 import skimage.io as io
 from skimage.measure import label, mesh_surface_area
 from skimage.measure import marching_cubes_lewiner as marching_cubes
-from skimage.transform import AffineTransform, warp
 import warnings
 
 from pygpseq import const
@@ -353,10 +353,7 @@ class Nucleus(iot.IOinterface):
 
 		if 0 != np.sum(self.shift):
 			log += "Shifting signal channel: %s" % self.shift.tolist()
-			transform = AffineTransform(translation = self.shift)
-			print(self.shift)
-			print(sig_ch.shape)
-			shifted = warp(sig_ch, transform, mode = 'wrap', preserve_range = True)
+			shifted = shift(sig_ch, self.shift, mode = "wrap")
 			sig_ch = shifted.astype(sig_ch.dtype)
 		sig = imt.apply_box(sig_ch, self.box)
 
