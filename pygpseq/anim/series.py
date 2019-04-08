@@ -230,7 +230,7 @@ class Series(iot.IOinterface):
         # Make new channel copy
         i = dna_ch.copy()
         if kwargs['correct_shift']:
-            j = sif_ch.copy()
+            j = sig_ch.copy()
 
         # Produce a mask
         Segmenter = Binarize(path = kwargs['logpath'], append = True, **kwargs)
