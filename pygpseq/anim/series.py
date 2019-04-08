@@ -291,6 +291,7 @@ class Series(iot.IOinterface):
                 sigThr = 0
             else:
                 log += self.printout("Binarizing...", 2)
+                Segmenter.do_clear_borders = False
                 (sigMask, sigThr, tmp_log) = Segmenter.run(j)
                 log += tmp_log
 
