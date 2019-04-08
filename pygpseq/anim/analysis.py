@@ -78,6 +78,7 @@ class Analyzer(iot.IOinterface):
     nbins = 200
     do_clear_Z_borders = False
     do_fill_holes = True
+    correct_shift = False
     rescale_deconvolved = False
     correctCA = False
     normalize_distance = True

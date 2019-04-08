@@ -15,6 +15,7 @@ from scipy.ndimage.morphology import distance_transform_edt
 import skimage.io as io
 from skimage.measure import label, mesh_surface_area
 from skimage.measure import marching_cubes_lewiner as marching_cubes
+from skimage.transform import AffineTransform, warp
 import warnings
 
 from pygpseq import const
@@ -54,6 +55,7 @@ class Nucleus(iot.IOinterface):
 	box_sides = ()
 	box_mass_center = ()
 	aspect = (1, 1, 1)
+	shift = np.array((0, 0, 0))
 	dna_bg = 0
 	sig_bg = 0
 	flat_size = 0
@@ -107,6 +109,12 @@ class Nucleus(iot.IOinterface):
 		# Apply box selection to the image
 		i = imt.apply_box(i, self.box)
 		mask = imt.apply_box(mask, self.box)
+		if 'sigMask' in kwargs.keys():
+			sigMask = kwargs['sigMask'].apply_box(mask, self.box)
+
+			com = center_of_mass(mask)
+			sig_com = center_of_mass(sigMask)
+			self.shift = com - sig_com
 
 		# Nuclear measurements
 		self.size = mask.sum()
@@ -332,6 +340,12 @@ class Nucleus(iot.IOinterface):
 
 		# Apply box selection to channels
 		dna = imt.apply_box(dna_ch, self.box)
+
+		if 0 != np.sum(self.shift):
+			log += "Shifting signal channel: %s" % self.shift.tolist()
+			transform = AffineTransform(translation = self.shift)
+			shifted = warp(sig_ch, transform, mode = 'wrap', preserve_range = True)
+			sig_ch = shifted.astype(sig_ch.dtype)
 		sig = imt.apply_box(sig_ch, self.box)
 
 		# Produce or select mask

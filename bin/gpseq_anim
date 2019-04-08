@@ -162,6 +162,9 @@ parser.add_argument('--nbins', type = int, default = 200,
     help = "Number of bins for profile calculation. Default: 200")
 
 # Flag parameters
+parser.add_argument('--shift-correct', action = 'store_const',
+	help = """Perform shift correction.""",
+	const = True, default = False)
 parser.add_argument('--no-hole-filling', action = 'store_const',
 	help = """Do not fill holes in segmented masks.""",
 	const = True, default = False)
@@ -251,6 +254,7 @@ Voxel aspect (ZYX) :  %s
 
             Regexp :  '%s'
 
+     Correct shift :  %r
    Rescale deconv. :  %r
    Normalize dist. :  %r
          Debug mod :  %r
@@ -264,7 +268,8 @@ Voxel aspect (ZYX) :  %s
 		gpi.radius_interval[0], gpi.do_fill_holes, gpi.sigma_smooth,
 		gpi.sigma_density, gpi.nbins,
 		"\n                     ".join(readable_cdescr),
-		readable_nsf, gpi.ncores, gpi.notes, gpi.reg, gpi.rescale_deconvolved,
+		readable_nsf, gpi.ncores, gpi.notes, gpi.reg,
+		gpi.correct_shift, gpi.rescale_deconvolved,
 		gpi.normalize_distance, gpi.debugging
 	)
 
@@ -345,6 +350,7 @@ else:
 
 # Perform deconvolved image rescaling?
 gpi.rescale_deconvolved = args.rescale_deconvolved
+gpi.correct_shift = args.shift_correct
 
 # Normalize distance?
 gpi.normalize_distance = args.normalize_distance

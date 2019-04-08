@@ -229,6 +229,8 @@ class Series(iot.IOinterface):
 
         # Make new channel copy
         i = dna_ch.copy()
+        if kwargs['correct_shift']:
+            j = sif_ch.copy()
 
         # Produce a mask
         Segmenter = Binarize(path = kwargs['logpath'], append = True, **kwargs)
@@ -244,6 +246,12 @@ class Series(iot.IOinterface):
             mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
                 "%sdna_%03d.tif" % (kwargs['mask_prefix'], self.n))
             already_segmented = os.path.isfile(mpath)
+
+        if kwargs['correct_shift']:
+            if not type(None) == type(mask_tiff_dir):
+                sig_mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
+                    "%ssig_%03d.tif" % (kwargs['mask_prefix'], self.n))
+                sig_already_segmented = os.path.isfile(sig_mpath)
 
         combineWith2D = not type(None) == type(kwargs['mask2d_folder'])
 
@@ -274,6 +282,33 @@ class Series(iot.IOinterface):
                     mask = binarization.combine_2d_mask(mask, mask2d,
                         labeled2d = kwargs['labeled'])
 
+        if kwargs['correct_shift']:
+            if sig_already_segmented:
+                log += self.printout("Skipped binarization, using provided mask.",3)
+                log += self.printout("'%s'" % sig_mpath, 4)
+                sigMask = imt.read_tiff(sig_mpath, 3) != 0 # Read and binarize
+                sigThr = 0
+            else:
+                log += self.printout("Binarizing...", 2)
+                (sigMask, sigThr, tmp_log) = Segmenter.run(j)
+                log += tmp_log
+
+                # Filter based on object size
+                sigMask, tmp_log = Segmenter.filter_obj_XY_size(sigMask)
+                log += tmp_log
+                sigMask, tmp_log = Segmenter.filter_obj_Z_size(sigMask)
+                log += tmp_log
+
+                if combineWith2D:
+                    mask2d_path = os.path.join(kwargs['mask2d_folder'],
+                        os.path.basename(self.name))
+                    if os.path.isfile(mask2d_path):
+                        mask2d = imt.read_tiff(mask2d_path)
+
+                        # If labeled, inherit nuclei labels
+                        sigMask = binarization.combine_2d_mask(sigMask, mask2d,
+                            labeled2d = kwargs['labeled'])
+
         # Estimate background 
         log += self.printout('Estimating background:', 2)
         if type(None) == type(self.dna_bg):
@@ -285,12 +320,16 @@ class Series(iot.IOinterface):
         log += self.printout('DNA channel: ' + str(kwargs['dna_bg']), 3)
         log += self.printout('Signal channel: ' + str(kwargs['sig_bg']), 3)
 
-        # Save mask
         log += self.printout('Saving series object mask...', 2)
         if 1 == np.max(mask):
             L = label(mask)
         else:
             L = mask
+        if kwargs['correct_shift']:
+            if 1 == np.max(mask):
+                sigL = label(mask)
+            else:
+                sigL = mask
 
         # Export binary mask as TIF
         if not type(None) == type(mask_tiff_dir) and not already_segmented:
@@ -308,6 +347,22 @@ class Series(iot.IOinterface):
                     bundled_axes = "ZYX")
                 L = label(mask)
 
+        if kwargs['correct_shift']:
+            if not type(None) == type(mask_tiff_dir) and not sig_already_segmented:
+                log += self.printout("Exporting signal mask as tif...", 4)
+                if not os.path.isdir(mask_tiff_dir): os.mkdir(mask_tiff_dir)
+                if not os.path.isdir("%s/%s/" % (mask_tiff_dir, self.c)):
+                    os.mkdir("%s/%s/" % (mask_tiff_dir, self.c))
+
+                if kwargs['labeled']:
+                    plot.save_tif(sig_mpath, sigL, 'uint8', kwargs['compressed'],
+                        bundled_axes = "ZYX")
+                else:
+                    L[np.nonzero(L)] = 255
+                    plot.save_tif(sig_mpath, sigL, 'uint8', kwargs['compressed'],
+                        bundled_axes = "ZYX")
+                    L = label(mask)
+
         # Export mask as PNG
         if kwargs['plotting']:
             # Create png masks output directory
@@ -322,15 +377,30 @@ class Series(iot.IOinterface):
                 L, 'Nuclei in "%s" [%d objects]' % (
                 os.path.basename(self.name), L.max()))
 
+        if kwargs['correct_shift']:
+            if kwargs['plotting']:
+                # Create png masks output directory
+                maskdir = os.path.join(kwargs['outdir'], const.OUTDIR_MASK)
+                if not os.path.isdir(maskdir): os.mkdir(maskdir)
+                imbname = os.path.splitext(os.path.basename(self.name))[0]
+
+                # Export labeled mask
+                log += self.printout("Saving nuclear ID mask...", 3)
+                plot.export_mask_png(
+                    "%s%s.sigMask.%s.nuclei.png" % (maskdir, self.c, imbname),
+                    sigL, 'Nuclei in "%s" [%d objects]' % (
+                    os.path.basename(self.name), L.max()))
+
         # Initialize nuclei
         log += self.printout('Bounding ' + str(L.max()) + ' nuclei...', 2)
         kwargs['logpath'] = self.logpath
         kwargs['i'] = i
         kwargs['thr'] = thr
+        kwargs['sigThr'] = sigThr
         kwargs['series_id'] = self.n
         kwargs['cond_name'] = self.c
         seq = range(1, L.max() + 1)
-        self.nuclei = [Nucleus(n = n, mask = L == n, **kwargs) for n in seq]
+        self.nuclei = [Nucleus(n = n, mask = L == n, sigMask = sigL, **kwargs) for n in seq]
 
         return((self, log))
 
