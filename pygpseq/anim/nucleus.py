@@ -354,6 +354,8 @@ class Nucleus(iot.IOinterface):
 		if 0 != np.sum(self.shift):
 			log += "Shifting signal channel: %s" % self.shift.tolist()
 			transform = AffineTransform(translation = self.shift)
+			print(self.shift)
+			print(sig_ch.shape)
 			shifted = warp(sig_ch, transform, mode = 'wrap', preserve_range = True)
 			sig_ch = shifted.astype(sig_ch.dtype)
 		sig = imt.apply_box(sig_ch, self.box)
