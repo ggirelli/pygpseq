@@ -238,6 +238,7 @@ class Series(iot.IOinterface):
         
         # Check if already segmented
         already_segmented = False
+        sig_already_segmented = False
         if not "mask_folder" in kwargs.keys():
             mask_tiff_dir = None
         else:
