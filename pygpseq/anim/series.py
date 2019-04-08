@@ -397,7 +397,8 @@ class Series(iot.IOinterface):
         kwargs['logpath'] = self.logpath
         kwargs['i'] = i
         kwargs['thr'] = thr
-        kwargs['sigThr'] = sigThr
+        if kwargs['correct_shift']:
+            kwargs['sigThr'] = sigThr
         kwargs['series_id'] = self.n
         kwargs['cond_name'] = self.c
         seq = range(1, L.max() + 1)
