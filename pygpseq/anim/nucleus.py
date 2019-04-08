@@ -118,8 +118,8 @@ class Nucleus(iot.IOinterface):
 				sizes = imt.get_objects_xysize(L)
 				sigMask = L == sizes.index(max(sizes)) + 1
 
-				com = center_of_mass(mask)
-				sig_com = center_of_mass(sigMask)
+				com = np.array(center_of_mass(mask))
+				sig_com = np.array(center_of_mass(sigMask))
 				self.shift = com - sig_com
 			elif 0 == L.max():
 				msg = 'Segmentation failed in signal channel,'
