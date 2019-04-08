@@ -327,10 +327,10 @@ class Series(iot.IOinterface):
         else:
             L = mask
         if kwargs['correct_shift']:
-            if 1 == np.max(mask):
-                sigL = label(mask)
+            if 1 == np.max(sigMask):
+                sigL = label(sigMask)
             else:
-                sigL = mask
+                sigL = sigMask
 
         # Export binary mask as TIF
         if not type(None) == type(mask_tiff_dir) and not already_segmented:
@@ -359,10 +359,10 @@ class Series(iot.IOinterface):
                     plot.save_tif(sig_mpath, sigL, 'uint8', kwargs['compressed'],
                         bundled_axes = "ZYX")
                 else:
-                    L[np.nonzero(L)] = 255
+                    sigL[np.nonzero(sigL)] = 255
                     plot.save_tif(sig_mpath, sigL, 'uint8', kwargs['compressed'],
                         bundled_axes = "ZYX")
-                    L = label(mask)
+                    sigL = label(sigMask)
 
         # Export mask as PNG
         if kwargs['plotting']:
@@ -399,10 +399,11 @@ class Series(iot.IOinterface):
         kwargs['thr'] = thr
         if kwargs['correct_shift']:
             kwargs['sigThr'] = sigThr
+            kwargs['sigMask'] = sigL != 0
         kwargs['series_id'] = self.n
         kwargs['cond_name'] = self.c
         seq = range(1, L.max() + 1)
-        self.nuclei = [Nucleus(n = n, mask = L == n, sigMask = sigL, **kwargs) for n in seq]
+        self.nuclei = [Nucleus(n = n, mask = L == n, **kwargs) for n in seq]
 
         return((self, log))
 
