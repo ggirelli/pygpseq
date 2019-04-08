@@ -110,11 +110,21 @@ class Nucleus(iot.IOinterface):
 		i = imt.apply_box(i, self.box)
 		mask = imt.apply_box(mask, self.box)
 		if 'sigMask' in kwargs.keys():
-			sigMask = kwargs['sigMask'].apply_box(mask, self.box)
+			sigMask = imt.apply_box(kwargs['sigMask'], self.box)
 
-			com = center_of_mass(mask)
-			sig_com = center_of_mass(sigMask)
-			self.shift = com - sig_com
+			# Select largest object only
+			L = label(sigMask)
+			if 1 < L.max():
+				sizes = imt.get_objects_xysize(L)
+				sigMask = L == sizes.index(max(sizes)) + 1
+
+				com = center_of_mass(mask)
+				sig_com = center_of_mass(sigMask)
+				self.shift = com - sig_com
+			elif 0 == L.max():
+				msg = 'Segmentation failed in signal channel,'
+				msg += ' no shift correction [%d.%d].' % (self.s, self.n)
+				self.printout(msg, -1)
 
 		# Nuclear measurements
 		self.size = mask.sum()
