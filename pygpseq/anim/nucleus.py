@@ -352,7 +352,8 @@ class Nucleus(iot.IOinterface):
 		dna = imt.apply_box(imt.slice_k_d_img(dna_ch, len(self.box)), self.box)
 
 		if 0 != np.sum(self.shift):
-			log += "Shifting signal channel: %s" % self.shift.tolist()
+			log += self.printout("Shifting signal channel: %s" % (
+				self.shift.round(3).tolist()), 3)
 			shifted = shift(sig_ch, self.shift, mode = "wrap")
 			sig_ch = shifted.astype(sig_ch.dtype)
 		sig = imt.apply_box(imt.slice_k_d_img(sig_ch, len(self.box)), self.box)
