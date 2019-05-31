@@ -171,7 +171,10 @@ def merge_summaries(sums):
     nrows = sum([st.shape[0] for st in sums])
     ncols = len(sums[0].dtype)
 
-    out = np.zeros((nrows,), dtype = const.DTYPE_NDATA_EXPORT)
+    if 16 == ncols:
+        out = np.zeros((nrows,), dtype = const.DTYPE_NDATA_EXPORT_2D)
+    else:
+        out = np.zeros((nrows,), dtype = const.DTYPE_NDATA_EXPORT_3D)
 
     c = 0
     crow = 0
