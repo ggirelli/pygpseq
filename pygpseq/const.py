@@ -120,12 +120,18 @@ _const.DLAMIN_LABEL = "lamin_d"
 _const.DLAMIN_NORM_LABEL = "lamin_dnorm"
 
 # Nuclear summary
-_const.DTYPE_NUCLEAR_SUMMARY = [('s', 'u4'), ('n', 'u4'),
+_const.DTYPE_NUCLEAR_SUMMARY_3D = [('s', 'u4'), ('n', 'u4'),
 	('flat_size', 'u8'), ('size', 'u8'), ('surf', 'f8'),
 	('sumI', 'f8'), ('flat_sumI', 'f8'), ('meanI', 'f8'), ('shape', 'f8'),
 	('box_start_slice', 'u4'), ('box_start_row', 'u4'), ('box_start_col', 'u4'),
 	('box_end_slice', 'u4'), ('box_end_row', 'u4'), ('box_end_col', 'u4'),
 	('com_slice', 'f8'), ('com_row', 'f8'), ('com_col', 'f8')]
+_const.DTYPE_NUCLEAR_SUMMARY_2D = [('s', 'u4'), ('n', 'u4'),
+	('flat_size', 'u8'), ('size', 'u8'), ('surf', 'f8'),
+	('sumI', 'f8'), ('flat_sumI', 'f8'), ('meanI', 'f8'), ('shape', 'f8'),
+	('box_start_row', 'u4'), ('box_start_col', 'u4'),
+	('box_end_row', 'u4'), ('box_end_col', 'u4'),
+	('com_row', 'f8'), ('com_col', 'f8')]
 
 # Single pixel nuclear data
 _const.DTYPE_NUCLEAR_DATA = [('s', 'u4'), ('n', 'u4'), ('dna', 'u8'),
@@ -133,8 +139,10 @@ _const.DTYPE_NUCLEAR_DATA = [('s', 'u4'), ('n', 'u4'), ('dna', 'u8'),
 	(_const.DLAMIN_NORM_LABEL, 'f8'), ('part', 'b')]
 
 # Nuclear data export
-_const.DTYPE_NDATA_EXPORT = [('c', 'u4')]
-_const.DTYPE_NDATA_EXPORT.extend(_const.DTYPE_NUCLEAR_SUMMARY)
+_const.DTYPE_NDATA_EXPORT_2D = [('c', 'u4')]
+_const.DTYPE_NDATA_EXPORT_2D.extend(_const.DTYPE_NUCLEAR_SUMMARY_2D)
+_const.DTYPE_NDATA_EXPORT_3D = [('c', 'u4')]
+_const.DTYPE_NDATA_EXPORT_3D.extend(_const.DTYPE_NUCLEAR_SUMMARY_3D)
 
 # Profile table
 _const.PROFILE_TYPES = ("mean", "median", "mode", "std", "max")

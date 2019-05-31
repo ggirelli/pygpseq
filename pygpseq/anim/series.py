@@ -140,8 +140,13 @@ class Series(iot.IOinterface):
         # Export nuclei
         [n.export(**kwargs) for n in self.nuclei]
         
+        if kwargs["seg_type"] == const.SEG_3D:
+            DTYPE_NUCLEAR_SUMMARY = const.DTYPE_NUCLEAR_SUMMARY_3D
+        else:
+            DTYPE_NUCLEAR_SUMMARY = const.DTYPE_NUCLEAR_SUMMARY_2D
+
         # Produce log
-        log = np.zeros(len(self.nuclei), dtype = const.DTYPE_NUCLEAR_SUMMARY)
+        log = np.zeros(len(self.nuclei), dtype = DTYPE_NUCLEAR_SUMMARY)
         for l in [n.get_summary(**kwargs) for n in self.nuclei]:
             # Append nuclear data to the series log
             summary = [self.n]

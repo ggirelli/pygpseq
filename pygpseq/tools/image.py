@@ -45,7 +45,6 @@ def apply_box(i, box):
 
     # Check box
     box = check_box(i.shape, box)
-
     # Apply box
     return(i[np.ix_(*[tuple(range(t[0], t[1]+1)) for t in box])])
 
@@ -135,6 +134,8 @@ def check_box(shape, box):
         for i in range(len(box)):
             if len(box[i]) != 2:
                 box[i] = (0, shape[i] - 1)
+    else:
+        box = box[:len(shape)]
 
     # Fill missing dimensions
     if len(shape) > len(box):

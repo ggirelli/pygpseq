@@ -416,7 +416,7 @@ def flag_G1_cells(t, nuclei, outdir, dilate_factor, dot_file_name):
 
 	# Retrieve nuclei summaries ------------------------------------------------
 	print('   > Retrieving nuclear summary...')
-	summary = np.zeros(len(nuclei), dtype = const.DTYPE_NUCLEAR_SUMMARY)
+	summary = np.zeros(len(nuclei), dtype = const.DTYPE_NUCLEAR_SUMMARY_3D)
 	for i in range(len(nuclei)):
 		summary[i] = nuclei[i].get_summary()
 

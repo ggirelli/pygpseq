@@ -268,7 +268,7 @@ class Binarize(iot.IOinterface):
 
         # Make Z-projection ----------------------------------------------------
         if const.SEG_3D != self.seg_type and 2 != len(im.shape):
-            log += self.printout('Generating Z-projection [%d]...' % (
+            log += self.printout('Generating Z-projection [%s]...' % (
                 const.SEG_LABELS[self.seg_type],), 2)
             im = imt.mk_z_projection(im, self.seg_type)
 

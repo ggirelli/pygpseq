@@ -349,13 +349,13 @@ class Nucleus(iot.IOinterface):
 		log = ""
 
 		# Apply box selection to channels
-		dna = imt.apply_box(dna_ch, self.box)
+		dna = imt.apply_box(imt.slice_k_d_img(dna_ch, len(self.box)), self.box)
 
 		if 0 != np.sum(self.shift):
 			log += "Shifting signal channel: %s" % self.shift.tolist()
 			shifted = shift(sig_ch, self.shift, mode = "wrap")
 			sig_ch = shifted.astype(sig_ch.dtype)
-		sig = imt.apply_box(sig_ch, self.box)
+		sig = imt.apply_box(imt.slice_k_d_img(sig_ch, len(self.box)), self.box)
 
 		# Produce or select mask
 		if not 'mask' in kwargs.keys():
@@ -467,8 +467,14 @@ class Nucleus(iot.IOinterface):
 		data.extend([c[0]+1 for c in self.box])
 		data.extend([c[1]+1 for c in self.box])
 		data.extend([x+1 for x in self.box_mass_center])
+
+		if 3 == len(self.box):
+			DTYPE_NUCLEAR_SUMMARY = const.DTYPE_NUCLEAR_SUMMARY_3D
+		else:
+			DTYPE_NUCLEAR_SUMMARY = const.DTYPE_NUCLEAR_SUMMARY_2D
+
 		data = np.array(tuple(data),
-			dtype = const.DTYPE_NUCLEAR_SUMMARY)
+			dtype = DTYPE_NUCLEAR_SUMMARY)
 
 		return(data)
 

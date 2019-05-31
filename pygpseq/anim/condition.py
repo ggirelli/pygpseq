@@ -179,10 +179,15 @@ class Condition(iot.IOinterface):
         if 0 == len(nuclei):
             return((None, None, None, None))
 
+        if kwargs["seg_type"] == const.SEG_3D:
+            DTYPE_NUCLEAR_SUMMARY = const.DTYPE_NUCLEAR_SUMMARY_3D
+        else:
+            DTYPE_NUCLEAR_SUMMARY = const.DTYPE_NUCLEAR_SUMMARY_2D
+
         # Retrieve nuclei summaries
         self.printout('Retrieving nuclear summary...', 1)
         summary = np.zeros(len(nuclei),
-            dtype = const.DTYPE_NUCLEAR_SUMMARY)
+            dtype = DTYPE_NUCLEAR_SUMMARY)
         for i in range(len(nuclei)):
             summary[i] = nuclei[i].get_summary()
 
@@ -197,7 +202,7 @@ class Condition(iot.IOinterface):
         
         # Apply selection
         summary = np.asarray([summary[i] for i in selected],
-            dtype = const.DTYPE_NUCLEAR_SUMMARY)
+            dtype = DTYPE_NUCLEAR_SUMMARY)
         
         # Retrieve selected nuclei single-pixel data
         data_nested = Parallel(n_jobs = ncores)(
@@ -458,9 +463,14 @@ class Condition(iot.IOinterface):
         # Segment every series in the condition
         logs = [s.export_nuclei(**kwargs) for s in self.series]
 
+        if kwargs["seg_type"] == const.SEG_3D:
+            DTYPE_NUCLEAR_SUMMARY = const.DTYPE_NUCLEAR_SUMMARY_3D
+        else:
+            DTYPE_NUCLEAR_SUMMARY = const.DTYPE_NUCLEAR_SUMMARY_2D
+
         # Will contain the summaries
         summary = np.zeros(sum([i.shape[0] for i in logs]),
-            dtype = const.DTYPE_NUCLEAR_SUMMARY)
+            dtype = DTYPE_NUCLEAR_SUMMARY)
 
         # Log counter
         c = 0
