@@ -389,6 +389,8 @@ def get_partial_nuclear_volume(mask, i, erosion):
     # Copy original mask
     sel_mask = mask.copy()
 
+    assert 0 != mask.sum()
+
     # Identify middle section
     mid = [i[sliceid, :, :].sum() for sliceid in range(mask.shape[0])]
     mid = mid.index(max(mid))
@@ -405,8 +407,7 @@ def get_partial_nuclear_volume(mask, i, erosion):
         d2d = d2d / float(d2d.max())
     else:
         # Log error
-        err_log += 'Found 0 maximum distance at '
-        err_log += str(self.s) + '.' + str(self.n) + '\n\n'
+        err_log += 'Found 0 maximum distance.'
 
     # Make 2d mask
     mask2d = d2d >= erosion
