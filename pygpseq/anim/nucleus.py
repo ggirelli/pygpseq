@@ -415,7 +415,7 @@ class Nucleus(iot.IOinterface):
 
 		# Select pixels for partial 3D nuclear analysis
 		sm = np.zeros(mask.shape, dtype = 'u4')
-		if const.AN_3D == an_type:
+		if const.AN_3D == an_type and False:
 			# Get selection mask
 			sm, e = imt.get_partial_nuclear_volume(mask, dna, part_n_erosion)
 

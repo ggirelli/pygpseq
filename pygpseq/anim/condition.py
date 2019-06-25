@@ -296,7 +296,7 @@ class Condition(iot.IOinterface):
         plt.close(fig)
 
         # PARTIAL VOLUME -------------------------------------------------------
-        if const.AN_3D == kwargs['an_type']:
+        if const.AN_3D == kwargs['an_type'] and False:
             part = merged[np.where(merged['part'] == 1)]
             
             # Produce partial nucleus profile plots
@@ -377,6 +377,7 @@ class Condition(iot.IOinterface):
         # Partial volume data
         if None == partial:
             partial = False
+        partial = False
 
         # Check plotting
         if not 'plotting' in kwargs.keys():

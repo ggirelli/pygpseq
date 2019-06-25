@@ -421,7 +421,7 @@ class Main(Analyzer):
         # if self.plotting: pd.DataFrame(pvals).to_csv(fname)
 
         # Partial volume profile
-        if const.AN_3D == self.an_type:
+        if const.AN_3D == self.an_typea and False:
             self.printout('Selecting partial-volume pixels...', 0)
             part_profiles = [p['part'] for p in profiles]
 
