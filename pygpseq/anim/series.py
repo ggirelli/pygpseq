@@ -227,106 +227,21 @@ class Series(iot.IOinterface):
         kwargs, alog = self.adjust_options(read_only_dna = False, **kwargs)
         log += alog
 
-        # Extract from kwargs
-        seg_type = kwargs['seg_type']
-        dna_ch = kwargs['dna_ch']
-        sig_ch = kwargs['sig_ch']
-
-        # Make new channel copy
-        i = dna_ch.copy()
+        mask, thr, tmpLog = self.get_dna_mask(**kwargs)
+        log += tmpLog
         if kwargs['correct_shift']:
-            j = sig_ch.copy()
-
-        # Produce a mask
-        Segmenter = Binarize(path = kwargs['logpath'], append = True, **kwargs)
-        Segmenter.verbose = self.verbose
-        
-        # Check if already segmented
-        already_segmented = False
-        sig_already_segmented = False
-        if not "mask_folder" in kwargs.keys():
-            mask_tiff_dir = None
-        else:
-            mask_tiff_dir = kwargs['mask_folder']
-        if not type(None) == type(mask_tiff_dir):
-            mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
-                "%sdna_%03d.tif" % (kwargs['mask_prefix'], self.n))
-            already_segmented = os.path.isfile(mpath)
-
-        if kwargs['correct_shift']:
-            if not type(None) == type(mask_tiff_dir):
-                sig_mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
-                    "%ssig_%03d.tif" % (kwargs['mask_prefix'], self.n))
-                sig_already_segmented = os.path.isfile(sig_mpath)
-
-        combineWith2D = not type(None) == type(kwargs['mask2d_folder'])
-
-        # Skip or binarize
-        if already_segmented:
-            log += self.printout("Skipped binarization, using provided mask.",3)
-            log += self.printout("'%s'" % mpath, 4)
-            mask = imt.read_tiff(mpath, 3) != 0 # Read and binarize
-            if const.SEG_3D != seg_type:
-                mask = imt.slice_k_d_img(mask, 2)
-            thr = 0
-        else:
-            log += self.printout("Binarizing...", 2)
-            (mask, thr, tmp_log) = Segmenter.run(i)
-            log += tmp_log
-
-            # Filter based on object size
-            mask, tmp_log = Segmenter.filter_obj_XY_size(mask)
-            log += tmp_log
-            mask, tmp_log = Segmenter.filter_obj_Z_size(mask)
-            log += tmp_log
-
-            if combineWith2D:
-                mask2d_path = os.path.join(kwargs['mask2d_folder'],
-                    os.path.basename(self.name))
-                if os.path.isfile(mask2d_path):
-                    mask2d = imt.read_tiff(mask2d_path)
-
-                    # If labeled, inherit nuclei labels
-                    mask = binarization.combine_2d_mask(mask, mask2d,
-                        labeled2d = kwargs['labeled'])
-
-        if kwargs['correct_shift']:
-            if sig_already_segmented:
-                log += self.printout("Skipped binarization, using provided mask.",3)
-                log += self.printout("'%s'" % sig_mpath, 4)
-                sigMask = imt.read_tiff(sig_mpath, 3) != 0 # Read and binarize
-                if const.SEG_3D != seg_type:
-                    sigMask = imt.slice_k_d_img(sigMask, 2)
-                sigThr = 0
-            else:
-                log += self.printout("Binarizing...", 2)
-                Segmenter.do_clear_borders = False
-                (sigMask, sigThr, tmp_log) = Segmenter.run(j)
-                log += tmp_log
-
-                # Filter based on object size
-                sigMask, tmp_log = Segmenter.filter_obj_XY_size(sigMask)
-                log += tmp_log
-                sigMask, tmp_log = Segmenter.filter_obj_Z_size(sigMask)
-                log += tmp_log
-
-                if combineWith2D:
-                    mask2d_path = os.path.join(kwargs['mask2d_folder'],
-                        os.path.basename(self.name))
-                    if os.path.isfile(mask2d_path):
-                        mask2d = imt.read_tiff(mask2d_path)
-
-                        # If labeled, inherit nuclei labels
-                        sigMask = binarization.combine_2d_mask(sigMask, mask2d,
-                            labeled2d = kwargs['labeled'])
+            sigMask, sigThr, tmpLog = self.get_sig_mask(**kwargs)
+            log += tmpLog
 
         # Estimate background 
         log += self.printout('Estimating background:', 2)
         if type(None) == type(self.dna_bg):
-            self.dna_bg = imt.estimate_background(dna_ch, mask, seg_type)
+            self.dna_bg = imt.estimate_background(
+                kwargs['dna_ch'], mask, kwargs['seg_type'])
         kwargs['dna_bg'] = self.dna_bg
         if type(None) == type(self.sig_bg):
-            self.sig_bg = imt.estimate_background(sig_ch, mask, seg_type)
+            self.sig_bg = imt.estimate_background(
+                kwargs['sig_ch'], mask, kwargs['seg_type'])
         kwargs['sig_bg'] = self.sig_bg
         log += self.printout('DNA channel: ' + str(kwargs['dna_bg']), 3)
         log += self.printout('Signal channel: ' + str(kwargs['sig_bg']), 3)
@@ -341,6 +256,9 @@ class Series(iot.IOinterface):
                 sigL = label(sigMask)
             else:
                 sigL = sigMask
+
+        already_segmented, mpath, mask_tiff_dir = self.is_channel_segmented("dna", **kwargs)
+        sig_already_segmented, sig_mpath = self.is_channel_segmented("sig", **kwargs)[0:2]
 
         # Export binary mask as TIF
         if not type(None) == type(mask_tiff_dir) and not already_segmented:
@@ -405,7 +323,7 @@ class Series(iot.IOinterface):
         # Initialize nuclei
         log += self.printout('Bounding ' + str(L.max()) + ' nuclei...', 2)
         kwargs['logpath'] = self.logpath
-        kwargs['i'] = i
+        kwargs['i'] = kwargs['dna_ch'].copy()
         kwargs['thr'] = thr
         if kwargs['correct_shift']:
             kwargs['sigThr'] = sigThr
@@ -467,17 +385,114 @@ class Series(iot.IOinterface):
             channel_field = const.REG_CHANNEL_NAME
         return([c[channel_field] for c in self.filist.values()])
 
+    def is_channel_segmented(self, ctype, **kwargs):
+        assert ctype in ["dna", "sig"]
+        already_segmented = False
+
+        if not "mask_folder" in kwargs.keys():
+            mask_tiff_dir = None
+        else:
+            mask_tiff_dir = kwargs['mask_folder']
+
+        if not type(None) == type(mask_tiff_dir):
+            mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
+                "%s%s_%03d.tif" % (kwargs['mask_prefix'], ctype, self.n))
+            already_segmented = os.path.isfile(mpath)
+        return((already_segmented, mpath, mask_tiff_dir))
+
+    def get_dna_mask(self, **kwargs):
+        """Segment DNA channel"""
+
+        log = ""
+
+        # Rebuild mask
+        Segmenter = Binarize(path = self.logpath, append = True, **kwargs)
+        Segmenter.verbose = self.verbose
+
+        already_segmented, mpath = self.is_channel_segmented("dna", **kwargs)[0:2]
+
+        combineWith2D = not type(None) == type(kwargs['mask2d_folder'])
+
+        # Skip or binarize
+        if already_segmented:
+            log += self.printout("Skipped binarization, using provided mask.",3)
+            log += self.printout("'%s'" % mpath, 4)
+            mask = imt.read_tiff(mpath, 3) != 0 # Read and binarize
+            if const.SEG_3D != kwargs['seg_type']:
+                mask = imt.slice_k_d_img(mask, 2)
+            thr = 0
+        else:
+            log += self.printout("Binarizing...", 2)
+            (mask, thr, tmp_log) = Segmenter.run(kwargs['dna_ch'].copy())
+            log += tmp_log
+
+            # Filter based on object size
+            mask, tmp_log = Segmenter.filter_obj_XY_size(mask)
+            log += tmp_log
+            mask, tmp_log = Segmenter.filter_obj_Z_size(mask)
+            log += tmp_log
+
+            if combineWith2D:
+                mask2d_path = os.path.join(kwargs['mask2d_folder'],
+                    os.path.basename(self.name))
+                if os.path.isfile(mask2d_path):
+                    mask2d = imt.read_tiff(mask2d_path)
+
+                    # If labeled, inherit nuclei labels
+                    mask = Segmenter.combine_2d_mask(mask, mask2d,
+                        labeled2d = kwargs['labeled'])
+
+        return((mask, thr, log))
+
+    def get_sig_mask(self, **kwargs):
+        """Segment signal channel"""
+
+        log = ""
+
+        # Produce a mask
+        Segmenter = Binarize(path = kwargs['logpath'], append = True, **kwargs)
+        Segmenter.verbose = self.verbose
+        
+        sig_already_segmented, sig_mpath = self.is_channel_segmented("sig", **kwargs)[0:2]
+
+        combineWith2D = not type(None) == type(kwargs['mask2d_folder'])
+        
+        if sig_already_segmented:
+            log += self.printout("Skipped binarization, using provided mask.",3)
+            log += self.printout("'%s'" % sig_mpath, 4)
+            sigMask = imt.read_tiff(sig_mpath, 3) != 0 # Read and binarize
+            if const.SEG_3D != seg_type:
+                sigMask = imt.slice_k_d_img(sigMask, 2)
+            sigThr = 0
+        else:
+            log += self.printout("Binarizing...", 2)
+            Segmenter.do_clear_borders = False
+            (sigMask, sigThr, tmp_log) = Segmenter.run(kwargs['sig_ch'].copy())
+            log += tmp_log
+
+            # Filter based on object size
+            sigMask, tmp_log = Segmenter.filter_obj_XY_size(sigMask)
+            log += tmp_log
+            sigMask, tmp_log = Segmenter.filter_obj_Z_size(sigMask)
+            log += tmp_log
+
+            if combineWith2D:
+                mask2d_path = os.path.join(kwargs['mask2d_folder'],
+                    os.path.basename(self.name))
+                if os.path.isfile(mask2d_path):
+                    mask2d = imt.read_tiff(mask2d_path)
+
+                    # If labeled, inherit nuclei labels
+                    sigMask = Segmenter.combine_2d_mask(sigMask, mask2d,
+                        labeled2d = kwargs['labeled'])
+        return((mask, thr, log))
+
     def get_nuclei_data(self, nuclei_ids, **kwargs):
         """Retrieve a single nucleus from the current series. """
 
         # Read channel images
         kwargs, log = self.adjust_options(**kwargs)
-
-        # Re-build mask
-        bi = Binarize(path = self.logpath, append = True, **kwargs)
-        bi.verbose = self.verbose
-        mask, thr, tmp_log = bi.run(kwargs['dna_ch'].copy())
-        log += tmp_log
+        mask, thr, log = self.get_dna_mask(**kwargs)
 
         # Empty nuclear data array
         data = []
