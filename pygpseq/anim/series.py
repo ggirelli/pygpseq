@@ -461,7 +461,7 @@ class Series(iot.IOinterface):
             log += self.printout("Skipped binarization, using provided mask.",3)
             log += self.printout("'%s'" % sig_mpath, 4)
             sigMask = imt.read_tiff(sig_mpath, 3) != 0 # Read and binarize
-            if const.SEG_3D != seg_type:
+            if const.SEG_3D != kwargs['seg_type']:
                 sigMask = imt.slice_k_d_img(sigMask, 2)
             sigThr = 0
         else:
