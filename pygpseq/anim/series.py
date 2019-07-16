@@ -485,7 +485,7 @@ class Series(iot.IOinterface):
                     # If labeled, inherit nuclei labels
                     sigMask = Segmenter.combine_2d_mask(sigMask, mask2d,
                         labeled2d = kwargs['labeled'])
-        return((mask, thr, log))
+        return((sigMask, sigThr, log))
 
     def get_nuclei_data(self, nuclei_ids, **kwargs):
         """Retrieve a single nucleus from the current series. """
