@@ -210,6 +210,11 @@ if not type(None) == type(args.deltaZ):
 
 # Create buffer pointer to nd2 image
 images = ND2Reader(args.input)
+print(args)
+print(images)
+
+if "t" in images.axes:
+    assert images.sizes["t"] == 1, "conversion of time-course images not implemented."
 
 if 'z' in images.axes: # 3D
     axes_for_bundling = "zyxc" if "c" in images.axes else "zyx"
