@@ -394,6 +394,7 @@ class Series(iot.IOinterface):
         else:
             mask_tiff_dir = kwargs['mask_folder']
 
+        mpath = None
         if not type(None) == type(mask_tiff_dir):
             mpath = os.path.join("%s/%s/" % (mask_tiff_dir, self.c),
                 "%s%s_%03d.tif" % (kwargs['mask_prefix'], ctype, self.n))
