@@ -64,15 +64,25 @@ Split a TIFF image in smaller TIFF images of the specified side(s). If two
 different sides are provided, the smaller images will be rectangular. The
 first side corresponds to the X (columns) and the second to the Y (rows).
 By default, only one side is required, which is used by the script for both
-X and Y sides. I.e., square smaller images are produced.
+X and Y sides. In other words, square smaller images are produced.
 
 If the original dimensions are not multiples of the specified side, a portion
 of the image is lost, unless the --enlarge option is used. In that case,
 the smaller images generated from the image border will contain empty pixels.
 
 If the input image is a 3D stack, it will be split only on XY and the output
-images will have the same number of slices. Using the -2 option, only the first
-slice is split (i.e., the output will be in 2D).
+images will have the same number of slices. Using the --slice option, it is
+possible to specify which slice to split (i.e., the output will be in 2D).
+Defaults to first slice (--slice 0).
+
+It is also possible to generate overlapping split images. This can be achieved
+by using either the -S or -O options (which cannot be used together). With the
+-S option, you can specify the step used when splitting the image, as a fraction
+of its sides or as an absolute number of pixels. With the -O option, you can
+specify the overlapping region between consecutive split images as a fraction of
+their sides or as absolute pixels. In other words, the
+options -S 0.9 and -O 0.1 yield the same result. It is possible to provide two
+values to -S and -O, to obtain different overlaps in X and Y.
 
 By default, split images are generated left-to-right, top-to-bottom, e.g.,
 1 2 3
@@ -91,9 +101,20 @@ tiff_split big_image.tif split_out_dir 100 -e
 
 - Rectangular images of 125x100 px
 tiff_split big_image.tif split_out_dir 100 125 -e
+
+- Square images of 100x100 px, overlapping for 10 px in X and Y
+tiff_split big_image.tif split_out_dir 100 -e -S 0.9
+tiff_split big_image.tif split_out_dir 100 -e -S 90
+tiff_split big_image.tif split_out_dir 100 -e -O 0.1
+tiff_split big_image.tif split_out_dir 100 -e -O 10
+
+- Square images of 100x100 px, overlapping for 10 px in X and 20 px in Y
+tiff_split big_image.tif split_out_dir 100 -e -S 0.9 0.8
+tiff_split big_image.tif split_out_dir 100 -e -S 90 80
+tiff_split big_image.tif split_out_dir 100 -e -O 0.1 0.2
+tiff_split big_image.tif split_out_dir 100 -e -O 10 20
 ''', formatter_class = argparse.RawDescriptionHelpFormatter)
 
-# Add mandatory arguments
 parser.add_argument('input', type = str,
     help = '''Path to the TIFF image to split.''')
 parser.add_argument('outdir', type = str,
@@ -102,16 +123,19 @@ parser.add_argument('side', type = int, nargs = '+',
     help = '''One or two (XY) sides,
     used to specify the smaller images dimensions.''')
 
-# Add flags
+parser.add_argument('-S', '--step', metavar = "step", type = float,
+    nargs = '+', help = """Step for splitting, defined as a fraction of the
+    specified side(s).""")
+parser.add_argument('-O', '--overlap', metavar = "overlap", type = float,
+    help = """Overlap fraction of splitted images, defined as a fraction of the
+    specified side(s).""", nargs = '+')
+parser.add_argument('-s', '--slice', metavar = "slice", type = int,
+    help = """ID of slice to be extracted from Z-stacks, 1-indexed.""")
+
 parser.add_argument('-e', '--enlarge',
     action = 'store_const', dest = 'enlarge',
     const = True, default = False,
     help = 'Expand to avoid pixel loss.')
-parser.add_argument('-2', '--2d',
-    action = 'store_const', dest = 'force2D',
-    const = True, default = False,
-    help = '''Enforce 2D split even if the image is a 3D stack.
-    In that case the first slice will be split.''')
 parser.add_argument('-I', '--invert',
     action = 'store_const', dest = 'inverted',
     const = True, default = False,
@@ -120,46 +144,83 @@ parser.add_argument('-y', '--do-all', action = 'store_const',
     help = """Do not ask for settings confirmation and proceed.""",
     const = True, default = False)
 
-# Version flag
 version = "1.1.0"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
-# Parse arguments
 args = parser.parse_args()
 
-# Additional checks
 assert os.path.isfile(args.input), "input file not found: %s" % args.input
-assert not os.path.isfile(args.outdir), "output directory cannot be a file: %s" % (
-    args.outdir)
+assert_msg = "output directory cannot be a file: %s" % (args.outdir)
+assert not os.path.isfile(args.outdir), assert_msg
+
 if 1 == len(args.side):
-    x_side = args.side[0]
-    y_side = args.side[0]
+    sides = (args.side[0], args.side[0])
 else:
-    x_side, y_side = args.side[:2]
+    sides = args.side[:2]
+
+if args.slice is not None:
+    assert args.slice > 0
+assert_msg = "-S and -O are incompatible"
+assert not (args.step is not None and args.overlap is not None), assert_msg
+
+relative_steps = True
+if args.step is not None:
+    assert all([step > 0 for step in args.step])
+    step_is_relative = all([step <= 1 for step in args.step])
+    step_is_absolute = all([step > 1 for step in args.step])
+    assert step_is_absolute or step_is_relative
+
+    while len(args.step) < len(sides): args.step.append(args.step[0])
+    args.step = args.step[:len(sides)]
+
+    if step_is_absolute:
+        relative_steps = False
+        args.overlap = [sides[i] - args.step[i] for i in range(len(args.step))]
+    elif step_is_relative:
+        args.overlap = [np.round(1-s, 3) for s in args.step]
+
+if args.overlap is not None:
+    assert all([overlap >= 0 for overlap in args.overlap])
+    overlap_is_relative = all([overlap < 1 for overlap in args.overlap])
+    overlap_is_absolute = all([overlap > 1 for overlap in args.overlap])
+    assert overlap_is_absolute or overlap_is_relative
+
+    while len(args.overlap) < len(sides): args.overlap.append(args.overlap[0])
+    args.overlap = args.overlap[:len(sides)]
+
+    if overlap_is_absolute:
+        relative_steps = False
+        args.step = [sides[i] - args.overlap[i]
+            for i in range(len(args.overlap))]
+    elif overlap_is_relative:
+        args.overlap = [np.round(1-s, 3) for s in args.overlap]
+
+if (args.overlap is not None or args.step is not None) and relative_steps:
+    args.step = [np.round(sides[i]*args.step[i])
+        for i in range(len(args.step))]
+    args.overlap = [np.round(sides[i]*args.overlap[i])
+        for i in range(len(args.overlap))]
+
 if not os.path.isdir(args.outdir): os.mkdir(args.outdir)
 
 # FUNCTIONS ====================================================================
 
-def tiff_enlarge(img, x_side, y_side):
-    '''Resize image to have dimensions that are multiple of side.
+def tiff_XY_enlarge(img, increases):
+    '''Resize image by increasing it on X and Y.
 
     Args:
         img (np.ndarray): image to resize.
-        x_side (int): column side in px.
-        y_side (int): row side in px.
+        increases (list): list of int increases in px. (XY)
 
     Returns:
         np.ndarray: resized image.
     '''
-
     N = len(img.shape)
-    new_shape = [img.shape[i] for i in range(len(img.shape)) if i < N-2]
 
-    reshaped = np.ceil(np.array([img.shape[-2]/y_side, img.shape[-1]/x_side]))
-    reshaped *= np.array([y_side, x_side])
-    reshaped = tuple([int(d) for d in reshaped])
-    new_shape.extend(reshaped)
+    new_shape = list(img.shape)
+    new_shape[-1] += int(increases[0])
+    new_shape[-2] += int(increases[1])
 
     new_img = img.copy()
     new_img = np.zeros(new_shape)
@@ -167,41 +228,37 @@ def tiff_enlarge(img, x_side, y_side):
     new_img[np.ix_(*[range(img.shape[i]) for i in range(len(img.shape))])] = img
     return(new_img)
 
-def calc_split_loss(img, x_side, y_side):
-    '''Calculates how many pixels/voxels would be lost if image split is
-    performed without enlarging.
+def calc_loss(img, sides, step):
+    '''Calculate how many pixel/voxels would be lost if the image was split
+    without enlarging.
 
     Args:
         img (np.ndarray): image to split.
-        x_side (int): column side in px.
-        y_side (int): row side in px.
+        sides (list): [column, row] side in px.
+        step (float): step fraction
 
     Returns:
-        int: number of pixels/voxels lost during split.
+        int: number of pixels/voxels lost during split
     '''
-    
     N = len(img.shape)
+    assert len(sides) <= N
 
-    # Identify loss per dimension
-    missed = [img.shape[-1] % x_side, img.shape[-2] % y_side]
-    
-    # Calculate overall loss
+    if step is None:
+        missed = [img.shape[-i-1]%sides[i] for i in range(len(sides))]
+    else:
+        assert len(sides) == len(step)
+        missed = [img.shape[-i-1]%sides[i]%step[i] for i in range(len(sides))]
+
     loss = []
-
-    otherd = [img.shape[j] for j in range(len(img.shape)) if not N-1 == j]
-    otherd.append(img.shape[-1] % x_side)
-    loss.append(np.prod(otherd))
-
-    otherd = [img.shape[j] for j in range(len(img.shape)) if not N-2 == j]
-    otherd.append(img.shape[-2] % y_side)
-    loss.append(np.prod(otherd))
-
-    # Remove portions counted multiple times
-    loss = np.sum(loss) - np.prod(img.shape[:-2]) * np.prod(missed)
+    for i in range(len(sides)):
+        otherd = [img.shape[j] for j in range(N) if not N-i-1 == j]
+        otherd.append(missed[-i-1])
+        loss.append(np.prod(otherd))
+    loss = int(np.sum(loss) - np.prod(img.shape[:-2]) * np.prod(missed))
     
-    return(loss)
+    return (*missed, loss, loss/np.prod(img.shape)*100)
 
-def tiff_split_2d(img, x_side, y_side, outdir, imgpath, inverted = False):
+def tiff_split_2d_old(img, sides, outdir, imgpath, inverted = False):
     '''Split 2D image in sub-images of x_side x y_side.
     Output is saved to outdir with the suffix .subN,
     where N is the sub-image index.
@@ -214,6 +271,7 @@ def tiff_split_2d(img, x_side, y_side, outdir, imgpath, inverted = False):
         imgpath (str): path to input image.
         inverted (bool): split top-to-bottom, left-to-right.
     '''
+    x_side, y_side = sides
  
     # Get output file name parts
     prefix = os.path.splitext(os.path.basename(imgpath))[0]
@@ -249,7 +307,53 @@ def tiff_split_2d(img, x_side, y_side, outdir, imgpath, inverted = False):
             ic += 1
             pbar.update(1)
 
-def tiff_split_3d(img, x_side, y_side, outdir, imgpath, inverted = False):
+def tiff_split_2d_dev(img, sides, outpath, inverted = False):
+    '''Split 2D image in sub-images of x_side x y_side.
+    Output is saved to outdir with the suffix .subN,
+    where N is the sub-image index.
+
+    Args:
+        img (np.ndarray): image to split.
+        sides (list): [column, row] side in px.
+        inverted (bool): split top-to-bottom, left-to-right.
+    '''
+    x_side, y_side = sides
+ 
+    # Get output file name parts
+    prefix = os.path.splitext(os.path.basename(imgpath))[0]
+    ext = os.path.splitext(os.path.basename(imgpath))[1]
+
+    # Count cells to output
+    n = img.shape[-1]//x_side * img.shape[-2]//y_side
+    print("Output %d images." % n)
+    if 0 == n: return
+
+    # Iterate over sub image top-left corner positions
+    ic = 1
+    ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side <= img.shape[-2]]
+    xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side <= img.shape[-1]]
+
+    if inverted:
+        print("Image split top-to-bottom, left-to-right.")
+        xy_gen = ((x, y) for x in xs for y in ys)
+    else:
+        print("Image split left-to-right, top-to-bottom.")
+        xy_gen = ((x, y) for y in ys for x in xs)
+
+    with tqdm(range(n)) as pbar:
+        for (x_start, y_start) in xy_gen:
+            # Identify sub-image
+            oimg = img[y_start:(y_start+y_side), x_start:(x_start+x_side)]
+
+            # Output image
+            opath = os.path.join(outdir, "%s.sub%d%s" % (prefix, ic, ext))
+            plot.save_tif(opath, oimg, imt.get_dtype(oimg.max()), False)
+
+            # Increase counter
+            ic += 1
+            pbar.update(1)
+
+def tiff_split_3d(img, sides, outdir, imgpath, inverted = False):
     '''Split 2D image in sub-images of x_side x y_side x stack_depth.
     Output is saved to outdir with the suffix .subN,
     where N is the sub-image index.
@@ -262,7 +366,8 @@ def tiff_split_3d(img, x_side, y_side, outdir, imgpath, inverted = False):
         imgpath (str): path to input image.
         inverted (bool): split top-to-bottom, left-to-right.
     '''
- 
+    x_side, y_side = sides
+
     # Get output file name parts
     prefix = os.path.splitext(os.path.basename(imgpath))[0]
     ext = os.path.splitext(os.path.basename(imgpath))[1]
@@ -318,11 +423,15 @@ def print_settings(args, clear = True):
             X side : %d
             Y side : %d
 
+           Overlap : %r
+              Step : %r
+
+             Slice : %r
            Enlarge : %r
-        Enforce 2D : %r
           Inverted : %r
-    """ % (args.input, args.outdir, x_side, y_side,
-        args.enlarge, args.force2D, args.inverted)
+    """ % (args.input, args.outdir, sides[0], sides[1],
+        args.overlap, args.step,
+        args.slice, args.enlarge, args.inverted)
 
     if clear: print("\033[H\033[J%s" % s)
     else: print(s)
@@ -335,6 +444,7 @@ settings_string = print_settings(args)
 if not args.do_all: ask("Confirm settings and proceed?")
 
 # Read input image
+print("Reading input image...")
 img = imt.read_tiff(args.input, k = 3)
 
 # Check image shape and select appropriate analysis method ---------------------
@@ -342,11 +452,12 @@ img = imt.read_tiff(args.input, k = 3)
 status = np.nan
 if 3 == len(img.shape):
     print("3D stack found: %s" % str(img.shape))
-    if args.force2D:
-        print("Enforcing 2D split (extracting 1st slice only).")
+    if args.slice is not None:
+        print("Enforcing 2D split (extracting slice #%d only)." % args.slice)
         status = "2D"
         umes = "pixel"
-        img = img[0, :, :].copy()
+        assert args.slice <= img.shape[0]
+        img = img[args.slice-1, :, :].copy()
     else:
         status = "3D"
         umes = "voxel"
@@ -359,20 +470,22 @@ else:
 
 # Enlarge or calculate pixel loss ----------------------------------------------
 
+x_loss, y_loss, loss, perc_loss = calc_loss(img, sides, args.step)
 if args.enlarge:
-    img = tiff_enlarge(img, x_side, y_side)
+    img = tiff_XY_enlarge(img, np.array(sides)-np.array((x_loss, y_loss)))
     print("Image enlarged to %s" % str(img.shape))
 else:
-    loss = calc_split_loss(img, x_side, y_side)
-    print("%d %ss lost (%.2f%%). Use -e to avoid loss." % (
-        loss, umes, loss / np.prod(img.shape) * 100))
+    print("%d %ss in X and %d %ss in Y are lost." % (
+            x_loss, umes, y_loss, umes))
+    print("In total, %d %ss lost (%.2f%%). Use -e to avoid loss." % (
+        loss, umes, perc_loss))
 
 # Split image ------------------------------------------------------------------
 
 if "2D" == status:
-    tiff_split_2d(img, x_side, y_side, args.outdir, args.input, args.inverted)
+    tiff_split_2d(img, sides, args.outdir, args.input, args.inverted)
 elif "3D" == status:
-    tiff_split_3d(img, x_side, y_side, args.outdir, args.input, args.inverted)
+    tiff_split_3d(img, sides, args.outdir, args.input, args.inverted)
 else:
     printout("Unrecognized analysis mode.", -2)
 
