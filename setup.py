@@ -59,7 +59,8 @@ setup(name='pygpseq',
 	scripts=[
 		'bin/czi_to_tiff', 'bin/nd2_to_tiff',
 		'bin/gpseq_anim', 'bin/gpseq_fromfish', 'bin/gpseq_fromfish_merge',
-		'bin/tiff_auto3dseg', 'bin/tiff_findoof', 'bin/tiff_split', 'bin/tiffcu'
+		'bin/tiff_auto3dseg', 'bin/tiff_findoof',
+		'bin/tiff_split', 'bin/tiff_desplit', 'bin/tiffcu'
 	],
 	test_suite="nose.collector",
 	tests_require=["nose"],
