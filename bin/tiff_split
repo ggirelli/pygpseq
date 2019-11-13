@@ -45,6 +45,7 @@
 # DEPENDENCIES =================================================================
 
 import argparse
+import configparser as cp
 import numpy as np
 import os
 import sys
@@ -144,7 +145,7 @@ parser.add_argument('-y', '--do-all', action = 'store_const',
     help = """Do not ask for settings confirmation and proceed.""",
     const = True, default = False)
 
-version = "1.1.0"
+version = "2.0.0"
 parser.add_argument('--version', action = 'version',
     version = '%s %s' % (sys.argv[0], version,))
 
@@ -176,7 +177,8 @@ if args.step is not None:
 
     if step_is_absolute:
         relative_steps = False
-        args.overlap = [sides[i] - args.step[i] for i in range(len(args.step))]
+        args.overlap = np.array([sides[i] - args.step[i]
+            for i in range(len(args.step))]).astype('int')
     elif step_is_relative:
         args.overlap = [np.round(1-s, 3) for s in args.step]
 
@@ -191,16 +193,16 @@ if args.overlap is not None:
 
     if overlap_is_absolute:
         relative_steps = False
-        args.step = [sides[i] - args.overlap[i]
-            for i in range(len(args.overlap))]
+        args.step = np.array([sides[i] - args.overlap[i]
+            for i in range(len(args.overlap))]).astype('int')
     elif overlap_is_relative:
         args.overlap = [np.round(1-s, 3) for s in args.overlap]
 
 if (args.overlap is not None or args.step is not None) and relative_steps:
-    args.step = [np.round(sides[i]*args.step[i])
-        for i in range(len(args.step))]
-    args.overlap = [np.round(sides[i]*args.overlap[i])
-        for i in range(len(args.overlap))]
+    args.step = np.array([np.round(sides[i]*args.step[i])
+        for i in range(len(args.step))]).astype('int')
+    args.overlap = np.array([np.round(sides[i]*args.overlap[i])
+        for i in range(len(args.overlap))]).astype('int')
 
 if not os.path.isdir(args.outdir): os.mkdir(args.outdir)
 
@@ -258,129 +260,31 @@ def calc_loss(img, sides, step):
     
     return (*missed, loss, loss/np.prod(img.shape)*100)
 
-def tiff_split_2d_old(img, sides, outdir, imgpath, inverted = False):
-    '''Split 2D image in sub-images of x_side x y_side.
-    Output is saved to outdir with the suffix .subN,
-    where N is the sub-image index.
-
-    Args:
-        img (np.ndarray): image to split.
-        x_side (int): column side in px.
-        y_side (int): row side in px.
-        outdir (str): path to output directory.
-        imgpath (str): path to input image.
-        inverted (bool): split top-to-bottom, left-to-right.
-    '''
-    x_side, y_side = sides
- 
-    # Get output file name parts
-    prefix = os.path.splitext(os.path.basename(imgpath))[0]
-    ext = os.path.splitext(os.path.basename(imgpath))[1]
-
-    # Count cells to output
-    n = img.shape[-1]//x_side * img.shape[-2]//y_side
-    print("Output %d images." % n)
-    if 0 == n: return
-
-    # Iterate over sub image top-left corner positions
-    ic = 1
-    ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side <= img.shape[-2]]
-    xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side <= img.shape[-1]]
-
-    if inverted:
-        print("Image split top-to-bottom, left-to-right.")
-        xy_gen = ((x, y) for x in xs for y in ys)
-    else:
-        print("Image split left-to-right, top-to-bottom.")
-        xy_gen = ((x, y) for y in ys for x in xs)
-
-    with tqdm(range(n)) as pbar:
-        for (x_start, y_start) in xy_gen:
-            # Identify sub-image
-            oimg = img[y_start:(y_start+y_side), x_start:(x_start+x_side)]
-
-            # Output image
-            opath = os.path.join(outdir, "%s.sub%d%s" % (prefix, ic, ext))
-            plot.save_tif(opath, oimg, imt.get_dtype(oimg.max()), False)
-
-            # Increase counter
-            ic += 1
-            pbar.update(1)
-
-def tiff_split_2d_dev(img, sides, outpath, inverted = False):
-    '''Split 2D image in sub-images of x_side x y_side.
-    Output is saved to outdir with the suffix .subN,
-    where N is the sub-image index.
-
-    Args:
-        img (np.ndarray): image to split.
-        sides (list): [column, row] side in px.
-        inverted (bool): split top-to-bottom, left-to-right.
-    '''
-    x_side, y_side = sides
- 
-    # Get output file name parts
-    prefix = os.path.splitext(os.path.basename(imgpath))[0]
-    ext = os.path.splitext(os.path.basename(imgpath))[1]
-
-    # Count cells to output
-    n = img.shape[-1]//x_side * img.shape[-2]//y_side
-    print("Output %d images." % n)
-    if 0 == n: return
-
-    # Iterate over sub image top-left corner positions
-    ic = 1
-    ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side <= img.shape[-2]]
-    xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side <= img.shape[-1]]
-
-    if inverted:
-        print("Image split top-to-bottom, left-to-right.")
-        xy_gen = ((x, y) for x in xs for y in ys)
-    else:
-        print("Image split left-to-right, top-to-bottom.")
-        xy_gen = ((x, y) for y in ys for x in xs)
-
-    with tqdm(range(n)) as pbar:
-        for (x_start, y_start) in xy_gen:
-            # Identify sub-image
-            oimg = img[y_start:(y_start+y_side), x_start:(x_start+x_side)]
-
-            # Output image
-            opath = os.path.join(outdir, "%s.sub%d%s" % (prefix, ic, ext))
-            plot.save_tif(opath, oimg, imt.get_dtype(oimg.max()), False)
-
-            # Increase counter
-            ic += 1
-            pbar.update(1)
-
-def tiff_split_3d(img, sides, outdir, imgpath, inverted = False):
+def tiff_split(img, sides, step, inverted = False):
     '''Split 2D image in sub-images of x_side x y_side x stack_depth.
     Output is saved to outdir with the suffix .subN,
     where N is the sub-image index.
 
     Args:
         img (np.ndarray): image to split.
-        x_side (int): column side in px.
-        y_side (int): row side in px.
-        outdir (str): path to output directory.
-        imgpath (str): path to input image.
+        sides (list): [column, row] side in px.
+        step (float): step fraction.
         inverted (bool): split top-to-bottom, left-to-right.
+
+    Returns:
+        generator of np.ndarray: output split images
     '''
-    x_side, y_side = sides
 
-    # Get output file name parts
-    prefix = os.path.splitext(os.path.basename(imgpath))[0]
-    ext = os.path.splitext(os.path.basename(imgpath))[1]
+    if step is None: step = sides
 
-    # Count cells to output
-    n = img.shape[-1]//x_side * img.shape[-2]//y_side
+    n = img.shape[-1]//sides[0] * img.shape[-2]//sides[1]
     print("Output %d images." % n)
     if 0 == n: return
 
-    # Iterate over sub image top-left corner positions
-    ic = 1
-    ys = [y for y in range(0,img.shape[-2],y_side) if y+y_side <= img.shape[-2]]
-    xs = [x for x in range(0,img.shape[-1],x_side) if x+x_side <= img.shape[-1]]
+    ys = [y for y in range(0,img.shape[-2],step[1])
+        if y+sides[1] <= img.shape[-2]]
+    xs = [x for x in range(0,img.shape[-1],step[0])
+        if x+sides[0] <= img.shape[-1]]
 
     if inverted:
         print("Image split top-to-bottom, left-to-right.")
@@ -389,23 +293,16 @@ def tiff_split_3d(img, sides, outdir, imgpath, inverted = False):
         print("Image split left-to-right, top-to-bottom.")
         xy_gen = ((x, y) for y in ys for x in xs)
 
+    assert len(img.shape) in [2, 3]
+    if 3 == len(img.shape):
+        tsplit = lambda i, x, y, s: i[:, y:(y+s[1]), x:(x+s[0])]
+    elif 2 == len(img.shape):
+        tsplit = lambda i, x, y, s: i[y:(y+s[1]), x:(x+s[0])]
+
     with tqdm(range(n)) as pbar:
         for (x_start, y_start) in xy_gen:
-                # Identify sub-image
-                oimg = img[:,
-                    y_start:(y_start + y_side),
-                    x_start:(x_start + x_side)
-                ]
-
-                # Output image
-                opath = os.path.join(
-                    outdir, "%s.sub%d%s" % (prefix, ic, ext))
-                plot.save_tif(
-                    opath, oimg, imt.get_dtype(oimg.max()), False)
-
-                # Increase counter
-                ic += 1
-                pbar.update(1)
+            yield tsplit(img, x_start, y_start, sides)
+            pbar.update(1)
 
 def print_settings(args, clear = True):
     '''Show input settings, for confirmation.
@@ -443,27 +340,34 @@ def print_settings(args, clear = True):
 settings_string = print_settings(args)
 if not args.do_all: ask("Confirm settings and proceed?")
 
+config = cp.ConfigParser()
+config['MAIN'] = {'input' : args.input, 'outdir' : args.outdir}
+config['ADVANCED'] = {
+    'x_side' : str(sides[0]), 'y_side' : str(sides[1]),
+    'x_step' : str(args.step[0]),  'y_step' : str(args.step[1]),
+    'slice' : str(args.slice), 'enlarge' : str(args.enlarge),
+    'inverted' : str(args.inverted)
+}
+with open(os.path.join(args.outdir, 'config.ini'), 'w') as CF:
+    config.write(CF)
+
 # Read input image
 print("Reading input image...")
 img = imt.read_tiff(args.input, k = 3)
 
 # Check image shape and select appropriate analysis method ---------------------
 
-status = np.nan
 if 3 == len(img.shape):
     print("3D stack found: %s" % str(img.shape))
     if args.slice is not None:
         print("Enforcing 2D split (extracting slice #%d only)." % args.slice)
-        status = "2D"
         umes = "pixel"
         assert args.slice <= img.shape[0]
         img = img[args.slice-1, :, :].copy()
     else:
-        status = "3D"
         umes = "voxel"
 elif 2 == len(img.shape):
     print("2D image found: %s" % str(img.shape))
-    status = "2D"
     umes = "pixel"
 else:
     printout("Cannot split a 1D image. File: %s" % args.input, -2)
@@ -482,12 +386,14 @@ else:
 
 # Split image ------------------------------------------------------------------
 
-if "2D" == status:
-    tiff_split_2d(img, sides, args.outdir, args.input, args.inverted)
-elif "3D" == status:
-    tiff_split_3d(img, sides, args.outdir, args.input, args.inverted)
-else:
-    printout("Unrecognized analysis mode.", -2)
+prefix = os.path.splitext(os.path.basename(args.input))[0]
+ext = os.path.splitext(os.path.basename(args.input))[1]
+
+ic = 1
+for isplit in tiff_split(img, sides, args.step, args.inverted):
+    opath = os.path.join(args.outdir, "%s.sub%d%s" % (prefix, ic, ext))
+    plot.save_tif(opath, isplit, imt.get_dtype(isplit.max()), False)
+    ic += 1
 
 # END ==========================================================================
 
