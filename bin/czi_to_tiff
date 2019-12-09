@@ -49,6 +49,7 @@ import sys
 import tifffile
 from tqdm import tqdm
 import warnings
+import xml.etree.ElementTree as ET
 
 from pygpseq.tools import image as imt
 from pygpseq.tools import plot
@@ -132,14 +133,14 @@ def log_axes(pixels, axes):
 def get_channel_names(images):
     '''Extracts channel names from CZI images.'''
     channel_path = "Metadata/DisplaySetting/Channels/Channel/DyeName"
-    channel_names = [x.text for x in images.metadata.findall(channel_path)]
+    channel_names = [x.text for x in ET.fromstring(images.metadata).findall(channel_path)]
     channel_names = [x.replace(" ", "").lower() for x in channel_names]
     return(channel_names)
 
 def get_resolution(images):
     '''Extracts voxel sides from CZI images.'''
     res_path = "Metadata/Scaling/Items/Distance"
-    resolution = [x for x in images.metadata.findall(res_path)
+    resolution = [x for x in ET.fromstring(images.metadata).findall(res_path)
         if x.attrib['Id'] in ["X", "Y", "Z"]]
     resolution = dict([(x.attrib['Id'], float(x[0].text)) for x in resolution])
     return(resolution)
