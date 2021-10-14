@@ -1,3 +1,8 @@
+# NOTE: this package is not currently maintained. A new package that will include all `pygpseq` features is being implemented at [`radiantkit`](https://github.com/ggirelli/radiantkit).
+
+---
+
+
 pyGPSeq v3.3.5
 ===
 
