@@ -55,7 +55,7 @@ from pygpseq.tools.io import printout
 
 def merge_DataFrameDict_byKey(dfd, k):
     out = [d[k] for d in dfd if type(d[k]) == type(pd.DataFrame())]
-    out = pd.DataFrame() if 0 == len(out) else pd.concat(out)
+    out = pd.DataFrame() if not out else pd.concat(out)
     out.index = range(out.shape[0])
     return out
 
@@ -75,7 +75,7 @@ def look_for_data(d, flist, k, flag, dataset, ipath):
     Return
             dict: updated dictionary.
     """
-    if 0 == len(flist):
+    if len(flist) == 0:
         d["error"] = "Warning! Cannot find %s information in %s. %s" % (
             k,
             flag,
@@ -130,10 +130,7 @@ def extract_data(did, date, sid):
         ipath = "%s/%s" % (indir, flag)
 
         # Prepare flag output
-        out = {}
-        out["good"] = True
-        out["partial"] = False
-
+        out = {'good': True, 'partial': False}
         if not os.path.isdir(ipath):
             msg = "Warning! Cannot find folder for %s." % flag
             msg += "\nSkipped. Folder: %s" % ipath
@@ -158,34 +155,35 @@ def extract_data(did, date, sid):
         outl.append(out)
 
     # Check for completeness
-    if not any([d["good"] for d in outl]):
-        if any([d["partial"] for d in outl]):
-            # Print error due to partial information present
-            [log.append(d["error"]) for d in outl if d["partial"]]
-            d = [d for d in outl if d["partial"]][0]
-        else:
-            # Print error due to not-found information
-            msg = "Warning! Cannot find information on dataset %s %s" % (
-                dataset,
-                "in any of the input directories.",
-            )
-            msg += "\nSkipped %s.\n" % flag
-            print(msg)
-            return np.nan
-    else:
+    if any(d["good"] for d in outl):
         d = [d for d in outl if d["good"]][0]
 
+    elif any(d["partial"] for d in outl):
+        # Print error due to partial information present
+        [log.append(d["error"]) for d in outl if d["partial"]]
+        d = [d for d in outl if d["partial"]][0]
+    else:
+        # Print error due to not-found information
+        msg = "Warning! Cannot find information on dataset %s %s" % (
+            dataset,
+            "in any of the input directories.",
+        )
+        msg += "\nSkipped %s.\n" % flag
+        print(msg)
+        return np.nan
     # Extract dot data ---------------------------------------------------------
     if type(pd.DataFrame()) == type(d["dots"]):
         dots = d["dots"]
         dots = add_dataset_info(dots, did, date, sid, cell_type)
-        dch = {}
-        for i in subt.index:
-            dch[subt.loc[i, "channel"].lower()] = subt.loc[i, "probe_label"]
+        dch = {
+            subt.loc[i, "channel"].lower(): subt.loc[i, "probe_label"]
+            for i in subt.index
+        }
+
         dots["probe_label"] = np.nan
         for i in dots.index:
             c = dots.loc[i, "Channel"].lower()
-            if c in dch.keys():
+            if c in dch:
                 dots.loc[i, "probe_label"] = dch[c]
     else:
         dots = np.nan
@@ -227,7 +225,7 @@ def extract_data(did, date, sid):
             aldata["Allele"].values > 0,
         ]
 
-        if 0 != aldata.shape[0]:
+        if aldata.shape[0] != 0:
             al_uniID = set(zip(aldata["File"], aldata["Channel"], aldata["cell_ID"]))
 
             dl = []
@@ -275,7 +273,7 @@ def extract_data(did, date, sid):
         alleles = np.nan
 
     log.append("Finished %s" % flag)
-    dout = {
+    return {
         "dots": dots,
         "nuclei": nuclei,
         "comps": comps,
@@ -283,8 +281,6 @@ def extract_data(did, date, sid):
         "vols": vols,
         "alleles": alleles,
     }
-
-    return dout
 
 
 def run():

@@ -189,16 +189,16 @@ def boxplot(
 
     # SET PARAMS ===============================================================
 
-    if None == xaxis1:
+    if xaxis1 is None:
         xaxis1 = True
 
-    if None == xaxis2:
+    if xaxis2 is None:
         xaxis2 = True
 
-    if None == ylab_pos:
+    if ylab_pos is None:
         ylab_pos = "left"
 
-    if None == forceSciNotation:
+    if forceSciNotation is None:
         forceSciNotation = False
 
     # PLOT =====================================================================
@@ -257,11 +257,11 @@ def density_with_range(
     """
 
     # Default values
-    if None == new_figure:
+    if new_figure is None:
         new_figure = True
-    if None == show:
+    if show is None:
         show = True
-    if None == close:
+    if close is None:
         clos = False
 
     # New figure
@@ -320,7 +320,7 @@ def dots_in_ellipsoid(
         aspect = (1, 1, 1)
     az, ay, ax = aspect
 
-    if not type(None) == type(outpng):
+    if type(None) != type(outpng):
         outpng = open(outpng, "wb")
         plt.close("all")
 
@@ -406,7 +406,6 @@ def dots_in_ellipsoid(
                 color=channel_colors[i],
             )
         plt.xlim(0, dlim)
-        plt.ylim(-dlim * ax / az, dlim * ax / az)
     else:
         for i in range(len(channel_names)):
             plt.plot(
@@ -416,7 +415,7 @@ def dots_in_ellipsoid(
                 color=channel_colors[i],
             )
         plt.xlim(-dlim, dlim)
-        plt.ylim(-dlim * ax / az, dlim * ax / az)
+    plt.ylim(-dlim * ax / az, dlim * ax / az)
     plt.xlabel("X")
     plt.ylabel("Z")
 
@@ -448,7 +447,7 @@ def dots_in_ellipsoid(
     plt.suptitle(title)
 
     # Save output
-    if not type(None) == type(outpng):
+    if type(None) != type(outpng):
         plt.savefig(outpng, format="png")
         plt.close("all")
         outpng.close()
@@ -468,7 +467,7 @@ def export(path, exp_format=None):
 
     # SET PARAMS ===============================================================
 
-    if None == exp_format:
+    if exp_format is None:
         exp_format = "pdf"
 
     # EXPORT ===================================================================
@@ -499,7 +498,7 @@ def export_mask_png(outpath, im, title):
     fig = plt.figure()
 
     # Plot projection
-    if 3 == len(im.shape):
+    if len(im.shape) == 3:
         plt.imshow(im.max(0).astype("u4"))
     else:
         plt.imshow(im.astype("u4"))
@@ -537,14 +536,14 @@ def get_nsf_label(nsfi, seg_type=None, an_type=None):
         return ""
 
     # Check that the provided nuclear selection feature index exists
-    if not nsfi in range(len(const.NSEL_FIELDS)):
+    if nsfi not in range(len(const.NSEL_FIELDS)):
         return None
 
     # Retrieve label
     label = const.NSEL_LABELS[nsfi]
 
     # Change label if required
-    if "auto" == label:
+    if label == "auto":
         if nsfi == const.NSEL_SIZE:
             if seg_type == const.SEG_3D or an_type == const.AN_3D:
                 label = "Volume [vx]"
@@ -834,7 +833,7 @@ def ortho_3d(coords, scale=None, dot_coords=None, c=None, aspect=None, channels=
     plt.xlabel("X")
     plt.ylabel("Y")
 
-    if not type(None) == type(dot_coords):
+    if type(None) != type(dot_coords):
         for i in range(len(channel_names)):
             plt.plot(
                 dot_coords[0][channels == channel_names[i]],
@@ -842,7 +841,7 @@ def ortho_3d(coords, scale=None, dot_coords=None, c=None, aspect=None, channels=
                 ".",
                 color=channel_colors[i],
             )
-    if not type(None) == type(c):
+    if type(None) != type(c):
         plt.axvline(c, color="g", linestyle=":")
         plt.axvline(-c, color="g", linestyle=":")
 
@@ -867,7 +866,7 @@ def ortho_3d(coords, scale=None, dot_coords=None, c=None, aspect=None, channels=
     plt.xlabel("Z")
     plt.ylabel("Y")
 
-    if not type(None) == type(dot_coords):
+    if type(None) != type(dot_coords):
         for i in range(len(channel_names)):
             plt.plot(
                 dot_coords[2][channels == channel_names[i]],
@@ -875,7 +874,7 @@ def ortho_3d(coords, scale=None, dot_coords=None, c=None, aspect=None, channels=
                 ".",
                 color=channel_colors[i],
             )
-    if not type(None) == type(c):
+    if type(None) != type(c):
         plt.axvline(0, color="b", linestyle=":")
 
     # XZ plot
@@ -899,7 +898,7 @@ def ortho_3d(coords, scale=None, dot_coords=None, c=None, aspect=None, channels=
     plt.xlabel("X")
     plt.ylabel("Z")
 
-    if not type(None) == type(dot_coords):
+    if type(None) != type(dot_coords):
         for i in range(len(channel_names)):
             plt.plot(
                 dot_coords[0][channels == channel_names[i]],
@@ -907,7 +906,7 @@ def ortho_3d(coords, scale=None, dot_coords=None, c=None, aspect=None, channels=
                 ".",
                 color=channel_colors[i],
             )
-    if not type(None) == type(c):
+    if type(None) != type(c):
         plt.axhline(0, color="b", linestyle=":")
         plt.axvline(c, color="g", linestyle=":")
         plt.axvline(-c, color="g", linestyle=":")
@@ -953,7 +952,7 @@ def profile_density_scatterplot(
 
     # CHECK PARAMS =============================================================
 
-    if None == new_figure:
+    if new_figure is None:
         new_figure = True
 
     if new_figure:
@@ -1026,7 +1025,7 @@ def save_tif(
     **kwargs
 ):
     # Add channel axis for ImageJ compatibility
-    if not "C" in bundled_axes:
+    if "C" not in bundled_axes:
         bundled_axes = "C" + bundled_axes
 
     # Add missing axes
@@ -1041,7 +1040,7 @@ def save_tif(
     metadata = {"axes": bundled_axes}
     if inMicrons:
         metadata["unit"] = "um"
-    if not type(None) == ResolutionZ:
+    if type(None) != ResolutionZ:
         metadata["spacing"] = ResolutionZ
 
     if compressed:
@@ -1107,9 +1106,8 @@ def single_condition_profiles(
 
     # SET PARAMS ===============================================================
 
-    if type(None) != type(cdescr):
-        if profiles["condition"] in cdescr.keys():
-            profiles["condition"] = cdescr[profiles["condition"]]
+    if type(None) != type(cdescr) and profiles["condition"] in cdescr.keys():
+        profiles["condition"] = cdescr[profiles["condition"]]
 
     if type(None) == type(dlabel):
         dlabel = "x"
@@ -1277,7 +1275,7 @@ def single_pixel_study(xs, ys, field_label, profile, nbins=None, **kwargs):
     # CHECK PARAMS =============================================================
 
     # Default values
-    if None == nbins:
+    if nbins is None:
         nbins = 200
 
     # PREPARE DATA =============================================================
@@ -1432,9 +1430,8 @@ def single_pixel_study(xs, ys, field_label, profile, nbins=None, **kwargs):
         fname += "." + suffix + ".density_profile"
 
         # Add partial suffix
-        if "partial" in kwargs.keys():
-            if kwargs["partial"]:
-                fname += ".part"
+        if "partial" in kwargs.keys() and kwargs["partial"]:
+            fname += ".part"
 
         # Add general suffix
         fname += kwargs["suffix"] + ".png"
@@ -1460,10 +1457,9 @@ def single_pixel_study(xs, ys, field_label, profile, nbins=None, **kwargs):
         plt.ticklabel_format(style="sci", axis="y", scilimits=(0, 0))
 
         # Set suptitle
-        if "partial" in kwargs.keys():
-            if kwargs["partial"]:
-                suptitle += " [partial volume "
-                suptitle += str(kwargs["part_n_erosion"]) + "]"
+        if "partial" in kwargs.keys() and kwargs["partial"]:
+            suptitle += " [partial volume "
+            suptitle += str(kwargs["part_n_erosion"]) + "]"
         plt.suptitle(suptitle)
 
         # Set output name
@@ -1471,9 +1467,8 @@ def single_pixel_study(xs, ys, field_label, profile, nbins=None, **kwargs):
         fname += "." + suffix + ".npx"
 
         # Add partial suffix
-        if "partial" in kwargs.keys():
-            if kwargs["partial"]:
-                fname += ".part"
+        if "partial" in kwargs.keys() and kwargs["partial"]:
+            fname += ".part"
 
         # Add general suffix
         fname += kwargs["suffix"] + ".png"

@@ -108,7 +108,7 @@ class Nucleus(iot.IOinterface):
         super(Nucleus, self).__init__(path=logpath, append=True)
 
         # Default values
-        if None == calc_n_surface:
+        if calc_n_surface is None:
             calc_n_surface = True
 
         # Store parameters locally
@@ -129,34 +129,31 @@ class Nucleus(iot.IOinterface):
 
             # Select largest object only
             L = label(sigMask)
-            if 1 < L.max():
+            if L.max() > 1:
                 sizes = imt.get_objects_xysize(L)
                 sigMask = L == sizes.index(max(sizes)) + 1
 
                 com = np.array(center_of_mass(mask))
                 sig_com = np.array(center_of_mass(sigMask))
                 self.shift = com - sig_com
-            elif 0 == L.max():
+            elif L.max() == 0:
                 msg = "Segmentation failed in signal channel,"
                 msg += " no shift correction [%d.%d]." % (self.s, self.n)
                 self.printout(msg, -1)
 
         # Nuclear measurements
         self.size = mask.sum()
-        if 3 == len(i.shape):
-            self.flat_size = mask.max(0).sum()
-        else:
-            self.flat_size = self.size
+        self.flat_size = mask.max(0).sum() if len(i.shape) == 3 else self.size
         self.unit = imt.get_unit(i.shape)
         self.sumI = i[mask == 1].sum()
         self.meanI = self.sumI / self.size
 
         flat_mask = imt.mk_z_projection(mask, const.MAX_PROJ)
         self.flat_sumI = imt.mk_z_projection(i, const.SUM_PROJ)
-        self.flat_sumI = self.flat_sumI[1 == flat_mask].sum()
+        self.flat_sumI = self.flat_sumI[flat_mask == 1].sum()
 
         self.shape = imt.describe_shape(mask, self.aspect)
-        if 3 == len(mask.shape) and calc_n_surface:
+        if len(mask.shape) == 3 and calc_n_surface:
             self.surf = imt.calc_surface(mask, self.aspect)
         else:
             self.surf = self.size
@@ -194,7 +191,7 @@ class Nucleus(iot.IOinterface):
         tuple[int]: corrected box offset.
         """
 
-        if None == offset:
+        if offset is None:
             offset = 0
 
         # Make offset into a list
@@ -212,7 +209,7 @@ class Nucleus(iot.IOinterface):
         """Export nuclear data."""
 
         # Set output suffix
-        if not "suffix" in kwargs.keys():
+        if "suffix" not in kwargs.keys():
             suffix = ""
         else:
             suffix = st.add_leading_dot(kwargs["suffix"])
@@ -328,9 +325,9 @@ class Nucleus(iot.IOinterface):
         list[int]: bounding box corner coordinates.
         """
 
-        if 2 == len(mask.shape):
+        if len(mask.shape) == 2:
             return self.get_2d_bounding_box(mask, offset)
-        elif 3 == len(mask.shape):
+        elif len(mask.shape) == 3:
             return self.get_3d_bounding_box(mask, offset)
 
     def get_data(
@@ -447,14 +444,6 @@ class Nucleus(iot.IOinterface):
 
         # Select pixels for partial 3D nuclear analysis
         sm = np.zeros(mask.shape, dtype="u4")
-        if const.AN_3D == an_type and False:
-            # Get selection mask
-            sm, e = imt.get_partial_nuclear_volume(mask, dna, part_n_erosion)
-
-            # Log error message
-            if not "" == e:
-                log += self.printout(e, -1)
-
         # Convert image into a list
         mask_flat = mask.reshape([np.prod(mask.shape)])
         mask_flat = mask_flat.tolist()

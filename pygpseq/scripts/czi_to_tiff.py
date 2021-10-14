@@ -59,7 +59,7 @@ def log_samples(images):
     """Log the number of FoVs and channels in the CZI images."""
     axes = images.axes
 
-    if not "S" in axes:
+    if "S" not in axes:
         nFoVs = 1
         print("Found 1 field of view.")
     else:
@@ -112,7 +112,7 @@ def squeeze_axes(pixels, axes, targets=None, skip=None):
 
     if type(None) != type(targets):
         for axis in targets:
-            if not axis in axes:
+            if axis not in axes:
                 continue
             pixels = np.squeeze(pixels, axes.index(axis))
             axes.pop(axes.index(axis))
@@ -177,13 +177,13 @@ def select_fov(pixels, si, mode="GPSeq"):
         stack = pixels[ci]
 
         # Identify ouytput file name notation
-        if "GPSeq" == mode:
+        if mode == "GPSeq":
             outpath = "%s.channel%03d.series%03d.tif" % (
                 channel_names[ci],
                 ci + 1,
                 si + 1,
             )
-        elif "DOTTER" == mode:
+        elif mode == "DOTTER":
             outpath = "%s_%03d.tif" % (channel_names[ci], si + 1)
 
         yield ((stack, outpath))
@@ -302,8 +302,7 @@ def run():
         pixels, axes = reorder_axes(pixels, axes, axes_target)
 
         def fovGenerator():
-            for x in select_fov(pixels, 1, mode=args.mode):
-                yield (x)
+            yield from select_fov(pixels, 1, mode=args.mode)
 
     else:
         axes_target = "SCZYX"
@@ -311,8 +310,7 @@ def run():
 
         def fovGenerator():
             for si in range(nFoVs):
-                for x in select_fov(pixels[si, :], si, mode=args.mode):
-                    yield (x)
+                yield from select_fov(pixels[si, :], si, mode=args.mode)
 
     for (stack, outpath) in tqdm(fovGenerator(), total=nFoVs * nChannels):
         plot.save_tif(

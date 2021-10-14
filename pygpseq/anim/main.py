@@ -94,9 +94,9 @@ class Main(Analyzer):
         super(Main, self).__init__()
 
         # Read additional parameters
-        if not type(None) == type(ncores):
+        if type(None) != type(ncores):
             self.ncores = ncores
-        if not type(None) == type(font_size):
+        if type(None) != type(font_size):
             self.font_size = font_size
 
         self.printout("", 0)
@@ -119,7 +119,7 @@ class Main(Analyzer):
         # Check the attribute
         check = self.check_attr(name, value)
 
-        if True == check:
+        if check == True:
             # Set the attribute
             return super(Main, self).__setattr__(name, value)
         else:
@@ -144,7 +144,7 @@ class Main(Analyzer):
 
         if name in ["basedir", "outdir"]:
             # Require a string
-            if not type("") == type(value):
+            if type("") != type(value):
                 checked = False
             # # Require an existing folder
             # elif not os.path.isdir(value):
@@ -154,24 +154,22 @@ class Main(Analyzer):
                 msg = '"' + name + "\" must be an existing folder's path.\n"
                 msg += "Keeping previous value."
                 self.printout(msg, -1)
-        elif "ncores" == name:
+        elif name == "ncores":
             # Require an integer
-            if not type(0) == type(value):
+            if type(0) != type(value):
                 checked = False
-            # Require a positive non-zero integer
-            elif 0 >= value:
+            elif value <= 0:
                 checekd = False
 
             if not checked:
                 msg = '"' + name + '" must be a positive non-zero integer.\n'
                 msg += "Keeping previous value."
                 self.printout(msg, -1)
-        elif "ext" == name:
+        elif name == "ext":
             # Require a string
-            if not type("") == type(value):
+            if type("") != type(value):
                 checked = False
-            # Require a file extension (\..+)
-            elif not value.startswith(".") or 1 >= len(value):
+            elif not value.startswith(".") or len(value) <= 1:
                 checked = False
 
             if not checked:
@@ -179,14 +177,14 @@ class Main(Analyzer):
                 msg += ' (start with ".").\n'
                 msg += "Keeping previous value."
                 self.printout(msg, -1)
-        elif "skip" == name:
+        elif name == "skip":
             # Require a list
-            if not type([]) == type(value):
+            if type([]) != type(value):
                 checked = False
-            elif not 0 == len(value):
+            elif len(value) != 0:
                 # Require integer list
                 types = [-1 for i in value if type(i) not in [type(0), type(0.0)]]
-                types = 0 == len(types)
+                types = len(types) == 0
                 if not types:
                     checked = False
 
@@ -194,20 +192,20 @@ class Main(Analyzer):
                 msg = '"' + name + '" must be an integer list (can be empty).\n'
                 msg += "Keeping previous value."
                 self.printout(msg, -1)
-        elif "font_size" == name:
+        elif name == "font_size":
             # Require positive number
-            if not type(value) in [type(0), type(0.0)]:
+            if type(value) not in [type(0), type(0.0)]:
                 checked = False
-            elif 0 >= value:
+            elif value <= 0:
                 checked = False
 
             if not checked:
                 msg = '"' + name + '" must be a positive non-zero number.\n'
                 msg += "Keeping previous value."
                 self.printout(msg, -1)
-        elif "reg" == name:
+        elif name == "reg":
             # Require a string
-            if not type("") == type(value):
+            if type("") != type(value):
                 checked = False
 
                 msg = '"' + name + '" must be a regular expression (string).\n'
@@ -236,7 +234,7 @@ class Main(Analyzer):
 
         # Parameters to keep from current instance
         keys = list(const.PARAM_STATIC)
-        if not None == more_keys:
+        if more_keys is not None:
             keys.extend(list(more_keys))
         vals = [self[k] for k in keys]
 
@@ -252,7 +250,7 @@ class Main(Analyzer):
             # Propagate parameters
             for param in const.PARAM_PROPAGATE:
                 loaded.propagate_attr(param)
-        elif not 0 == len(loaded):
+        elif len(loaded) != 0:
             # Identify the Main instance
             i = [i for i in range(len(loaded)) if type(loaded[i]) == type(self)]
             tmp = loaded[i[0]]
@@ -427,73 +425,6 @@ class Main(Analyzer):
         if self.plotting:
             pd.DataFrame(msum).to_csv(fname)
 
-        # # Compare profiles
-        # self.printout('Comparing profiles with WMW U test...', 0)
-        # pvals = []
-        # mprof = pd.DataFrame(mprof)
-        # for col in mprof.columns:
-        #   if not col in ['condition', 'x', 'n']:
-        #       pvals.append(stt.wilcox_sets(mprof, 'condition', col))
-        # pvals = vt.merge_nparrays(pvals)
-        # fname = self.outdir + const.OUTDIR_CSV
-        # fname += 'profiles_wmw' + kwargs['suffix'] + '.csv'
-        # if self.plotting: pd.DataFrame(pvals).to_csv(fname)
-
-        # Partial volume profile
-        if const.AN_3D == self.an_type and False:
-            self.printout("Selecting partial-volume pixels...", 0)
-            part_profiles = [p["part"] for p in profiles]
-
-            for yfield in ["mean", "median", "mode", "max"]:
-                msg = "Preparing partial volume multi-condition profiles plot ["
-                msg += yfield + "]..."
-                self.printout(msg, 0)
-
-                # Plot
-                fig = plot.multi_condition_profiles(
-                    part_profiles,
-                    yfield=yfield,
-                    title_comment="partial_volume " + str(kwargs["part_n_erosion"]),
-                    **kwargs
-                )
-
-                # Export PDF
-                common_name = "profiles.part." + yfield + kwargs["suffix"]
-                fname = out_pdf + common_name + ".pdf"
-                if self.plotting:
-                    plot.export(fname, "pdf")
-
-                # Export PNG
-                fname = out_png + common_name + ".png"
-                if self.plotting:
-                    plot.export(fname, "png")
-
-                # Close
-                plt.close(fig)
-
-            # Export profiles to CSV
-            self.printout("Exporting partial profiles to CSV...", 0)
-            mpartprof = iot.merge_profiles(part_profiles)
-            fname = self.outdir + const.OUTDIR_CSV
-            fname += "profiles.part" + kwargs["suffix"] + ".csv"
-            if self.plotting:
-                pd.DataFrame(mpartprof).to_csv(fname)
-
-            # # Compare profiles
-            # self.printout('Comparing partial profiles with WMW U test...', 0)
-            # pvals = []
-            # mpartprof = pd.DataFrame(mpartprof)
-            # for col in mpartprof.columns:
-            #     if not col in ['condition', 'x', 'n']:
-            #         pvals.append(stt.wilcox_sets(mpartprof, 'condition', col))
-            # pvals = vt.merge_nparrays(pvals)
-            # fname = self.outdir + const.OUTDIR_CSV
-            # fname += 'profiles_wmw.part' + kwargs['suffix'] + '.csv'
-            # if self.plotting: pd.DataFrame(pvals).to_csv(fname)
-
-            # Plot background levels
-            self.printout("Generating background levels plot...", 0)
-
         # Background plot
         self.printout("Plotting background levels...", 0)
         plot.bgplot(self.conds, self.outdir + const.OUTDIR_PNG_REPORT, **kwargs)
@@ -541,7 +472,6 @@ class Main(Analyzer):
                 if i in range(len(const.STEP_DESCR))
             ],
             "ncores": self.ncores,
-            #'correctca' : self.correctCA,
             "verbose": self.verbose,
             "debugging": self.debugging,
             "suffix": self.suffix,
@@ -572,9 +502,10 @@ class Main(Analyzer):
             "rescale_deconvolved": self.rescale_deconvolved,
             "notes": self.notes,
             "conds": self.conds,
-            "cnuclei": [sum([len(s.nuclei) for s in c.series]) for c in self.conds],
+            "cnuclei": [sum(len(s.nuclei) for s in c.series) for c in self.conds],
             "cdescr": self.cdescr,
         }
+
 
         # Escape characters
         for (k, v) in tempv.items():
@@ -698,13 +629,10 @@ class Main(Analyzer):
                 self.printout("Loading dumped instance...\n", 0)
 
                 try:
-                    # Load
-                    f = open(fname, "rb")
-                    keys = list(const.PARAM_SEG)
-                    keys.extend(list(const.PARAM_AN))
-                    self = self.load(f, keys)
-                    f.close()
-
+                    with open(fname, "rb") as f:
+                        keys = list(const.PARAM_SEG)
+                        keys.extend(list(const.PARAM_AN))
+                        self = self.load(f, keys)
                     # Dump
                     f = open(fname, "wb")
                     cp.dump(self, f)
@@ -723,10 +651,8 @@ class Main(Analyzer):
 
             # Dump
             fname = self.outdir + "gpi.inst" + kwargs["suffix"] + ".cpickle"
-            f = open(fname, "wb")
-            cp.dump(self, f)
-            f.close()
-
+            with open(fname, "wb") as f:
+                cp.dump(self, f)
         # SEGMENTATION ---------------------------------------------------------
         # Check whether to skip segmentation
         if self.is_skipped(2):
@@ -741,10 +667,8 @@ class Main(Analyzer):
                     self = self.load(f, const.PARAM_AN)
                     f.close()
 
-                    # Dump
-                    f = open(fname, "wb")
-                    cp.dump(self, f)
-                    f.close()
+                    with open(fname, "wb") as f:
+                        cp.dump(self, f)
                 except:
                     self.printout("Unable to load dumped instance...", 0)
                     self.printout("Unskipping segmentation...", 0)
@@ -759,10 +683,8 @@ class Main(Analyzer):
 
             # Dump
             fname = self.outdir + "gpi.seg" + kwargs["suffix"] + ".cpickle"
-            f = open(fname, "wb")
-            cp.dump(self, f)
-            f.close()
-
+            with open(fname, "wb") as f:
+                cp.dump(self, f)
         # ANALYSIS -------------------------------------------------------------
         # Check whether to skip analysis
         if self.is_skipped(3):
@@ -772,15 +694,10 @@ class Main(Analyzer):
                 self.printout("Loading dumped instance...\n", 0)
 
                 try:
-                    # Load
-                    f = open(fname, "rb")
-                    self, profiles, profeat, sumd = self.load(f)
-                    f.close()
-
-                    # Dump
-                    f = open(fname, "wb")
-                    cp.dump((self, profiles, profeat, sumd), f)
-                    f.close()
+                    with open(fname, "rb") as f:
+                        self, profiles, profeat, sumd = self.load(f)
+                    with open(fname, "wb") as f:
+                        cp.dump((self, profiles, profeat, sumd), f)
                 except:
                     self.printout("Unable to load dumped instance...", 0)
                     self.printout("Unskipping analysis...", 0)
@@ -795,10 +712,8 @@ class Main(Analyzer):
 
             # Dump
             fname = self.outdir + "gpi.an" + kwargs["suffix"] + ".cpickle"
-            f = open(fname, "wb")
-            cp.dump((self, profiles, profeat, sumd), f)
-            f.close()
-
+            with open(fname, "wb") as f:
+                cp.dump((self, profiles, profeat, sumd), f)
             # Generate general boxplots if not skipped
             if not self.is_skipped(3.5):
                 self.mk_general_boxplots(profiles, sumd, md, **kwargs)

@@ -118,9 +118,9 @@ def run_segmentation(args, imgpath, imgdir, radius_interval):
     mask, tmp = binarization.filter_obj_Z_size(mask)
 
     # Perform dilate-fill-erode operation
-    if 0 != args.dilate_fill_erode:
+    if args.dilate_fill_erode != 0:
         strel = args.dilate_fill_erode
-        strel = cube(strel) if 3 == len(mask.shape) else square(strel)
+        strel = cube(strel) if len(mask.shape) == 3 else square(strel)
         mask = imt.dilate_fill_erode(mask, strel)
 
     # Label nuclei if not done already
@@ -136,11 +136,9 @@ def run_segmentation(args, imgpath, imgdir, radius_interval):
     outpath = "%s%s" % (args.outFolder, args.outprefix + imgpath)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        if args.labeled:
-            plot.save_tif(outpath, L, "uint8", args.compressed, "ZYX")
-        else:
+        if not args.labeled:
             L[np.nonzero(L)] = 255
-            plot.save_tif(outpath, L, "uint8", args.compressed, "ZYX")
+        plot.save_tif(outpath, L, "uint8", args.compressed, "ZYX")
     print("Segmentation output written to %s" % (outpath,))
 
     return outpath
@@ -344,7 +342,7 @@ def run():
     inreg = re.compile(args.inreg)
     radius_interval = [args.radius[0], args.radius[1]]
 
-    if args.compressed and "mask_" == args.outprefix:
+    if args.compressed and args.outprefix == "mask_":
         args.outprefix = "cmask_"
 
     args.combineWith2D = type(None) != type(args.manual_2d_masks)
@@ -385,13 +383,14 @@ def run():
         f
         for f in os.listdir(args.imgFolder)
         if os.path.isfile(os.path.join(args.imgFolder, f))
-        and not type(None) == type(re.match(inreg, f))
+        and type(None) != type(re.match(inreg, f))
     ]
+
     print("Found %d image(s) to segment. Starting..." % len(imglist))
 
     # Start iteration --------------------------------------------------------------
 
-    if 1 == args.threads:
+    if args.threads == 1:
         for imgpath in tqdm(imglist):
             run_segmentation(args, imgpath, args.imgFolder, radius_interval)
     else:

@@ -104,7 +104,7 @@ def calc_loss(img, sides, step):
 
     loss = []
     for i in range(len(sides)):
-        otherd = [img.shape[j] for j in range(N) if not N - i - 1 == j]
+        otherd = [img.shape[j] for j in range(N) if N - i - 1 != j]
         otherd.append(missed[-i - 1])
         loss.append(np.prod(otherd))
     loss = int(np.sum(loss) - np.prod(img.shape[:-2]) * np.prod(missed))
@@ -132,7 +132,7 @@ def tiff_split(img, sides, step, inverted=False):
 
     n = img.shape[-1] // sides[0] * img.shape[-2] // sides[1]
     print("Output %d images." % n)
-    if 0 == n:
+    if n == 0:
         return
 
     ys = [y for y in range(0, img.shape[-2], step[1]) if y + sides[1] <= img.shape[-2]]
@@ -146,9 +146,9 @@ def tiff_split(img, sides, step, inverted=False):
         xy_gen = ((x, y) for y in ys for x in xs)
 
     assert len(img.shape) in [2, 3]
-    if 3 == len(img.shape):
+    if len(img.shape) == 3:
         tsplit = lambda i, x, y, s: i[:, y : (y + s[1]), x : (x + s[0])]
-    elif 2 == len(img.shape):
+    elif len(img.shape) == 2:
         tsplit = lambda i, x, y, s: i[y : (y + s[1]), x : (x + s[0])]
 
     with tqdm(range(n)) as pbar:
@@ -343,21 +343,17 @@ def run():
     assert_msg = "output directory cannot be a file: %s" % (args.outdir)
     assert not os.path.isfile(args.outdir), assert_msg
 
-    if 1 == len(args.side):
-        sides = (args.side[0], args.side[0])
-    else:
-        sides = args.side[:2]
-
+    sides = (args.side[0], args.side[0]) if len(args.side) == 1 else args.side[:2]
     if args.slice is not None:
         assert args.slice > 0
     assert_msg = "-S and -O are incompatible"
-    assert not (args.step is not None and args.overlap is not None), assert_msg
+    assert args.step is None or args.overlap is None, assert_msg
 
     relative_steps = True
     if args.step is not None:
-        assert all([step > 0 for step in args.step])
-        step_is_relative = all([step <= 1 for step in args.step])
-        step_is_absolute = all([step > 1 for step in args.step])
+        assert all(step > 0 for step in args.step)
+        step_is_relative = all(step <= 1 for step in args.step)
+        step_is_absolute = all(step > 1 for step in args.step)
         assert step_is_absolute or step_is_relative
 
         while len(args.step) < len(sides):
@@ -373,9 +369,9 @@ def run():
             args.overlap = [np.round(1 - s, 3) for s in args.step]
 
     if args.overlap is not None:
-        assert all([overlap >= 0 for overlap in args.overlap])
-        overlap_is_relative = all([overlap < 1 for overlap in args.overlap])
-        overlap_is_absolute = all([overlap > 1 for overlap in args.overlap])
+        assert all(overlap >= 0 for overlap in args.overlap)
+        overlap_is_relative = all(overlap < 1 for overlap in args.overlap)
+        overlap_is_absolute = all(overlap > 1 for overlap in args.overlap)
         assert overlap_is_absolute or overlap_is_relative
 
         while len(args.overlap) < len(sides):
@@ -428,7 +424,7 @@ def run():
 
     # Check image shape and select appropriate analysis method ---------------------
 
-    if 3 == len(img.shape):
+    if len(img.shape) == 3:
         print("3D stack found: %s" % str(img.shape))
         if args.slice is not None:
             print("Enforcing 2D split (extracting slice #%d only)." % args.slice)
@@ -437,7 +433,7 @@ def run():
             img = img[args.slice - 1, :, :].copy()
         else:
             umes = "voxel"
-    elif 2 == len(img.shape):
+    elif len(img.shape) == 2:
         print("2D image found: %s" % str(img.shape))
         umes = "pixel"
     else:
@@ -461,12 +457,9 @@ def run():
     prefix = os.path.splitext(os.path.basename(args.input))[0]
     ext = os.path.splitext(os.path.basename(args.input))[1]
 
-    ic = 1
-    for isplit in tiff_split(img, sides, args.step, args.inverted):
+    for ic, isplit in enumerate(tiff_split(img, sides, args.step, args.inverted), start=1):
         opath = os.path.join(args.outdir, "%s.sub%d%s" % (prefix, ic, ext))
         plot.save_tif(opath, isplit, imt.get_dtype(isplit.max()), False)
-        ic += 1
-
     # END ==========================================================================
 
     print("DONE")

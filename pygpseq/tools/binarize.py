@@ -73,7 +73,7 @@ class Binarize(iot.IOinterface):
         # Store provided kwargs in the current instance.
         excluded = ["logpath"]
         for k in kwargs.keys():
-            if not k == excluded:
+            if k != excluded:
                 self[k] = kwargs[k]
 
     def __getitem__(self, key):
@@ -121,7 +121,7 @@ class Binarize(iot.IOinterface):
             assert_msg = 'int expected, got "%s".' % type(value)
             assert type(0) == type(value), assert_msg
 
-        elif "an_type" == name:
+        elif name == "an_type":
             # Check that it is one of the allowed constants
             an_types = [const.AN_SUM_PROJ, const.AN_MAX_PROJ, const.AN_3D, const.AN_MID]
             assert value in an_types, "got '%s', expected one of %s." % (
@@ -129,7 +129,7 @@ class Binarize(iot.IOinterface):
                 str(an_types),
             )
 
-        elif "seg_type" == name:
+        elif name == "seg_type":
             # Check that it is one of the allowed constants
             seg_types = [const.SEG_SUM_PROJ, const.SEG_MAX_PROJ, const.SEG_3D]
             assert value in seg_types, "got '%s', expected one of %s." % (
@@ -194,21 +194,19 @@ class Binarize(iot.IOinterface):
         log += self.printout("Filtering objects Z size...", 2)
 
         # If not a stack, return the mask
-        if 3 > len(mask.shape):
+        if len(mask.shape) < 3:
             return (mask, log)
 
         # Check provided conditions
-        doFilterZsize = 0 != int(math.ceil(self.min_z_size))
+        doFilterZsize = int(math.ceil(self.min_z_size)) != 0
         doFilterZsize = doFilterZsize and self.an_type == const.AN_3D
         if not doFilterZsize:
             return (mask, log)
 
         # From size to number of slices
-        if self.min_z_size > 1:
-            self.min_z_size = int(math.ceil(self.min_z_size))
-        else:
+        if self.min_z_size <= 1:
             self.min_z_size = self.min_z_size * mask.shape[0]
-            self.min_z_size = int(math.ceil(self.min_z_size))
+        self.min_z_size = int(math.ceil(self.min_z_size))
         log += self.printout("Minimum %d slices." % self.min_z_size, 3)
 
         # Identify objects Z size
@@ -244,13 +242,13 @@ class Binarize(iot.IOinterface):
         if labeled2d:
             maskND = maskND.astype(np.uint8)
 
-        if 2 == len(maskND.shape):
+        if len(maskND.shape) == 2:
             assert mask2D.shape == maskND.shape
             tmp = mask2D.copy()
             tmp[maskND == 0] = 0
             return tmp
 
-        if 3 == len(maskND.shape):
+        if len(maskND.shape) == 3:
             assert mask2D.shape == maskND.shape[-2:]
             for i in range(maskND.shape[0]):
                 tmp = mask2D.copy()
@@ -284,7 +282,7 @@ class Binarize(iot.IOinterface):
             return (im, log)
 
         # Make Z-projection ----------------------------------------------------
-        if const.SEG_3D != self.seg_type and 2 != len(im.shape):
+        if const.SEG_3D != self.seg_type and len(im.shape) != 2:
             log += self.printout(
                 "Generating Z-projection [%s]..." % (const.SEG_LABELS[self.seg_type],),
                 2,
@@ -302,7 +300,7 @@ class Binarize(iot.IOinterface):
             mask.append(imt.binarize(im, thr))
 
         # Perform adaptive threshold
-        if self.do_adaptive_thr and 1 < self.adp_neigh:
+        if self.do_adaptive_thr and self.adp_neigh > 1:
             msg = "Applying adaptive threshold to neighbourhood: %d" % (self.adp_neigh,)
             log += self.printout(msg, 2)
             mask.append(
@@ -316,13 +314,9 @@ class Binarize(iot.IOinterface):
             )
 
         # Combine masks
-        if len(mask) == 2:
-            mask = np.logical_and(mask[0], mask[1])
-        else:
-            mask = mask[0]
-
+        mask = np.logical_and(mask[0], mask[1]) if len(mask) == 2 else mask[0]
         # Combine extra mask
-        if not type(None) == type(m):
+        if type(None) != type(m):
             mask = self.combine_2d_mask(mask, m, labeled2d)
 
         # Remove objects touching borders --------------------------------------
@@ -340,7 +334,7 @@ class Binarize(iot.IOinterface):
         # Output ---------------------------------------------------------------
 
         # Re-assigne extra-mask labels
-        if not type(None) == type(m):
+        if type(None) != type(m):
             mask = self.combine_2d_mask(mask, m, labeled2d)
 
         return (mask, thr, log)

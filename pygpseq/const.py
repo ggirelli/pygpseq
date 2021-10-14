@@ -240,11 +240,8 @@ _const.DTYPE_NUCLEAR_DATA = [
 ]
 
 # Nuclear data export
-_const.DTYPE_NDATA_EXPORT_2D = [("c", "u4")]
-_const.DTYPE_NDATA_EXPORT_2D.extend(_const.DTYPE_NUCLEAR_SUMMARY_2D)
-_const.DTYPE_NDATA_EXPORT_3D = [("c", "u4")]
-_const.DTYPE_NDATA_EXPORT_3D.extend(_const.DTYPE_NUCLEAR_SUMMARY_3D)
-
+_const.DTYPE_NDATA_EXPORT_2D = [("c", "u4"), *_const.DTYPE_NUCLEAR_SUMMARY_2D]
+_const.DTYPE_NDATA_EXPORT_3D = [("c", "u4"), *_const.DTYPE_NUCLEAR_SUMMARY_3D]
 # Profile table
 _const.PROFILE_TYPES = ("mean", "median", "mode", "std", "max")
 _const.DATA_FOCUS = ("dna", "sig", "ratio")

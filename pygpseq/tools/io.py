@@ -42,13 +42,9 @@ class IOinterface(object):
         super(IOinterface, self).__init__()
 
         # Append to existing log?
-        if not "append" in kwargs.keys():
-            append = False
-        else:
-            append = kwargs["append"]
-
+        append = False if "append" not in kwargs.keys() else kwargs["append"]
         # Select path for log file
-        if not "path" in kwargs.keys():
+        if "path" not in kwargs.keys():
             curpath = pt.add_trailing_slash(tempfile.gettempdir())
             curpath += "pyGPSeq/log/"
             now = datetime.fromtimestamp(time()).strftime("%Y-%m-%d_%H:%M:%S")
@@ -80,7 +76,7 @@ class IOinterface(object):
           None: creates the folder that will contain the log, if missing.
         """
 
-        if None == path:
+        if path is None:
             path = self.logpath
 
         dpath = os.path.dirname(path)
@@ -90,8 +86,7 @@ class IOinterface(object):
     def gen_log_name(self):
         """Generate logfile name."""
         now = datetime.fromtimestamp(time()).strftime("%Y-%m-%d_%H:%M:%S")
-        name = now + "_pyGPSeq.log"
-        return name
+        return now + "_pyGPSeq.log"
 
     def log(self, s):
         """Write to logfile.
@@ -106,10 +101,8 @@ class IOinterface(object):
         # Create log file directory if missing
         self.check_log_dir()
 
-        # Write to logfile
-        f = open(self.logpath, "a")
-        f.write(s)
-        f.close()
+        with open(self.logpath, "a") as f:
+            f.write(s)
 
     def printout(self, s, lvl):
         """Output for user.
@@ -173,21 +166,19 @@ def merge_summaries(sums):
       np.array: merged summaries.
     """
 
-    nrows = sum([st.shape[0] for st in sums])
+    nrows = sum(st.shape[0] for st in sums)
     ncols = len(sums[0].dtype)
 
-    if 16 == ncols:
+    if ncols == 16:
         out = np.zeros((nrows,), dtype=const.DTYPE_NDATA_EXPORT_2D)
     else:
         out = np.zeros((nrows,), dtype=const.DTYPE_NDATA_EXPORT_3D)
 
-    c = 0
     crow = 0
-    for summary in sums:
+    for c, summary in enumerate(sums):
         out[out.dtype.names[0]][crow : (crow + summary.shape[0])] = c + 1
         for name in summary.dtype.names:
             out[name][crow : (crow + summary.shape[0])] = summary[name]
-        c += 1
         crow += summary.shape[0]
 
     return out
@@ -208,23 +199,23 @@ def printout(s, lvl, verbose=True, canAbort=True):
         return ()
 
     # Add level-based prefix
-    if -2 == lvl:
+    if lvl == -2:
         if not canAbort:
             s = "\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s" % s
         if canAbort:
             print("\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s\nTerminated.\n" % s)
             raise Exception(s)
-    elif -1 == lvl:
+    elif lvl == -1:
         s = "WARNING: %s" % s
-    elif 0 == lvl:
+    elif lvl == 0:
         s = " %s" % s
-    elif 1 == lvl:
+    elif lvl == 1:
         s = "  · %s" % s
-    elif 2 == lvl:
+    elif lvl == 2:
         s = "    > %s" % s
-    elif 3 == lvl:
+    elif lvl == 3:
         s = "    >> %s" % s
-    elif 4 <= lvl:
+    elif lvl >= 4:
         s = "    >>> %s" % s
 
     # Log

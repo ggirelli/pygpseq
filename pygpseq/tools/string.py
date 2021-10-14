@@ -17,9 +17,9 @@ def add_leading_dot(s, not_empty=None):
       not_empty (bool): whether to add leading dot to empty string.
     """
 
-    if None == not_empty:
+    if not_empty is None:
         not_empty = True
-    if 0 == len(s) and not_empty:
+    if len(s) == 0 and not_empty:
         return s
     if not s.startswith("."):
         s = "." + s
@@ -28,7 +28,7 @@ def add_leading_dot(s, not_empty=None):
 
 def add_trailing_new_line(s):
     """Adds trailing new line."""
-    if "\n" != s[len(s) - 1]:
+    if s[len(s) - 1] != "\n":
         s += "\n"
     return s
 
