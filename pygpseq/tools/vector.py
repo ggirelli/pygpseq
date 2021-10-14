@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 @author: Gabriele Girelli
 @contact: gigi.ga90@gmail.com
 @description: vectors management library.
-'''
+"""
 
 # DEPENDENCIES =================================================================
 
 import numpy as np
 
 # FUNCTIONS ====================================================================
+
 
 def flatten_and_select(v, s):
     """Flatten the array v and select rows based on s.
@@ -22,7 +23,8 @@ def flatten_and_select(v, s):
 
     v = v.reshape((np.prod(v.shape))).tolist()
     v = [v[i] for i in s]
-    return(v)
+    return v
+
 
 def merge_nparrays(npal):
     """Merge a list of numpy arrays into one.
@@ -37,14 +39,13 @@ def merge_nparrays(npal):
 
     # Check matching dtype definitions
     if not all([npal[i].dtype == npal[0].dtype for i in range(len(npal))]):
-        return(npal)
+        return npal
 
     # Count total rows
     nrows = sum([a.shape[0] for a in npal])
 
     # Initialize output
-    merged = np.zeros((nrows,),
-        dtype = npal[0].dtype)
+    merged = np.zeros((nrows,), dtype=npal[0].dtype)
 
     # Row pointer
     c = 0
@@ -55,13 +56,14 @@ def merge_nparrays(npal):
         nrows = npal[i].shape[0]
 
         # Save current array in the merged output
-        merged[c:(c + nrows)] = npal[i]
+        merged[c : (c + nrows)] = npal[i]
 
         # Increment row pointer
         c += nrows
 
     # Output
-    return(merged)
+    return merged
+
 
 def rm_from_mask(L, torm):
     """Remove elements from a mask.
@@ -73,7 +75,7 @@ def rm_from_mask(L, torm):
 
     if len(torm) <= L.max() - len(torm):
         # Update list of objects to be discarded
-        torm = [e + 1  for e in torm]
+        torm = [e + 1 for e in torm]
 
         # Identify which objects to discard
         rm_mask = np.vectorize(lambda x: x in torm)(L)
@@ -91,7 +93,8 @@ def rm_from_mask(L, torm):
         L[rm_mask] = 0
 
     # Output
-    return(L > 0)
+    return L > 0
+
 
 def uniquec(l):
     """Count the instances of the uniqued integers in l.
@@ -113,6 +116,7 @@ def uniquec(l):
 
     # Return tupled counts
     return [(i, counts[i]) for i in possible if counts[i]]
+
 
 # END ==========================================================================
 

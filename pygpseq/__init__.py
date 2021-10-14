@@ -1,15 +1,24 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 @author: Gabriele Girelli
 @email: gigi.ga90@gmail.com
 @description: pygpseq package.
-'''
+"""
 
 # DEPENDENCIES =================================================================
 
-__all__ = ['jinja2', 'joblib', 'matplotlib', 'numpy', 'pandas', 'pickle',
-	'scipy', 'skimage', 'weasyprint']
+__all__ = [
+    "jinja2",
+    "joblib",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "pickle",
+    "scipy",
+    "skimage",
+    "weasyprint",
+]
 
 import os
 import time

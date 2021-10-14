@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 @author: Gabriele Girelli
 @contact: gigi.ga90@gmail.com
 @description: statistic operations library.
-'''
+"""
 
 # DEPENDENCIES =================================================================
 
@@ -20,29 +20,31 @@ from pygpseq.tools import vector as vt
 
 # FUNCTIONS ====================================================================
 
-def angle_between_points( p0, c, p1 ):
-    '''
+
+def angle_between_points(p0, c, p1):
+    """
     c is the center point; result is in degrees
     From http://phrogz.net/angle-between-three-points
-    '''
+    """
     p0 = np.array(p0)
     c = np.array(c)
     p1 = np.array(p1)
 
-    p0c = np.sqrt(np.sum((p0 - c)**2))
-    p1c = np.sqrt(np.sum((p1 - c)**2))
-    p01 = np.sqrt(np.sum((p0 - p1)**2))
+    p0c = np.sqrt(np.sum((p0 - c) ** 2))
+    p1c = np.sqrt(np.sum((p1 - c) ** 2))
+    p01 = np.sqrt(np.sum((p0 - p1) ** 2))
 
-    d = round((p0c**2 + p1c**2 - p01**2), 6)
+    d = round((p0c ** 2 + p1c ** 2 - p01 ** 2), 6)
     n = round((2 * p0c * p1c), 6)
 
     try:
-        tetha = math.acos( d / n )
+        tetha = math.acos(d / n)
     except ValueError as e:
         print("Something went wrong when calculating an angle...")
         raise
 
-    return(tetha / math.pi * 180)
+    return tetha / math.pi * 180
+
 
 def binned_mode(x, nbins):
     """Identify binned mode.
@@ -56,7 +58,7 @@ def binned_mode(x, nbins):
     """
 
     if 0 == len(x):
-        return(np.nan)
+        return np.nan
 
     # Bin breaks
     breaks = np.linspace(0, max(x), nbins)
@@ -74,9 +76,10 @@ def binned_mode(x, nbins):
     occ = [occ[i] for i in ordered]
 
     # Return mode
-    return(breaks[occ[0][0] - 1])
+    return breaks[occ[0][0] - 1]
 
-def binned_profile(x, y, nbins = None):
+
+def binned_profile(x, y, nbins=None):
     """Produce an approximation of sparse data by binning it.
 
     Args:
@@ -101,35 +104,49 @@ def binned_profile(x, y, nbins = None):
     assigned_bins = np.digitize(x, breaks)
 
     # Get mean and median for every bin
-    data = np.zeros((len(breaks),),
-        dtype = [('breaks', 'f'), ('mean', 'f'), ('median', 'f'), ('std', 'f'),
-        ('mode', 'f'), ('max', 'f'), ('mean_raw', 'f'), ('median_raw', 'f'),
-        ('std_raw', 'f'), ('mode_raw', 'f'), ('max_raw', 'f'), ('n', 'f')])
+    data = np.zeros(
+        (len(breaks),),
+        dtype=[
+            ("breaks", "f"),
+            ("mean", "f"),
+            ("median", "f"),
+            ("std", "f"),
+            ("mode", "f"),
+            ("max", "f"),
+            ("mean_raw", "f"),
+            ("median_raw", "f"),
+            ("std_raw", "f"),
+            ("mode_raw", "f"),
+            ("max_raw", "f"),
+            ("n", "f"),
+        ],
+    )
     for bin_id in range(assigned_bins.max()):
         where = np.where(assigned_bins == bin_id)
-        data['breaks'][bin_id] = breaks[bin_id]
+        data["breaks"][bin_id] = breaks[bin_id]
         if 0 != where[0].shape[0]:
-            data['mean'][bin_id] = np.mean(y[where])
-            data['median'][bin_id] = np.median(y[where])
-            data['mode'][bin_id] = binned_mode(y[where], nbins)
-            data['std'][bin_id] = np.std(y[where])
-            data['max'][bin_id] = np.max(y[where])
-            data['n'][bin_id] = len(y[where])
+            data["mean"][bin_id] = np.mean(y[where])
+            data["median"][bin_id] = np.median(y[where])
+            data["mode"][bin_id] = binned_mode(y[where], nbins)
+            data["std"][bin_id] = np.std(y[where])
+            data["max"][bin_id] = np.max(y[where])
+            data["n"][bin_id] = len(y[where])
         else:
-            data['mean'][bin_id] = np.nan
-            data['median'][bin_id] = np.nan
-            data['mode'][bin_id] = np.nan
-            data['std'][bin_id] = np.nan
-            data['max'][bin_id] = np.nan
-            data['n'][bin_id] = 0
+            data["mean"][bin_id] = np.nan
+            data["median"][bin_id] = np.nan
+            data["mode"][bin_id] = np.nan
+            data["std"][bin_id] = np.nan
+            data["max"][bin_id] = np.nan
+            data["n"][bin_id] = 0
 
     # Output
-    return(data)
+    return data
+
 
 def calc_density(data, **kwargs):
     """
     Calculate the Gaussian KDE of the provided data series.
-    
+
     Args:
       sigma_density (float): standard deviation used for covariance calculation.
       nbins (int): #steps for the density curve calculation (opt, def: 1000).
@@ -139,64 +156,62 @@ def calc_density(data, **kwargs):
     """
 
     # Default values
-    if not 'sigma_density' in kwargs.keys():
-        sigma_density = .1
+    if not "sigma_density" in kwargs.keys():
+        sigma_density = 0.1
     else:
-        sigma_density = kwargs['sigma_density']
+        sigma_density = kwargs["sigma_density"]
 
-    if not 'nbins' in kwargs.keys():
+    if not "nbins" in kwargs.keys():
         nbins = 1000
     else:
-        nbins = kwargs['nbins']
+        nbins = kwargs["nbins"]
 
     # If only one nucleus was found
     if 1 == len(data):
-        f = eval('lambda x: 1 if x == ' + str(data[0]) + ' else 0')
+        f = eval("lambda x: 1 if x == " + str(data[0]) + " else 0")
         f = np.vectorize(f)
-        return({
-            'x' : np.array([data[0]]),
-            'y' : np.array([1]),
-            'f' : f
-        })
+        return {"x": np.array([data[0]]), "y": np.array([1]), "f": f}
 
     # Prepare density function
     density = stats.gaussian_kde(data)
 
     # Re-compute covariance
-    density.covariance_factor = lambda : sigma_density
+    density.covariance_factor = lambda: sigma_density
     density._compute_covariance()
 
     # Output
     out = {}
-    out['x'] = np.linspace(min(data), max(data), nbins)
-    out['f'] = density
-    out['y'] = density(out['x'])
-    return(out)
+    out["x"] = np.linspace(min(data), max(data), nbins)
+    out["f"] = density
+    out["y"] = density(out["x"])
+    return out
+
 
 def calc_theta(a, b):
-    '''
+    """
     Calculate rotation angle based on a (opposite) and b (adjacent) sides.
 
     Return:
         float: theta in rad.
-    '''
-    c = np.sqrt(a**2 + b**2)
+    """
+    c = np.sqrt(a ** 2 + b ** 2)
     if a > 0 and b < 0:
-        return(np.arccos(a / c))
+        return np.arccos(a / c)
     elif a < 0 and b > 0:
-        return(-np.arccos(a / c))
+        return -np.arccos(a / c)
     elif a < 0 and b < 0:
-        return(np.arccos(a / c))
+        return np.arccos(a / c)
     else:
-        return(-np.arccos(a / c))
+        return -np.arccos(a / c)
 
-def centered_coords_3d(img, dot_coords = None):
-    '''
+
+def centered_coords_3d(img, dot_coords=None):
+    """
     Extract coordinates from binary image and center them on the origin.
 
     Args:
         img (nd.array): binary image.
-    '''
+    """
     z, x, y = np.nonzero(img)
 
     if not type(None) == type(dot_coords):
@@ -210,12 +225,13 @@ def centered_coords_3d(img, dot_coords = None):
     z = z - np.mean(z)
 
     if not type(None) == type(dot_coords):
-        return((x, y, z, xd, yd, zd))
+        return (x, y, z, xd, yd, zd)
     else:
-        return((x, y, z, None, None, None))
+        return (x, y, z, None, None, None)
+
 
 def extract_3ev(coords):
-    '''
+    """
     Extract 3 major eigen vectors.
 
     Args:
@@ -223,7 +239,7 @@ def extract_3ev(coords):
 
     Returns:
         tuple: major 3 eigen vectors. Coordinate order matches input columns.
-    '''
+    """
 
     cov = np.cov(coords)
     evals, evecs = np.linalg.eig(cov)
@@ -237,7 +253,8 @@ def extract_3ev(coords):
     bv = [b_v1, b_v2, b_v3]
     cv = [c_v1, c_v2, c_v3]
 
-    return((av, bv, cv))
+    return (av, bv, cv)
+
 
 def get_fwhm(xs, ys):
     """Calculate FWHM of highest peak in a curve.
@@ -254,10 +271,10 @@ def get_fwhm(xs, ys):
 
     # Must have the same length
     if len(xs) != len(ys):
-        return(None)
+        return None
 
     if 1 == len(ys):
-        return([xs[0] - 1, xs[0] + 1])
+        return [xs[0] - 1, xs[0] + 1]
 
     # GET FWHM =================================================================
 
@@ -265,7 +282,7 @@ def get_fwhm(xs, ys):
     xmaxi = ys.tolist().index(max(ys))
 
     # Get FWHM range [left] ----------------------------------------------------
-    
+
     if 0 != xmaxi:
         # Get absolute difference to HM value
         x1 = abs(ys[range(xmaxi)] - max(ys) / 2)
@@ -311,9 +328,10 @@ def get_fwhm(xs, ys):
         x2 = max(xs)
 
     # Output
-    return([x1, x2])
+    return [x1, x2]
 
-def get_intercepts(ys, xs = None):
+
+def get_intercepts(ys, xs=None):
     """Given a series of y coordinates, identify the x-axis intercept.
 
     Args:
@@ -327,7 +345,7 @@ def get_intercepts(ys, xs = None):
 
     # Return no intercept if no data was provided
     if 0 == len(ys):
-        return([])
+        return []
 
     # Will contain the intercepts (pairs of) indexes
     out = []
@@ -341,10 +359,10 @@ def get_intercepts(ys, xs = None):
     # Checking matching ys/xs size
     if not type(None) == type(xs):
         xs = np.array(xs)
-        if ys.shape[0] !=  xs.shape[0]:
+        if ys.shape[0] != xs.shape[0]:
             print(ys.shape[0])
             print(xs.shape[0])
-            print('Discarded provided X coordinates.')
+            print("Discarded provided X coordinates.")
             xs = None
 
     # Perfect intersections ----------------------------------------------------
@@ -364,19 +382,20 @@ def get_intercepts(ys, xs = None):
     bys[ys < 0] = -1
 
     # Identify intercepts by summing previous boolean cell value
-    bys = np.array([bys[i] + bys[i+1] for i in range(bys.shape[0] - 1)])
+    bys = np.array([bys[i] + bys[i + 1] for i in range(bys.shape[0] - 1)])
     bysi = [i for i in range(len(bys)) if (bys == 0)[i]]
-    
+
     if type(None) == type(xs):
         # Interpolate index of intercepts
-        out.extend([i + .5 for i in bysi])
+        out.extend([i + 0.5 for i in bysi])
     else:
         # Interpolate x of intercepts
         out = [xs[i] for i in out]
-        out.extend([(xs[i] + xs[i+1]) / 2.0 for i in bysi])
+        out.extend([(xs[i] + xs[i + 1]) / 2.0 for i in bysi])
 
     # Output
-    return(out)
+    return out
+
 
 def get_norm_pdf(mu, sigma, x):
     """Normal distribution N(mu, sigma) probability value at x.
@@ -390,10 +409,14 @@ def get_norm_pdf(mu, sigma, x):
       float: N(mu, sigma) probability value at x.
     """
 
-    return(1 / np.sqrt(2 * sigma**2 * np.pi) *
-        np.exp(-(x - mu)**2 / (2 * sigma**2)))
+    return (
+        1
+        / np.sqrt(2 * sigma ** 2 * np.pi)
+        * np.exp(-((x - mu) ** 2) / (2 * sigma ** 2))
+    )
 
-def get_outliers(x, non = None, fig = None, close = None):
+
+def get_outliers(x, non=None, fig=None, close=None):
     """Identifies the outliers in a data set.
 
     Args:
@@ -416,7 +439,7 @@ def get_outliers(x, non = None, fig = None, close = None):
 
     # If no dataset is provided
     if 0 == len(x):
-        return([])
+        return []
 
     # Identify outliers through boxplot
     bp = ax.boxplot(x)
@@ -427,73 +450,75 @@ def get_outliers(x, non = None, fig = None, close = None):
 
     # Retrieve outliers
     outliers = []
-    outliers.extend(bp['fliers'][0].get_data()[0].tolist())
-    outliers.extend(bp['fliers'][0].get_data()[1].tolist())
+    outliers.extend(bp["fliers"][0].get_data()[0].tolist())
+    outliers.extend(bp["fliers"][0].get_data()[1].tolist())
 
     # Unique outliers
     outliers = set(outliers)
 
     # Output
     if not non:
-        return([i for i in range(len(x)) if x[i] in outliers])
+        return [i for i in range(len(x)) if x[i] in outliers]
     else:
-        return([i for i in range(len(x)) if not x[i] in outliers])
+        return [i for i in range(len(x)) if not x[i] in outliers]
+
 
 def gpartial(V, d, sigma):
-    '''Calculate the partial derivative of V along dimension d using a filter
+    """Calculate the partial derivative of V along dimension d using a filter
     of size sigma.
 
     Based on code by Erik Wernersson, PhD.
-    '''
+    """
 
     w = round(8 * sigma + 2)
     if 0 == w % 2:
         w = w + 1
     w = 2 * w + 1
     if 1 == sigma:
-        w = 11;
+        w = 11
 
     if sigma == 0:
-        dg = [0, -1, 1];
-        g = [0, .5, .5];
+        dg = [0, -1, 1]
+        g = [0, 0.5, 0.5]
     else:
-        g = stats.norm.pdf(np.linspace(-w/2., w/2., w+1), scale = sigma)
+        g = stats.norm.pdf(np.linspace(-w / 2.0, w / 2.0, w + 1), scale=sigma)
         x = np.linspace(-(w - 1) / 2, (w - 1) / 2, w + 1)
-        k0 = 1 / np.sqrt(2 * np.pi * sigma**2.)
-        k1 = 1 / (2 * sigma**2)
-        dg = -2 * k0 * k1 * x * np.exp(-k1 * x**2.)
+        k0 = 1 / np.sqrt(2 * np.pi * sigma ** 2.0)
+        k1 = 1 / (2 * sigma ** 2)
+        dg = -2 * k0 * k1 * x * np.exp(-k1 * x ** 2.0)
 
     # Iterate through slices
     intlist2 = []
 
     if 3 == len(V.shape):
         if 1 == d:
-            V = convolve(V, dg.reshape([1, 1, w+1]), 'same')
+            V = convolve(V, dg.reshape([1, 1, w + 1]), "same")
         else:
-            V = convolve(V, g.reshape([1, 1, w+1]), 'same')
+            V = convolve(V, g.reshape([1, 1, w + 1]), "same")
 
         if 2 == d:
-            V = convolve(V, dg.reshape([1, w+1, 1]), 'same')
+            V = convolve(V, dg.reshape([1, w + 1, 1]), "same")
         else:
-            V = convolve(V, g.reshape([1, w+1, 1]), 'same')
+            V = convolve(V, g.reshape([1, w + 1, 1]), "same")
 
         if 3 == d:
-            V = convolve(V, dg.reshape([w+1, 1, 1]), 'same')
+            V = convolve(V, dg.reshape([w + 1, 1, 1]), "same")
         else:
-            V = convolve(V, g.reshape([w+1, 1, 1]), 'same')
+            V = convolve(V, g.reshape([w + 1, 1, 1]), "same")
 
     elif 2 == len(V.shape):
         if 1 == d:
-            V = convolve(V, dg.reshape([1, w+1]), 'same')
+            V = convolve(V, dg.reshape([1, w + 1]), "same")
         else:
-            V = convolve(V, g.reshape([1, w+1]), 'same')
+            V = convolve(V, g.reshape([1, w + 1]), "same")
 
         if 2 == d:
-            V = convolve(V, dg.reshape([w+1, 1]), 'same')
+            V = convolve(V, dg.reshape([w + 1, 1]), "same")
         else:
-            V = convolve(V, g.reshape([w+1, 1]), 'same')
+            V = convolve(V, g.reshape([w + 1, 1]), "same")
 
-    return(V)
+    return V
+
 
 def r_to_size(r_interval, size_type):
     """Convert radius interval to size (Area/Volume) interval.
@@ -514,10 +539,11 @@ def r_to_size(r_interval, size_type):
         # Area interval
         o_interval = np.pi * np.square(np.array(r_interval))
 
-    return(o_interval)
+    return o_interval
+
 
 def rotate3d(coords, theta, axis):
-    '''
+    """
     Rotate coordinates around an axis.
 
     Args:
@@ -527,38 +553,45 @@ def rotate3d(coords, theta, axis):
 
     Returns:
         tuple: rotated coordinates.
-    '''
+    """
 
     rotation_mat = False
 
-    if 0 == axis: # X axis rotation
-        rotation_mat = np.matrix([
-            [1, 0, 0],
-            [0, np.cos(theta), -np.sin(theta)],
-            [0, np.sin(theta), np.cos(theta)]
-        ])
+    if 0 == axis:  # X axis rotation
+        rotation_mat = np.matrix(
+            [
+                [1, 0, 0],
+                [0, np.cos(theta), -np.sin(theta)],
+                [0, np.sin(theta), np.cos(theta)],
+            ]
+        )
 
-    if 1 == axis: # Y axis rotation
-        rotation_mat = np.matrix([
-            [np.cos(theta), 0, np.sin(theta)],
-            [0, 1, 0],
-            [-np.sin(theta), 0, np.cos(theta)]
-        ])
+    if 1 == axis:  # Y axis rotation
+        rotation_mat = np.matrix(
+            [
+                [np.cos(theta), 0, np.sin(theta)],
+                [0, 1, 0],
+                [-np.sin(theta), 0, np.cos(theta)],
+            ]
+        )
 
-    if 2 == axis: # Z axis rotation
-        rotation_mat = np.matrix([
-            [np.cos(theta), -np.sin(theta), 0],
-            [np.sin(theta), np.cos(theta), 0],
-            [0, 0, 1]
-        ])
+    if 2 == axis:  # Z axis rotation
+        rotation_mat = np.matrix(
+            [
+                [np.cos(theta), -np.sin(theta), 0],
+                [np.sin(theta), np.cos(theta), 0],
+                [0, 0, 1],
+            ]
+        )
 
-    if axis < 0  or axis > 2: # Unrecognized axis
-        return()
+    if axis < 0 or axis > 2:  # Unrecognized axis
+        return ()
 
     transformed_mat = rotation_mat * coords
     a, b, c = transformed_mat.A
 
-    return((a, b, c))
+    return (a, b, c)
+
 
 def round_unicode(n, nsig):
     """Round operation on unicode number in scientific notation.
@@ -572,11 +605,11 @@ def round_unicode(n, nsig):
     """
 
     # Convert unicode to string
-    n = str(n.replace(u'\u2212', '-'))
+    n = str(n.replace(u"\u2212", "-"))
 
     # Split on the exponent
-    if 'e' in n:
-        n = n.split('e')
+    if "e" in n:
+        n = n.split("e")
     else:
         n = [n]
 
@@ -584,9 +617,10 @@ def round_unicode(n, nsig):
     n[0] = str(round(float(n[0]), nsig))
 
     # Re-join with the exponent and return
-    return(unicode('e'.join(n)))
+    return unicode("e".join(n))
 
-def smooth_gaussian(x, y, sigma_smooth = None, nbins = None):
+
+def smooth_gaussian(x, y, sigma_smooth=None, nbins=None):
     """Smoothen a curve.
 
     Args:
@@ -600,12 +634,12 @@ def smooth_gaussian(x, y, sigma_smooth = None, nbins = None):
     """
 
     # SET PARAMS ===============================================================
-    
+
     if None == nbins:
         nbins = 500
 
     if None == sigma_smooth:
-        sigma_smooth = .1
+        sigma_smooth = 0.1
 
     # SMOOTHEN =================================================================
 
@@ -623,10 +657,12 @@ def smooth_gaussian(x, y, sigma_smooth = None, nbins = None):
         ysum += norm * y[i]
 
     # Output
-    return(ysum / ynum)
+    return ysum / ynum
 
-def smooth_sparse_gaussian(x, y, nbins = None, sigma_smooth = None,
-    rescale_sigma = None, **kwargs):
+
+def smooth_sparse_gaussian(
+    x, y, nbins=None, sigma_smooth=None, rescale_sigma=None, **kwargs
+):
     """Produce a smooth approximation of sparse data.
     Basically a smoothened binned distribution.
 
@@ -644,7 +680,7 @@ def smooth_sparse_gaussian(x, y, nbins = None, sigma_smooth = None,
     if None == nbins:
         nbins = 200
     if None == sigma_smooth:
-        sigma_smooth = .01
+        sigma_smooth = 0.01
     if None == rescale_sigma:
         rescale_sigma = True
 
@@ -655,19 +691,16 @@ def smooth_sparse_gaussian(x, y, nbins = None, sigma_smooth = None,
     data = binned_profile(x, y, nbins)
 
     # Prepare output
-    out = {
-        'x' : data['breaks'].tolist(),
-        'n' : data['n'].tolist()
-    }
+    out = {"x": data["breaks"].tolist(), "n": data["n"].tolist()}
 
     # Smoothen profiles
-    for field in ['mean', 'median', 'mode', 'std', 'max']:
-        out[field + '_raw'] = data[field]
-        out[field] = smooth_gaussian(data['breaks'],
-            data[field], sigma_smooth, nbins)
+    for field in ["mean", "median", "mode", "std", "max"]:
+        out[field + "_raw"] = data[field]
+        out[field] = smooth_gaussian(data["breaks"], data[field], sigma_smooth, nbins)
 
     # Output
-    return(out)
+    return out
+
 
 def wilcox_sets(df, groupkey, setkey):
     """Perform Wilcoxon-Mann-Whitney U test on the provided list of sets.
@@ -695,10 +728,14 @@ def wilcox_sets(df, groupkey, setkey):
     grouped = df.groupby(groupkey)
 
     # Initialize output
-    dtype_definition = [('field', 'S100'), ('i', 'S100'), ('j', 'S100'),
-        ('p', 'float'), ('sig', 'S5')]
-    p_vals = np.zeros((n_sets * (n_sets - 1) / 2,),
-        dtype = dtype_definition)
+    dtype_definition = [
+        ("field", "S100"),
+        ("i", "S100"),
+        ("j", "S100"),
+        ("p", "float"),
+        ("sig", "S5"),
+    ]
+    p_vals = np.zeros((n_sets * (n_sets - 1) / 2,), dtype=dtype_definition)
 
     # Cycle counter
     c = 0
@@ -708,29 +745,31 @@ def wilcox_sets(df, groupkey, setkey):
             p = stats.mannwhitneyu(
                 grouped.get_group(set_names[i])[setkey],
                 grouped.get_group(set_names[j])[setkey],
-                alternative = 'two-sided'
+                alternative="two-sided",
             ).pvalue
 
             # Significance string
-            sig = ''
-            if p <= .0001:
-                sig = '***'
-            elif p <= .001:
-                sig = '**'
-            elif p <= .01:
-                sig = '*'
-            elif p <= .05:
-                sig = '.'
+            sig = ""
+            if p <= 0.0001:
+                sig = "***"
+            elif p <= 0.001:
+                sig = "**"
+            elif p <= 0.01:
+                sig = "*"
+            elif p <= 0.05:
+                sig = "."
 
             # Append result
-            p_vals[c] = np.array((setkey, set_names[i], set_names[j], p, sig),
-                dtype = dtype_definition)
+            p_vals[c] = np.array(
+                (setkey, set_names[i], set_names[j], p, sig), dtype=dtype_definition
+            )
 
             # Increase cycle counter
             c += 1
 
     # Output
-    return(p_vals)
+    return p_vals
+
 
 # END ==========================================================================
 
