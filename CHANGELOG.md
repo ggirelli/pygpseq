@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## Unreleased
 
-## [3.4.0] - 2021-11-14
+## [3.4.1] - 2021-11-14
 This release fixes dependency conflicts that were caused by an improper dependency setup.
 As such, no functionality is changed. The same can be said for the way a user interacts with the package.
 The main change is related to the new dependency manager: Poetry.
@@ -441,7 +441,7 @@ Use `pygpseq==3.3.6` only if strictly necessary and at your own risk, as this pa
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
-[3.4.0] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.4.0
+[3.4.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.4.0
 [3.3.5] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.5
 [3.3.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.4
 [3.3.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.3
