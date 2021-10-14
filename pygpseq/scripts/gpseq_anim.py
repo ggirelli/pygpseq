@@ -51,6 +51,106 @@ from ggc.args import check_threads, export_settings
 from pygpseq.tools.io import printout
 
 
+# FUNCTION =====================================================================
+version = "2.1.1"
+
+
+def print_settings(gpi, args, readable_cdescr, readable_nsf, clear=True):
+    """Show input settings, for confirmation.
+
+    Args:
+            args (Namespace): arguments parsed by argparse.
+            clear (bool): clear screen before printing.
+    """
+    s = " # GPSeq image analysis v%s\n" % version
+
+    s += """
+---------- SETTING:  VALUE ----------
+
+Input directory :  %s
+Output directory :  %s
+        Log file :  %s
+
+    Skipped steps :  %s
+
+    DNA channels :  %s
+Signal channels :  %s
+
+    Segmentation :  %s
+    Mask folder :  %s
+    Mask prefix :  %s
+        Labeled :  %r
+        Compressed :  %r
+
+        Analysis :  %s
+    Middle section :  %s
+    Distance mode :  %s
+
+Voxel aspect (ZYX) :  %s
+    Aspect unit :  %s
+Minimum Z portion :  %.2f
+    Minimum radius :  %.2f vx
+        Fill holes :  %r
+
+    Sigma (smooth) :  %.4f
+Sigma (density) :  %.4f
+            #bins :  %d
+
+Condition descr. : %s
+
+Nuclear selection :  %s
+
+        Threads :  %d
+            Note :  %s
+
+            Regexp :  '%s'
+
+    Correct shift :  %r
+Rescale deconv. :  %r
+Normalize dist. :  %r
+        Debug mod :  %r
+
+    """ % (
+        gpi.basedir,
+        gpi.outdir,
+        gpi.logpath,
+        str(args.skip),
+        str(gpi.dna_names),
+        str(gpi.sig_names),
+        args.seg_type,
+        args.mask_folder,
+        args.mask_prefix,
+        args.labeled,
+        args.compressed,
+        args.an_type,
+        args.mid_type,
+        args.dist_type,
+        str(gpi.aspect),
+        gpi.umes,
+        gpi.min_z_size,
+        gpi.radius_interval[0],
+        gpi.do_fill_holes,
+        gpi.sigma_smooth,
+        gpi.sigma_density,
+        gpi.nbins,
+        "\n                     ".join(readable_cdescr),
+        readable_nsf,
+        gpi.ncores,
+        gpi.notes,
+        gpi.reg,
+        gpi.correct_shift,
+        gpi.rescale_deconvolved,
+        gpi.normalize_distance,
+        gpi.debugging,
+    )
+
+    if clear:
+        print("\033[H\033[J%s" % s)
+    else:
+        print(s)
+    return s
+
+
 def run():
     # PARAMETERS ===================================================================
 
@@ -331,7 +431,6 @@ def run():
     )
 
     # Version flag
-    version = "2.1.1"
     parser.add_argument(
         "--version",
         action="version",
@@ -347,103 +446,6 @@ def run():
 
     # Additional checks
     args.threads = check_threads(args.threads)
-
-    # FUNCTION =====================================================================
-
-    def print_settings(gpi, args, clear=True):
-        """Show input settings, for confirmation.
-
-        Args:
-                args (Namespace): arguments parsed by argparse.
-                clear (bool): clear screen before printing.
-        """
-        s = " # GPSeq image analysis v%s\n" % version
-
-        s += """
-	---------- SETTING:  VALUE ----------
-
-	Input directory :  %s
-	Output directory :  %s
-			Log file :  %s
-	
-		Skipped steps :  %s
-	
-		DNA channels :  %s
-	Signal channels :  %s
-
-		Segmentation :  %s
-		Mask folder :  %s
-		Mask prefix :  %s
-			Labeled :  %r
-			Compressed :  %r
-
-			Analysis :  %s
-		Middle section :  %s
-		Distance mode :  %s
-
-	Voxel aspect (ZYX) :  %s
-		Aspect unit :  %s
-	Minimum Z portion :  %.2f
-		Minimum radius :  %.2f vx
-			Fill holes :  %r
-
-		Sigma (smooth) :  %.4f
-	Sigma (density) :  %.4f
-				#bins :  %d
-
-	Condition descr. : %s
-
-	Nuclear selection :  %s
-
-			Threads :  %d
-				Note :  %s
-
-				Regexp :  '%s'
-
-		Correct shift :  %r
-	Rescale deconv. :  %r
-	Normalize dist. :  %r
-			Debug mod :  %r
-
-		""" % (
-            gpi.basedir,
-            gpi.outdir,
-            gpi.logpath,
-            str(args.skip),
-            str(gpi.dna_names),
-            str(gpi.sig_names),
-            args.seg_type,
-            args.mask_folder,
-            args.mask_prefix,
-            args.labeled,
-            args.compressed,
-            args.an_type,
-            args.mid_type,
-            args.dist_type,
-            str(gpi.aspect),
-            gpi.umes,
-            gpi.min_z_size,
-            gpi.radius_interval[0],
-            gpi.do_fill_holes,
-            gpi.sigma_smooth,
-            gpi.sigma_density,
-            gpi.nbins,
-            "\n                     ".join(readable_cdescr),
-            readable_nsf,
-            gpi.ncores,
-            gpi.notes,
-            gpi.reg,
-            gpi.correct_shift,
-            gpi.rescale_deconvolved,
-            gpi.normalize_distance,
-            gpi.debugging,
-        )
-
-        if clear:
-            print("\033[H\033[J%s" % s)
-        else:
-            print(s)
-        return s
 
     # RUN ==========================================================================
 
@@ -540,7 +542,7 @@ def run():
     gpi.debugging = args.DEBUG_MODE
 
     # Show current settings
-    ssettings = print_settings(gpi, args)
+    ssettings = print_settings(gpi, args, readable_cdescr, readable_nsf)
     if not args.do_all:
         ask("Confirm settings and proceed?")
 

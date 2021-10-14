@@ -60,6 +60,46 @@ from skimage.morphology import closing, cube, square
 from skimage.segmentation import clear_border
 
 
+# FUNCTIONS ====================================================================
+
+
+def run(imgpath, imgdir, outdir, outpath=None, compress=None):
+    # Perform 3D segmentation of nuclear staining image.
+    #
+    # Args:
+    #   imgpath (string): input image file name.
+    #   imgdir (string): input image folder.
+    #
+    # Returns:
+    #   string: path to output image.
+
+    if type(None) == type(compress):
+        compress = False
+
+    # Preparation --------------------------------------------------------------
+
+    # Read image
+    img = imt.read_tiff(os.path.join(imgdir, imgpath))
+
+    # Write image
+    if type(None) == type(outpath):
+        outpath = imgpath
+
+    if not compress:
+        plot.save_tif(
+            os.path.join(outdir, outpath), img, imt.get_dtype(img.max()), False
+        )
+        label = "Uncompressed"
+    else:
+        plot.save_tif(
+            os.path.join(outdir, outpath), img, imt.get_dtype(img.max()), True
+        )
+        label = "Compressed"
+
+    print("%s '%s'." % (label, os.path.join(imgdir, imgpath)))
+    return os.path.join(outdir, outpath)
+
+
 def run():
 
     # PARAMETERS ===================================================================
@@ -191,44 +231,6 @@ def run():
                 outpath = args.output[0]
         else:
             printout("Input file not found: %s" % (args.input[0],), -2)
-
-    # FUNCTIONS ====================================================================
-
-    def run(imgpath, imgdir, outdir, outpath=None, compress=None):
-        # Perform 3D segmentation of nuclear staining image.
-        #
-        # Args:
-        #   imgpath (string): input image file name.
-        #   imgdir (string): input image folder.
-        #
-        # Returns:
-        #   string: path to output image.
-
-        if type(None) == type(compress):
-            compress = False
-
-        # Preparation --------------------------------------------------------------
-
-        # Read image
-        img = imt.read_tiff(os.path.join(imgdir, imgpath))
-
-        # Write image
-        if type(None) == type(outpath):
-            outpath = imgpath
-
-        if not compress:
-            plot.save_tif(
-                os.path.join(outdir, outpath), img, imt.get_dtype(img.max()), False
-            )
-            label = "Uncompressed"
-        else:
-            plot.save_tif(
-                os.path.join(outdir, outpath), img, imt.get_dtype(img.max()), True
-            )
-            label = "Compressed"
-
-        print("%s '%s'." % (label, os.path.join(imgdir, imgpath)))
-        return os.path.join(outdir, outpath)
 
     # RUN ==========================================================================
 

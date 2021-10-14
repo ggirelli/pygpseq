@@ -52,6 +52,102 @@ from ggc.args import check_threads
 from pygpseq.tools import image as imt, plot, stat
 
 
+# FUNCTIONS ====================================================================
+
+
+def mkPlot(pdata, path):
+    """Generate pdf plot of sum intensity per Z slice.
+
+    Args:
+        pdata (dict): for each FoV, a dict with 'x' and 'y' paired coordinates.
+        path (string): path to pdf output file.
+
+    Returns:
+        None: writes to disk.
+    """
+
+    plt.figure(figsize=[12, 8])
+
+    xmax = max([max(f["x"]) for f in pdata.values()])
+    ymax = max([max(f["y"]) for f in pdata.values()])
+
+    for (f, data) in pdata.items():
+        plt.plot(data["x"], data["y"], linewidth=0.5)
+
+    plt.xlabel("Z-slice index")
+    if args.intensity_sum:
+        plt.ylabel("Intensity sum [a.u.]")
+    else:
+        plt.ylabel("Gradient magnitude [a.u.]")
+    plt.title("Out-of-focus study")
+
+    plt.legend(
+        list(pdata.keys()),
+        bbox_to_anchor=(1.04, 1),
+        loc="upper left",
+        prop={"size": 6},
+    )
+    plt.subplots_adjust(right=0.75)
+
+    plt.gca().axvline(x=xmax * args.range[0] / 2, ymax=ymax, linestyle="--", color="k")
+    plt.gca().axvline(
+        x=xmax - xmax * args.range[0] / 2, ymax=ymax, linestyle="--", color="k"
+    )
+
+    plot.export(path)
+
+    plt.show()
+
+
+def isOOF(args, impath):
+    # Read image
+    im = imt.read_tiff("%s%s" % (args.imdir[0], impath))
+
+    # Select first time frame
+    while 3 < len(im.shape):
+        im = im[0]
+
+    # Iterate through slices
+    intlist = []
+
+    profile_data = {}
+    sout = ""
+    for zi in range(im.shape[0]):
+        if args.intensity_sum:
+            intlist.append(im[zi].sum())
+        else:
+            dx = stat.gpartial(im[zi, :, :], 1, 1)
+            dy = stat.gpartial(im[zi, :, :], 2, 1)
+            intlist.append(np.mean(np.mean((dx ** 2 + dy ** 2) ** (1 / 2))))
+
+        # Output string
+        sout += "%s\t%d\t%f\n" % (impath, zi + 1, intlist[zi])
+
+        # If plot is required, update profile data
+        if args.plot:
+            if impath in profile_data.keys():
+                profile_data[impath]["x"].append(zi + 1)
+                profile_data[impath]["y"].append(intlist[zi])
+            else:
+                profile_data[impath] = {"x": [zi + 1], "y": [intlist[zi]]}
+
+    # Identify maximum slice
+    maxid = intlist.index(max(intlist))
+    hrange = im.shape[0] * args.range[0] / 2.0
+    hstack = im.shape[0] / 2.0
+    if maxid >= (hstack - hrange) and maxid <= (hstack + hrange):
+        summary = "%s is in-focus.\n" % (impath,)
+    else:
+        summary = "%s is out-of-focus.\n" % (impath,)
+        if args.rename:
+            os.rename(
+                "%s%s" % (args.imdir[0], impath),
+                "%s%s.old" % (args.imdir[0], impath),
+            )
+
+    return (sout, summary, profile_data)
+
+
 def run():
 
     # PARAMETERS ===================================================================
@@ -152,101 +248,6 @@ def run():
 
     # Adjust number of threads
     args.threads = check_threads(args.threads)
-
-    # FUNCTIONS ====================================================================
-
-    def mkPlot(pdata, path):
-        """Generate pdf plot of sum intensity per Z slice.
-
-        Args:
-            pdata (dict): for each FoV, a dict with 'x' and 'y' paired coordinates.
-            path (string): path to pdf output file.
-
-        Returns:
-            None: writes to disk.
-        """
-
-        plt.figure(figsize=[12, 8])
-
-        xmax = max([max(f["x"]) for f in pdata.values()])
-        ymax = max([max(f["y"]) for f in pdata.values()])
-
-        for (f, data) in pdata.items():
-            plt.plot(data["x"], data["y"], linewidth=0.5)
-
-        plt.xlabel("Z-slice index")
-        if args.intensity_sum:
-            plt.ylabel("Intensity sum [a.u.]")
-        else:
-            plt.ylabel("Gradient magnitude [a.u.]")
-        plt.title("Out-of-focus study")
-
-        plt.legend(
-            list(pdata.keys()),
-            bbox_to_anchor=(1.04, 1),
-            loc="upper left",
-            prop={"size": 6},
-        )
-        plt.subplots_adjust(right=0.75)
-
-        plt.gca().axvline(
-            x=xmax * args.range[0] / 2, ymax=ymax, linestyle="--", color="k"
-        )
-        plt.gca().axvline(
-            x=xmax - xmax * args.range[0] / 2, ymax=ymax, linestyle="--", color="k"
-        )
-
-        plot.export(path)
-
-        plt.show()
-
-    def isOOF(args, impath):
-        # Read image
-        im = imt.read_tiff("%s%s" % (args.imdir[0], impath))
-
-        # Select first time frame
-        while 3 < len(im.shape):
-            im = im[0]
-
-        # Iterate through slices
-        intlist = []
-
-        profile_data = {}
-        sout = ""
-        for zi in range(im.shape[0]):
-            if args.intensity_sum:
-                intlist.append(im[zi].sum())
-            else:
-                dx = stat.gpartial(im[zi, :, :], 1, 1)
-                dy = stat.gpartial(im[zi, :, :], 2, 1)
-                intlist.append(np.mean(np.mean((dx ** 2 + dy ** 2) ** (1 / 2))))
-
-            # Output string
-            sout += "%s\t%d\t%f\n" % (impath, zi + 1, intlist[zi])
-
-            # If plot is required, update profile data
-            if args.plot:
-                if impath in profile_data.keys():
-                    profile_data[impath]["x"].append(zi + 1)
-                    profile_data[impath]["y"].append(intlist[zi])
-                else:
-                    profile_data[impath] = {"x": [zi + 1], "y": [intlist[zi]]}
-
-        # Identify maximum slice
-        maxid = intlist.index(max(intlist))
-        hrange = im.shape[0] * args.range[0] / 2.0
-        hstack = im.shape[0] / 2.0
-        if maxid >= (hstack - hrange) and maxid <= (hstack + hrange):
-            summary = "%s is in-focus.\n" % (impath,)
-        else:
-            summary = "%s is out-of-focus.\n" % (impath,)
-            if args.rename:
-                os.rename(
-                    "%s%s" % (args.imdir[0], impath),
-                    "%s%s.old" % (args.imdir[0], impath),
-                )
-
-        return (sout, summary, profile_data)
 
     # RUN ==========================================================================
 

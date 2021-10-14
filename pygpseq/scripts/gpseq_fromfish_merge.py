@@ -50,6 +50,243 @@ import time
 
 from pygpseq.tools.io import printout
 
+# FUNCTION =====================================================================
+
+
+def merge_DataFrameDict_byKey(dfd, k):
+    out = [d[k] for d in dfd if type(d[k]) == type(pd.DataFrame())]
+    out = pd.DataFrame() if 0 == len(out) else pd.concat(out)
+    out.index = range(out.shape[0])
+    return out
+
+
+def look_for_data(d, flist, k, flag, dataset, ipath):
+    """Look for tables in input folder.
+    If the table was not found, store np.nan.
+
+    Args:
+            d (dict): dictionary to update.
+            flist (list): possible file list.
+            k (str): dictionary key for storage.
+            flag (str): dataset_series flag.
+            dataset (str): dataset label.
+            ipath (str): input folder path.
+
+    Return
+            dict: updated dictionary.
+    """
+    if 0 == len(flist):
+        d["error"] = "Warning! Cannot find %s information in %s. %s" % (
+            k,
+            flag,
+            "Dataset %s. Folder: %s" % (dataset, ipath),
+        )
+        d["good"] = False
+        d["partial"] = True
+        d[k] = np.nan
+    else:
+        d[k] = pd.read_csv("%s/%s" % (ipath, flist[0]), args.delim)
+    return d
+
+
+def add_dataset_info(data, did, date, sid, ct):
+    data["dataset"] = did
+    data["date"] = date
+    data["session"] = sid
+    data["cell_type"] = ct
+    return data
+
+
+def extract_data(did, date, sid):
+    # Subset metadata
+    time.sleep(1)  # To avoid automatic batch resizing
+    log = []
+
+    sub_cond = np.logical_and.reduce(
+        (
+            md["dataset"].values == did,
+            md["date"].values == date,
+            md["session"].values == sid,
+        )
+    )
+    subt = md.loc[
+        sub_cond,
+    ]
+    subt.index = range(subt.shape[0])
+
+    # Extract dataset and series information -----------------------------------
+    dataset = did
+    date = date
+    session = "%03d" % sid
+    flag = "%s_%s_%s" % (dataset, date, session)
+    cell_type = subt.loc[0, "cell_line"]
+
+    # Log current status
+    log.append("Working on %s..." % flag)
+
+    # Identify input folder and skip if missing --------------------------------
+    outl = []
+    for indir in args.indir:
+        ipath = "%s/%s" % (indir, flag)
+
+        # Prepare flag output
+        out = {}
+        out["good"] = True
+        out["partial"] = False
+
+        if not os.path.isdir(ipath):
+            msg = "Warning! Cannot find folder for %s." % flag
+            msg += "\nSkipped. Folder: %s" % ipath
+            log.append(msg)
+            out["good"] = False
+            continue
+
+        # Identify input files -------------------------------------------------
+        flist = os.listdir(ipath)
+        nuclei = [x for x in flist if "nuclei.out" in x]
+        dots = [x for x in flist if "wCentr.out" in x and "noAllele" not in x]
+        comps = [x for x in flist if "nuclear_compartment." in x]
+        dens = [x for x in flist if "density_profile.tsv" in x]
+        vols = [x for x in flist if "volume_profile.tsv" in x]
+
+        out = look_for_data(out, nuclei, "nuclei", flag, dataset, ipath)
+        out = look_for_data(out, dots, "dots", flag, dataset, ipath)
+        out = look_for_data(out, comps, "compartments", flag, dataset, ipath)
+        out = look_for_data(out, dens, "density_profile", flag, dataset, ipath)
+        out = look_for_data(out, vols, "volume_profile", flag, dataset, ipath)
+
+        outl.append(out)
+
+    # Check for completeness
+    if not any([d["good"] for d in outl]):
+        if any([d["partial"] for d in outl]):
+            # Print error due to partial information present
+            [log.append(d["error"]) for d in outl if d["partial"]]
+            d = [d for d in outl if d["partial"]][0]
+        else:
+            # Print error due to not-found information
+            msg = "Warning! Cannot find information on dataset %s %s" % (
+                dataset,
+                "in any of the input directories.",
+            )
+            msg += "\nSkipped %s.\n" % flag
+            print(msg)
+            return np.nan
+    else:
+        d = [d for d in outl if d["good"]][0]
+
+    # Extract dot data ---------------------------------------------------------
+    if type(pd.DataFrame()) == type(d["dots"]):
+        dots = d["dots"]
+        dots = add_dataset_info(dots, did, date, sid, cell_type)
+        dch = {}
+        for i in subt.index:
+            dch[subt.loc[i, "channel"].lower()] = subt.loc[i, "probe_label"]
+        dots["probe_label"] = np.nan
+        for i in dots.index:
+            c = dots.loc[i, "Channel"].lower()
+            if c in dch.keys():
+                dots.loc[i, "probe_label"] = dch[c]
+    else:
+        dots = np.nan
+
+    # Extract nuclei data ------------------------------------------------------
+    if type(pd.DataFrame()) == type(d["nuclei"]):
+        nuclei = d["nuclei"]
+        nuclei = add_dataset_info(nuclei, did, date, sid, cell_type)
+    else:
+        nuclei = np.nan
+
+    # Extract compartments data ------------------------------------------------
+    if type(pd.DataFrame()) == type(d["compartments"]):
+        comps = d["compartments"]
+        comps = add_dataset_info(comps, did, date, sid, cell_type)
+    else:
+        comps = np.nan
+
+    # Extract density profile --------------------------------------------------
+    if type(pd.DataFrame()) == type(d["density_profile"]):
+        dens = d["density_profile"]
+        dens = add_dataset_info(dens, did, date, sid, cell_type)
+    else:
+        dens = np.nan
+
+    # Extract volume profile ---------------------------------------------------
+    if type(pd.DataFrame()) == type(d["volume_profile"]):
+        vols = d["volume_profile"]
+        vols = add_dataset_info(vols, did, date, sid, cell_type)
+    else:
+        vols = np.nan
+
+    # Prepare allele by channel table ------------------------------------------
+    if type(pd.DataFrame()) == type(dots):
+        aldata = dots.loc[
+            np.logical_not(np.isnan(dots["Allele"].values)),
+        ]
+        aldata = aldata.loc[
+            aldata["Allele"].values > 0,
+        ]
+
+        if 0 != aldata.shape[0]:
+            al_uniID = set(zip(aldata["File"], aldata["Channel"], aldata["cell_ID"]))
+
+            dl = []
+            cols = []
+
+            for (fid, chid, cid) in al_uniID:
+                al_cond = np.logical_and(
+                    np.logical_and(
+                        aldata["File"].values == fid, aldata["Channel"].values == chid
+                    ),
+                    aldata["cell_ID"].values == cid,
+                )
+                alt = aldata.loc[
+                    al_cond,
+                ]
+                alt.index = range(alt.shape[0])
+
+                d = alt.loc[:, ["File", "Channel", "cell_ID", "G1"]]
+
+                d_3d = alt.loc[0, ["x", "y", "z"]].values
+                d_3d -= alt.loc[1, ["x", "y", "z"]].values
+
+                d["d_3d"] = np.sqrt(np.sum(np.power(d_3d * args.aspect, 2)))
+                d["d_lamin"] = np.abs(np.diff(alt["lamin_dist"].values))[0]
+                d["d_lamin_norm"] = np.abs(np.diff(alt["lamin_dist_norm"].values))[0]
+                d["d_centr"] = np.abs(np.diff(alt["centr_dist"].values))[0]
+                d["d_centr_norm"] = np.abs(np.diff(alt["centr_dist_norm"].values))[0]
+                d["angle"] = alt["angle"].values[0]
+                d = add_dataset_info(d, did, date, sid, cell_type)
+                d["probe_label"] = alt["probe_label"].values[0]
+
+                dl.append(d.loc[0, :])
+                cols = d.columns
+
+            alleles = pd.concat(dl, 1).transpose()
+            alleles.index = range(alleles.shape[0])
+            alleles.columns = cols
+        else:
+            msg = "Warning! No homologue copy pairs found in %s" % flag
+            log.append("%s, homologue copy calculation skipped.\n" % msg)
+            alleles = np.nan
+    else:
+        log.append("Warning! No dots found in %s.\n" % flag)
+        dots = np.nan
+        alleles = np.nan
+
+    log.append("Finished %s" % flag)
+    dout = {
+        "dots": dots,
+        "nuclei": nuclei,
+        "comps": comps,
+        "dens": dens,
+        "vols": vols,
+        "alleles": alleles,
+    }
+
+    return dout
+
+
 def run():
 
     # PARAMETERS ===================================================================
@@ -167,247 +404,12 @@ def run():
         assert os.path.isdir(idp), "input folder not found: %s" % idp
     maxncores = multiprocessing.cpu_count()
     if maxncores < args.threads:
-        printout("Lowered number of threads to maximum available: %d\n" % (maxncores), -1)
+        printout(
+            "Lowered number of threads to maximum available: %d\n" % (maxncores), -1
+        )
         args.threads = maxncores
     if 0 >= args.threads:
         args.threads = 1
-
-    # FUNCTION =====================================================================
-
-
-    def merge_DataFrameDict_byKey(dfd, k):
-        out = [d[k] for d in dfd if type(d[k]) == type(pd.DataFrame())]
-        out = pd.DataFrame() if 0 == len(out) else pd.concat(out)
-        out.index = range(out.shape[0])
-        return out
-
-
-    def look_for_data(d, flist, k, flag, dataset, ipath):
-        """Look for tables in input folder.
-        If the table was not found, store np.nan.
-
-        Args:
-                d (dict): dictionary to update.
-                flist (list): possible file list.
-                k (str): dictionary key for storage.
-                flag (str): dataset_series flag.
-                dataset (str): dataset label.
-                ipath (str): input folder path.
-
-        Return
-                dict: updated dictionary.
-        """
-        if 0 == len(flist):
-            d["error"] = "Warning! Cannot find %s information in %s. %s" % (
-                k,
-                flag,
-                "Dataset %s. Folder: %s" % (dataset, ipath),
-            )
-            d["good"] = False
-            d["partial"] = True
-            d[k] = np.nan
-        else:
-            d[k] = pd.read_csv("%s/%s" % (ipath, flist[0]), args.delim)
-        return d
-
-
-    def add_dataset_info(data, did, date, sid, ct):
-        data["dataset"] = did
-        data["date"] = date
-        data["session"] = sid
-        data["cell_type"] = ct
-        return data
-
-
-    def extract_data(did, date, sid):
-        # Subset metadata
-        time.sleep(1)  # To avoid automatic batch resizing
-        log = []
-
-        sub_cond = np.logical_and.reduce(
-            (
-                md["dataset"].values == did,
-                md["date"].values == date,
-                md["session"].values == sid,
-            )
-        )
-        subt = md.loc[
-            sub_cond,
-        ]
-        subt.index = range(subt.shape[0])
-
-        # Extract dataset and series information -----------------------------------
-        dataset = did
-        date = date
-        session = "%03d" % sid
-        flag = "%s_%s_%s" % (dataset, date, session)
-        cell_type = subt.loc[0, "cell_line"]
-
-        # Log current status
-        log.append("Working on %s..." % flag)
-
-        # Identify input folder and skip if missing --------------------------------
-        outl = []
-        for indir in args.indir:
-            ipath = "%s/%s" % (indir, flag)
-
-            # Prepare flag output
-            out = {}
-            out["good"] = True
-            out["partial"] = False
-
-            if not os.path.isdir(ipath):
-                msg = "Warning! Cannot find folder for %s." % flag
-                msg += "\nSkipped. Folder: %s" % ipath
-                log.append(msg)
-                out["good"] = False
-                continue
-
-            # Identify input files -------------------------------------------------
-            flist = os.listdir(ipath)
-            nuclei = [x for x in flist if "nuclei.out" in x]
-            dots = [x for x in flist if "wCentr.out" in x and "noAllele" not in x]
-            comps = [x for x in flist if "nuclear_compartment." in x]
-            dens = [x for x in flist if "density_profile.tsv" in x]
-            vols = [x for x in flist if "volume_profile.tsv" in x]
-
-            out = look_for_data(out, nuclei, "nuclei", flag, dataset, ipath)
-            out = look_for_data(out, dots, "dots", flag, dataset, ipath)
-            out = look_for_data(out, comps, "compartments", flag, dataset, ipath)
-            out = look_for_data(out, dens, "density_profile", flag, dataset, ipath)
-            out = look_for_data(out, vols, "volume_profile", flag, dataset, ipath)
-
-            outl.append(out)
-
-        # Check for completeness
-        if not any([d["good"] for d in outl]):
-            if any([d["partial"] for d in outl]):
-                # Print error due to partial information present
-                [log.append(d["error"]) for d in outl if d["partial"]]
-                d = [d for d in outl if d["partial"]][0]
-            else:
-                # Print error due to not-found information
-                msg = "Warning! Cannot find information on dataset %s %s" % (
-                    dataset,
-                    "in any of the input directories.",
-                )
-                msg += "\nSkipped %s.\n" % flag
-                print(msg)
-                return np.nan
-        else:
-            d = [d for d in outl if d["good"]][0]
-
-        # Extract dot data ---------------------------------------------------------
-        if type(pd.DataFrame()) == type(d["dots"]):
-            dots = d["dots"]
-            dots = add_dataset_info(dots, did, date, sid, cell_type)
-            dch = {}
-            for i in subt.index:
-                dch[subt.loc[i, "channel"].lower()] = subt.loc[i, "probe_label"]
-            dots["probe_label"] = np.nan
-            for i in dots.index:
-                c = dots.loc[i, "Channel"].lower()
-                if c in dch.keys():
-                    dots.loc[i, "probe_label"] = dch[c]
-        else:
-            dots = np.nan
-
-        # Extract nuclei data ------------------------------------------------------
-        if type(pd.DataFrame()) == type(d["nuclei"]):
-            nuclei = d["nuclei"]
-            nuclei = add_dataset_info(nuclei, did, date, sid, cell_type)
-        else:
-            nuclei = np.nan
-
-        # Extract compartments data ------------------------------------------------
-        if type(pd.DataFrame()) == type(d["compartments"]):
-            comps = d["compartments"]
-            comps = add_dataset_info(comps, did, date, sid, cell_type)
-        else:
-            comps = np.nan
-
-        # Extract density profile --------------------------------------------------
-        if type(pd.DataFrame()) == type(d["density_profile"]):
-            dens = d["density_profile"]
-            dens = add_dataset_info(dens, did, date, sid, cell_type)
-        else:
-            dens = np.nan
-
-        # Extract volume profile ---------------------------------------------------
-        if type(pd.DataFrame()) == type(d["volume_profile"]):
-            vols = d["volume_profile"]
-            vols = add_dataset_info(vols, did, date, sid, cell_type)
-        else:
-            vols = np.nan
-
-        # Prepare allele by channel table ------------------------------------------
-        if type(pd.DataFrame()) == type(dots):
-            aldata = dots.loc[
-                np.logical_not(np.isnan(dots["Allele"].values)),
-            ]
-            aldata = aldata.loc[
-                aldata["Allele"].values > 0,
-            ]
-
-            if 0 != aldata.shape[0]:
-                al_uniID = set(zip(aldata["File"], aldata["Channel"], aldata["cell_ID"]))
-
-                dl = []
-                cols = []
-
-                for (fid, chid, cid) in al_uniID:
-                    al_cond = np.logical_and(
-                        np.logical_and(
-                            aldata["File"].values == fid, aldata["Channel"].values == chid
-                        ),
-                        aldata["cell_ID"].values == cid,
-                    )
-                    alt = aldata.loc[
-                        al_cond,
-                    ]
-                    alt.index = range(alt.shape[0])
-
-                    d = alt.loc[:, ["File", "Channel", "cell_ID", "G1"]]
-
-                    d_3d = alt.loc[0, ["x", "y", "z"]].values
-                    d_3d -= alt.loc[1, ["x", "y", "z"]].values
-
-                    d["d_3d"] = np.sqrt(np.sum(np.power(d_3d * args.aspect, 2)))
-                    d["d_lamin"] = np.abs(np.diff(alt["lamin_dist"].values))[0]
-                    d["d_lamin_norm"] = np.abs(np.diff(alt["lamin_dist_norm"].values))[0]
-                    d["d_centr"] = np.abs(np.diff(alt["centr_dist"].values))[0]
-                    d["d_centr_norm"] = np.abs(np.diff(alt["centr_dist_norm"].values))[0]
-                    d["angle"] = alt["angle"].values[0]
-                    d = add_dataset_info(d, did, date, sid, cell_type)
-                    d["probe_label"] = alt["probe_label"].values[0]
-
-                    dl.append(d.loc[0, :])
-                    cols = d.columns
-
-                alleles = pd.concat(dl, 1).transpose()
-                alleles.index = range(alleles.shape[0])
-                alleles.columns = cols
-            else:
-                msg = "Warning! No homologue copy pairs found in %s" % flag
-                log.append("%s, homologue copy calculation skipped.\n" % msg)
-                alleles = np.nan
-        else:
-            log.append("Warning! No dots found in %s.\n" % flag)
-            dots = np.nan
-            alleles = np.nan
-
-        log.append("Finished %s" % flag)
-        dout = {
-            "dots": dots,
-            "nuclei": nuclei,
-            "comps": comps,
-            "dens": dens,
-            "vols": vols,
-            "alleles": alleles,
-        }
-
-        return dout
-
 
     # RUN ==========================================================================
 

@@ -54,6 +54,150 @@ from pygpseq.tools import plot
 from pygpseq.tools.io import printout
 
 
+# FUNCTIONS ====================================================================
+version = "2.0.0"
+
+
+def tiff_XY_enlarge(img, increases):
+    """Resize image by increasing it on X and Y.
+
+    Args:
+        img (np.ndarray): image to resize.
+        increases (list): list of int increases in px. (XY)
+
+    Returns:
+        np.ndarray: resized image.
+    """
+    N = len(img.shape)
+
+    new_shape = list(img.shape)
+    new_shape[-1] += int(increases[0])
+    new_shape[-2] += int(increases[1])
+
+    new_img = img.copy()
+    new_img = np.zeros(new_shape)
+
+    new_img[np.ix_(*[range(img.shape[i]) for i in range(len(img.shape))])] = img
+    return new_img
+
+
+def calc_loss(img, sides, step):
+    """Calculate how many pixel/voxels would be lost if the image was split
+    without enlarging.
+
+    Args:
+        img (np.ndarray): image to split.
+        sides (list): [column, row] side in px.
+        step (float): step fraction
+
+    Returns:
+        int: number of pixels/voxels lost during split
+    """
+    N = len(img.shape)
+    assert len(sides) <= N
+
+    if step is None:
+        missed = [img.shape[-i - 1] % sides[i] for i in range(len(sides))]
+    else:
+        assert len(sides) == len(step)
+        missed = [img.shape[-i - 1] % sides[i] % step[i] for i in range(len(sides))]
+
+    loss = []
+    for i in range(len(sides)):
+        otherd = [img.shape[j] for j in range(N) if not N - i - 1 == j]
+        otherd.append(missed[-i - 1])
+        loss.append(np.prod(otherd))
+    loss = int(np.sum(loss) - np.prod(img.shape[:-2]) * np.prod(missed))
+
+    return (*missed, loss, loss / np.prod(img.shape) * 100)
+
+
+def tiff_split(img, sides, step, inverted=False):
+    """Split 2D image in sub-images of x_side x y_side x stack_depth.
+    Output is saved to outdir with the suffix .subN,
+    where N is the sub-image index.
+
+    Args:
+        img (np.ndarray): image to split.
+        sides (list): [column, row] side in px.
+        step (float): step fraction.
+        inverted (bool): split top-to-bottom, left-to-right.
+
+    Returns:
+        generator of np.ndarray: output split images
+    """
+
+    if step is None:
+        step = sides
+
+    n = img.shape[-1] // sides[0] * img.shape[-2] // sides[1]
+    print("Output %d images." % n)
+    if 0 == n:
+        return
+
+    ys = [y for y in range(0, img.shape[-2], step[1]) if y + sides[1] <= img.shape[-2]]
+    xs = [x for x in range(0, img.shape[-1], step[0]) if x + sides[0] <= img.shape[-1]]
+
+    if inverted:
+        print("Image split top-to-bottom, left-to-right.")
+        xy_gen = ((x, y) for x in xs for y in ys)
+    else:
+        print("Image split left-to-right, top-to-bottom.")
+        xy_gen = ((x, y) for y in ys for x in xs)
+
+    assert len(img.shape) in [2, 3]
+    if 3 == len(img.shape):
+        tsplit = lambda i, x, y, s: i[:, y : (y + s[1]), x : (x + s[0])]
+    elif 2 == len(img.shape):
+        tsplit = lambda i, x, y, s: i[y : (y + s[1]), x : (x + s[0])]
+
+    with tqdm(range(n)) as pbar:
+        for (x_start, y_start) in xy_gen:
+            yield tsplit(img, x_start, y_start, sides)
+            pbar.update(1)
+
+
+def print_settings(args, sides, clear=True):
+    """Show input settings, for confirmation.
+
+    Args:
+        args (Namespace): arguments parsed by argparse.
+        clear (bool): clear screen before printing.
+    """
+
+    s = " # TIFF split v%s\n" % version
+    s += """
+        Input file :  %s
+Output directory :  %s
+
+            X side : %d
+            Y side : %d
+
+        Overlap : %r
+            Step : %r
+
+            Slice : %r
+        Enlarge : %r
+        Inverted : %r
+    """ % (
+        args.input,
+        args.outdir,
+        sides[0],
+        sides[1],
+        args.overlap,
+        args.step,
+        args.slice,
+        args.enlarge,
+        args.inverted,
+    )
+
+    if clear:
+        print("\033[H\033[J%s" % s)
+    else:
+        print(s)
+    return s
+
+
 def run():
 
     # PARAMETERS ===================================================================
@@ -183,7 +327,6 @@ def run():
         default=False,
     )
 
-    version = "2.0.0"
     parser.add_argument(
         "--version",
         action="version",
@@ -258,152 +401,10 @@ def run():
     if not os.path.isdir(args.outdir):
         os.mkdir(args.outdir)
 
-    # FUNCTIONS ====================================================================
-
-    def tiff_XY_enlarge(img, increases):
-        """Resize image by increasing it on X and Y.
-
-        Args:
-            img (np.ndarray): image to resize.
-            increases (list): list of int increases in px. (XY)
-
-        Returns:
-            np.ndarray: resized image.
-        """
-        N = len(img.shape)
-
-        new_shape = list(img.shape)
-        new_shape[-1] += int(increases[0])
-        new_shape[-2] += int(increases[1])
-
-        new_img = img.copy()
-        new_img = np.zeros(new_shape)
-
-        new_img[np.ix_(*[range(img.shape[i]) for i in range(len(img.shape))])] = img
-        return new_img
-
-    def calc_loss(img, sides, step):
-        """Calculate how many pixel/voxels would be lost if the image was split
-        without enlarging.
-
-        Args:
-            img (np.ndarray): image to split.
-            sides (list): [column, row] side in px.
-            step (float): step fraction
-
-        Returns:
-            int: number of pixels/voxels lost during split
-        """
-        N = len(img.shape)
-        assert len(sides) <= N
-
-        if step is None:
-            missed = [img.shape[-i - 1] % sides[i] for i in range(len(sides))]
-        else:
-            assert len(sides) == len(step)
-            missed = [img.shape[-i - 1] % sides[i] % step[i] for i in range(len(sides))]
-
-        loss = []
-        for i in range(len(sides)):
-            otherd = [img.shape[j] for j in range(N) if not N - i - 1 == j]
-            otherd.append(missed[-i - 1])
-            loss.append(np.prod(otherd))
-        loss = int(np.sum(loss) - np.prod(img.shape[:-2]) * np.prod(missed))
-
-        return (*missed, loss, loss / np.prod(img.shape) * 100)
-
-    def tiff_split(img, sides, step, inverted=False):
-        """Split 2D image in sub-images of x_side x y_side x stack_depth.
-        Output is saved to outdir with the suffix .subN,
-        where N is the sub-image index.
-
-        Args:
-            img (np.ndarray): image to split.
-            sides (list): [column, row] side in px.
-            step (float): step fraction.
-            inverted (bool): split top-to-bottom, left-to-right.
-
-        Returns:
-            generator of np.ndarray: output split images
-        """
-
-        if step is None:
-            step = sides
-
-        n = img.shape[-1] // sides[0] * img.shape[-2] // sides[1]
-        print("Output %d images." % n)
-        if 0 == n:
-            return
-
-        ys = [
-            y for y in range(0, img.shape[-2], step[1]) if y + sides[1] <= img.shape[-2]
-        ]
-        xs = [
-            x for x in range(0, img.shape[-1], step[0]) if x + sides[0] <= img.shape[-1]
-        ]
-
-        if inverted:
-            print("Image split top-to-bottom, left-to-right.")
-            xy_gen = ((x, y) for x in xs for y in ys)
-        else:
-            print("Image split left-to-right, top-to-bottom.")
-            xy_gen = ((x, y) for y in ys for x in xs)
-
-        assert len(img.shape) in [2, 3]
-        if 3 == len(img.shape):
-            tsplit = lambda i, x, y, s: i[:, y : (y + s[1]), x : (x + s[0])]
-        elif 2 == len(img.shape):
-            tsplit = lambda i, x, y, s: i[y : (y + s[1]), x : (x + s[0])]
-
-        with tqdm(range(n)) as pbar:
-            for (x_start, y_start) in xy_gen:
-                yield tsplit(img, x_start, y_start, sides)
-                pbar.update(1)
-
-    def print_settings(args, clear=True):
-        """Show input settings, for confirmation.
-
-        Args:
-            args (Namespace): arguments parsed by argparse.
-            clear (bool): clear screen before printing.
-        """
-
-        s = " # TIFF split v%s\n" % version
-        s += """
-            Input file :  %s
-    Output directory :  %s
-
-                X side : %d
-                Y side : %d
-
-            Overlap : %r
-                Step : %r
-
-                Slice : %r
-            Enlarge : %r
-            Inverted : %r
-        """ % (
-            args.input,
-            args.outdir,
-            sides[0],
-            sides[1],
-            args.overlap,
-            args.step,
-            args.slice,
-            args.enlarge,
-            args.inverted,
-        )
-
-        if clear:
-            print("\033[H\033[J%s" % s)
-        else:
-            print(s)
-        return s
-
     # RUN ==========================================================================
 
     # Show current settings
-    settings_string = print_settings(args)
+    settings_string = print_settings(args, sides)
     if not args.do_all:
         ask("Confirm settings and proceed?")
 

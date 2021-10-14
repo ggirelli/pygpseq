@@ -51,6 +51,106 @@ from pygpseq.tools import plot
 from pygpseq.tools.io import printout
 
 
+# FUNCTIONS ====================================================================
+
+
+def getOutpath(args, metadata, cid, fid):
+    outpath = None
+    # Identify ouytput file name notation
+    if "GPSeq" == args.mode:
+        outpath = "%s.channel%03d.series%03d.tif" % (
+            metadata["channels"][cid].lower(),
+            cid + 1,
+            fid + 1,
+        )
+    elif "DOTTER" == args.mode:
+        outpath = "%s_%03d.tif" % (metadata["channels"][cid].lower(), fid + 1)
+    return outpath
+
+
+def export_channel(args, ch, outpath, metadata, bundled_axes, resolutionZ=None):
+    resolutionXY = (1 / metadata["pixel_microns"], 1 / metadata["pixel_microns"])
+
+    plot.save_tif(
+        os.path.join(args.outdir, outpath),
+        ch,
+        imt.get_dtype(ch.max()),
+        args.doCompress,
+        bundled_axes=bundled_axes.upper(),
+        resolution=resolutionXY,
+        inMicrons=True,
+        forImageJ=True,
+        ResolutionZ=resolutionZ,
+    )
+
+
+def export_fov_3d(fov, metadata, fid, bundled_axes):
+    """Export a field of view after bundling the axes to separate channel TIFF.
+
+    Args:
+        fov (np.ndarray): input multi-channel field of view array.
+        metadata (dict): nd2 metadata dictionary.
+        fid (int): field of view 0-based index.
+    """
+
+    # Get Z resolution
+    if not type(None) == type(args.deltaZ):
+        resolutionZ = args.deltaZ
+    else:
+        with open(args.input, "rb") as fh:
+            p = ND2Parser(fh)
+
+            Zdata = np.array(p._raw_metadata.z_data)
+            Zlevels = np.array(p.metadata["z_levels"]).astype("int")
+            Zlevels = Zlevels + len(Zlevels) * fid
+            Zdata = Zdata[Zlevels]
+
+            resolutionZ = set(np.round(np.diff(Zdata), 3))
+
+            assert_msg = "Z resolution is not constant: %s" % (str(resolutionZ))
+            assert 1 == len(resolutionZ), assert_msg
+
+            resolutionZ = list(resolutionZ)[0]
+
+    if "c" in bundled_axes:
+        # Iterate over channels
+        for cid in range(fov.shape[3]):
+            outpath = getOutpath(args, metadata, cid, fid)
+            if type(None) == type(outpath):
+                return ()
+            ch = fov[:, :, :, cid]
+            export_channel(args, ch, outpath, metadata, bundled_axes, resolutionZ)
+    else:
+        outpath = getOutpath(args, metadata, 0, fid)
+        if type(None) == type(outpath):
+            return ()
+        export_channel(args, fov, outpath, metadata, bundled_axes, resolutionZ)
+
+
+def export_fov_2d(fov, metadata, fid, bundled_axes):
+    """Export a field of view after bundling the axes to separate channel TIFF.
+
+    Args:
+        fov (np.ndarray): input multi-channel field of view array.
+        metadata (dict): nd2 metadata dictionary.
+        fid (int): field of view 0-based index.
+    """
+
+    if "c" in bundled_axes:
+        # Iterate over channels
+        for cid in range(fov.shape[3]):
+            outpath = getOutpath(args, metadata, cid, fid)
+            if type(None) == type(outpath):
+                return ()
+            ch = fov[:, :, cid]
+            export_channel(args, ch, outpath, metadata, bundled_axes)
+    else:
+        outpath = getOutpath(args, metadata, 0, fid)
+        if type(None) == type(outpath):
+            return ()
+        export_channel(args, fov, outpath, metadata, bundled_axes)
+
+
 def run():
 
     # PARAMETERS ===================================================================
@@ -145,101 +245,6 @@ def run():
         )
     if not os.path.isdir(args.outdir):
         os.mkdir(args.outdir)
-
-    # FUNCTIONS ====================================================================
-
-    def getOutpath(args, metadata, cid, fid):
-        outpath = None
-        # Identify ouytput file name notation
-        if "GPSeq" == args.mode:
-            outpath = "%s.channel%03d.series%03d.tif" % (
-                metadata["channels"][cid].lower(),
-                cid + 1,
-                fid + 1,
-            )
-        elif "DOTTER" == args.mode:
-            outpath = "%s_%03d.tif" % (metadata["channels"][cid].lower(), fid + 1)
-        return outpath
-
-    def export_channel(args, ch, outpath, metadata, bundled_axes, resolutionZ=None):
-        resolutionXY = (1 / metadata["pixel_microns"], 1 / metadata["pixel_microns"])
-
-        plot.save_tif(
-            os.path.join(args.outdir, outpath),
-            ch,
-            imt.get_dtype(ch.max()),
-            args.doCompress,
-            bundled_axes=bundled_axes.upper(),
-            resolution=resolutionXY,
-            inMicrons=True,
-            forImageJ=True,
-            ResolutionZ=resolutionZ,
-        )
-
-    def export_fov_3d(fov, metadata, fid, bundled_axes):
-        """Export a field of view after bundling the axes to separate channel TIFF.
-
-        Args:
-            fov (np.ndarray): input multi-channel field of view array.
-            metadata (dict): nd2 metadata dictionary.
-            fid (int): field of view 0-based index.
-        """
-
-        # Get Z resolution
-        if not type(None) == type(args.deltaZ):
-            resolutionZ = args.deltaZ
-        else:
-            with open(args.input, "rb") as fh:
-                p = ND2Parser(fh)
-
-                Zdata = np.array(p._raw_metadata.z_data)
-                Zlevels = np.array(p.metadata["z_levels"]).astype("int")
-                Zlevels = Zlevels + len(Zlevels) * fid
-                Zdata = Zdata[Zlevels]
-
-                resolutionZ = set(np.round(np.diff(Zdata), 3))
-
-                assert_msg = "Z resolution is not constant: %s" % (str(resolutionZ))
-                assert 1 == len(resolutionZ), assert_msg
-
-                resolutionZ = list(resolutionZ)[0]
-
-        if "c" in bundled_axes:
-            # Iterate over channels
-            for cid in range(fov.shape[3]):
-                outpath = getOutpath(args, metadata, cid, fid)
-                if type(None) == type(outpath):
-                    return ()
-                ch = fov[:, :, :, cid]
-                export_channel(args, ch, outpath, metadata, bundled_axes, resolutionZ)
-        else:
-            outpath = getOutpath(args, metadata, 0, fid)
-            if type(None) == type(outpath):
-                return ()
-            export_channel(args, fov, outpath, metadata, bundled_axes, resolutionZ)
-
-    def export_fov_2d(fov, metadata, fid, bundled_axes):
-        """Export a field of view after bundling the axes to separate channel TIFF.
-
-        Args:
-            fov (np.ndarray): input multi-channel field of view array.
-            metadata (dict): nd2 metadata dictionary.
-            fid (int): field of view 0-based index.
-        """
-
-        if "c" in bundled_axes:
-            # Iterate over channels
-            for cid in range(fov.shape[3]):
-                outpath = getOutpath(args, metadata, cid, fid)
-                if type(None) == type(outpath):
-                    return ()
-                ch = fov[:, :, cid]
-                export_channel(args, ch, outpath, metadata, bundled_axes)
-        else:
-            outpath = getOutpath(args, metadata, 0, fid)
-            if type(None) == type(outpath):
-                return ()
-            export_channel(args, fov, outpath, metadata, bundled_axes)
 
     # RUN ==========================================================================
 

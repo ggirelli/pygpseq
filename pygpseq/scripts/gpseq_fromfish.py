@@ -58,6 +58,87 @@ from pygpseq.fish.dot import add_allele, add_allele_polarity
 from pygpseq.fish.nucleus import flag_G1_cells, plot_nuclei_aggregated
 from pygpseq.fish.image import analyze_field_of_view
 
+# FUNCTIONS ====================================================================
+version = "7.0.2"
+
+
+def print_settings(args, clear=True):
+    """Show input settings, for confirmation.
+
+    Args:
+        args (Namespace): arguments parsed by argparse.
+        clear (bool): clear screen before printing.
+    """
+    s = " # GPSeq analysis of FISH signals v%s\n" % version
+
+    s += """
+    --- INPUT =======
+
+        FISH table : %s
+    Image folder : %s
+    Output folder : %s
+
+        Mask folder : %s
+        Mask prefix : '%s'
+
+    --- ANALYSIS ====
+
+        Dilation : %d
+    Aspect (Z Y X) : %s
+    Distance type : %s
+Skipped channels : %s
+    Pole fraction : %.3f
+            #bins : %d
+
+    --- FLAGS =======
+
+        2D masks : '%s'
+            Labeled : %r
+        Compressed : %r
+    Dilate over Z : %r
+Use dilation only
+for dot assignment : %r
+
+        Plot all : %r
+Plot compartments : %r
+
+    --- ADVANCED ====
+
+    Input regexp : %s
+            Delim : '%s'
+            Threads : %d
+        Debug mode : %r
+    """ % (
+        args.dotCoords,
+        args.imdir,
+        args.outdir,
+        args.mask_folder,
+        args.mask_prefix,
+        args.dilate,
+        str(args.aspect),
+        args.dist_type,
+        str(args.skip_channels),
+        args.pole,
+        args.nbins,
+        args.manual_2d_masks,
+        args.labeled,
+        args.compressed,
+        args.doZdilation,
+        args.dilate_for_assignment_only,
+        not args.noplot,
+        not args.no_compartment_plot,
+        args.inreg,
+        args.delim,
+        args.threads,
+        args.DEBUG_MODE,
+    )
+
+    if clear:
+        print("\033[H\033[J%s" % s)
+    else:
+        print(s)
+    return s
+
 
 def run():
 
@@ -330,7 +411,6 @@ def run():
     )
 
     # Version flag
-    version = "7.0.2"
     parser.add_argument(
         "--version",
         action="version",
@@ -385,85 +465,6 @@ def run():
     if 0 != args.dilate:
         assert_msg = "cannot apply dilation on images with different X/Y aspect."
         assert ax == ay, assert_msg
-
-    # FUNCTIONS ====================================================================
-
-    def print_settings(args, clear=True):
-        """Show input settings, for confirmation.
-
-        Args:
-            args (Namespace): arguments parsed by argparse.
-            clear (bool): clear screen before printing.
-        """
-        s = " # GPSeq analysis of FISH signals v%s\n" % version
-
-        s += """
-        --- INPUT =======
-
-            FISH table : %s
-        Image folder : %s
-        Output folder : %s
-
-            Mask folder : %s
-            Mask prefix : '%s'
-    
-        --- ANALYSIS ====
-
-            Dilation : %d
-        Aspect (Z Y X) : %s
-        Distance type : %s
-    Skipped channels : %s
-        Pole fraction : %.3f
-                #bins : %d
-    
-        --- FLAGS =======
-
-            2D masks : '%s'
-                Labeled : %r
-            Compressed : %r
-        Dilate over Z : %r
-    Use dilation only
-    for dot assignment : %r
-
-            Plot all : %r
-    Plot compartments : %r
-
-        --- ADVANCED ====
-
-        Input regexp : %s
-                Delim : '%s'
-                Threads : %d
-            Debug mode : %r
-        """ % (
-            args.dotCoords,
-            args.imdir,
-            args.outdir,
-            args.mask_folder,
-            args.mask_prefix,
-            args.dilate,
-            str(args.aspect),
-            args.dist_type,
-            str(args.skip_channels),
-            args.pole,
-            args.nbins,
-            args.manual_2d_masks,
-            args.labeled,
-            args.compressed,
-            args.doZdilation,
-            args.dilate_for_assignment_only,
-            not args.noplot,
-            not args.no_compartment_plot,
-            args.inreg,
-            args.delim,
-            args.threads,
-            args.DEBUG_MODE,
-        )
-
-        if clear:
-            print("\033[H\033[J%s" % s)
-        else:
-            print(s)
-        return s
 
     # RUN ==========================================================================
 

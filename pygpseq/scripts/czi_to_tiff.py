@@ -52,6 +52,143 @@ from pygpseq.tools import plot
 from pygpseq.tools.io import printout
 
 
+# FUNCTIONS ====================================================================
+
+
+def log_samples(images):
+    """Log the number of FoVs and channels in the CZI images."""
+    axes = images.axes
+
+    if not "S" in axes:
+        nFoVs = 1
+        print("Found 1 field of view.")
+    else:
+        Si = axes.index("S")
+        nFoVs = images.shape[Si]
+        print("Found %d fields of view." % (nFoVs))
+
+    return nFoVs
+
+
+def log_axes(pixels, axes):
+    """Log image shape."""
+    print("; ".join(["%s:%d" % (a, pixels.shape[axes.index(a)]) for a in axes]))
+
+
+def get_channel_names(images):
+    """Extracts channel names from CZI images."""
+    channel_path = "Metadata/DisplaySetting/Channels/Channel/DyeName"
+    channel_names = [
+        x.text for x in ET.fromstring(images.metadata).findall(channel_path)
+    ]
+    channel_names = [x.replace(" ", "").lower() for x in channel_names]
+    return channel_names
+
+
+def get_resolution(images):
+    """Extracts voxel sides from CZI images."""
+    res_path = "Metadata/Scaling/Items/Distance"
+    resolution = [
+        x
+        for x in ET.fromstring(images.metadata).findall(res_path)
+        if x.attrib["Id"] in ["X", "Y", "Z"]
+    ]
+    resolution = dict([(x.attrib["Id"], float(x[0].text)) for x in resolution])
+    return resolution
+
+
+def squeeze_axes(pixels, axes, targets=None, skip=None):
+    """Squeeze specified single-dimension axes.
+
+    Args:
+        pixels (np.ndarray): stacks.
+        axes (str): stacks axis labels.
+        targets (str): axes to squeeze.
+        skip (str): axes not to squeeze.
+    """
+    assert_msg = "axes expected to be %s, %s instead." % (type(""), type(axes))
+    assert type("") == type(axes), assert_msg
+    axes = list(axes)
+
+    if type(None) != type(targets):
+        for axis in targets:
+            if not axis in axes:
+                continue
+            pixels = np.squeeze(pixels, axes.index(axis))
+            axes.pop(axes.index(axis))
+
+    if type(None) != type(skip):
+        for axis in axes:
+            if axis in skip:
+                continue
+            pixels = np.squeeze(pixels, axes.index(axis))
+            axes.pop(axes.index(axis))
+
+    axes = "".join(axes)
+    return (pixels, axes)
+
+
+def reorder_axes(pixels, axes, target):
+    """Reorder stacks axes.
+
+    Args:
+        pixels (np.ndarray): stacks.
+        axes (str): stacks axis labels.
+        target (str): target axis order.
+    """
+
+    assert_msg = "[axes] %s expected, %s instead." % (type(""), type(axes))
+    assert type("") == type(axes), assert_msg
+
+    assert_msg = "[target] %s expected, %s instead." % (type(""), type(target))
+    assert type("") == type(target), assert_msg
+
+    if axes == target:
+        return (pixels, target)
+
+    axes = list(axes)
+    target = list(target)
+
+    assert len(target) == len(axes)
+    for a in axes:
+        assert a in target
+    for a in target:
+        assert a in axes
+
+    target_positions = [target.index(a) for a in axes]
+    pixels = np.moveaxis(pixels, range(len(axes)), target_positions)
+
+    return (pixels, "".join(target))
+
+
+def select_fov(pixels, si, mode="GPSeq"):
+    """Generator that yields one channel stack with output path at a time.
+
+    Args:
+        pixels (np.ndarray): stacks.
+        si (int): ID of the current Field of View (only for output porpuses).
+        mode (str): output path notation.
+
+    """
+
+    assert mode in output_modes
+
+    for ci in range(pixels.shape[0]):
+        stack = pixels[ci]
+
+        # Identify ouytput file name notation
+        if "GPSeq" == mode:
+            outpath = "%s.channel%03d.series%03d.tif" % (
+                channel_names[ci],
+                ci + 1,
+                si + 1,
+            )
+        elif "DOTTER" == mode:
+            outpath = "%s_%03d.tif" % (channel_names[ci], si + 1)
+
+        yield ((stack, outpath))
+
+
 def run():
 
     # PARAMETERS ===================================================================
@@ -133,135 +270,6 @@ def run():
     assert not os.path.isfile(args.outdir), assert_msg
     if not os.path.isdir(args.outdir):
         os.mkdir(args.outdir)
-
-    # FUNCTIONS ====================================================================
-
-    def log_samples(images):
-        """Log the number of FoVs and channels in the CZI images."""
-        axes = images.axes
-
-        if not "S" in axes:
-            nFoVs = 1
-            print("Found 1 field of view.")
-        else:
-            Si = axes.index("S")
-            nFoVs = images.shape[Si]
-            print("Found %d fields of view." % (nFoVs))
-
-        return nFoVs
-
-    def log_axes(pixels, axes):
-        """Log image shape."""
-        print("; ".join(["%s:%d" % (a, pixels.shape[axes.index(a)]) for a in axes]))
-
-    def get_channel_names(images):
-        """Extracts channel names from CZI images."""
-        channel_path = "Metadata/DisplaySetting/Channels/Channel/DyeName"
-        channel_names = [
-            x.text for x in ET.fromstring(images.metadata).findall(channel_path)
-        ]
-        channel_names = [x.replace(" ", "").lower() for x in channel_names]
-        return channel_names
-
-    def get_resolution(images):
-        """Extracts voxel sides from CZI images."""
-        res_path = "Metadata/Scaling/Items/Distance"
-        resolution = [
-            x
-            for x in ET.fromstring(images.metadata).findall(res_path)
-            if x.attrib["Id"] in ["X", "Y", "Z"]
-        ]
-        resolution = dict([(x.attrib["Id"], float(x[0].text)) for x in resolution])
-        return resolution
-
-    def squeeze_axes(pixels, axes, targets=None, skip=None):
-        """Squeeze specified single-dimension axes.
-
-        Args:
-            pixels (np.ndarray): stacks.
-            axes (str): stacks axis labels.
-            targets (str): axes to squeeze.
-            skip (str): axes not to squeeze.
-        """
-        assert_msg = "axes expected to be %s, %s instead." % (type(""), type(axes))
-        assert type("") == type(axes), assert_msg
-        axes = list(axes)
-
-        if type(None) != type(targets):
-            for axis in targets:
-                if not axis in axes:
-                    continue
-                pixels = np.squeeze(pixels, axes.index(axis))
-                axes.pop(axes.index(axis))
-
-        if type(None) != type(skip):
-            for axis in axes:
-                if axis in skip:
-                    continue
-                pixels = np.squeeze(pixels, axes.index(axis))
-                axes.pop(axes.index(axis))
-
-        axes = "".join(axes)
-        return (pixels, axes)
-
-    def reorder_axes(pixels, axes, target):
-        """Reorder stacks axes.
-
-        Args:
-            pixels (np.ndarray): stacks.
-            axes (str): stacks axis labels.
-            target (str): target axis order.
-        """
-
-        assert_msg = "[axes] %s expected, %s instead." % (type(""), type(axes))
-        assert type("") == type(axes), assert_msg
-
-        assert_msg = "[target] %s expected, %s instead." % (type(""), type(target))
-        assert type("") == type(target), assert_msg
-
-        if axes == target:
-            return (pixels, target)
-
-        axes = list(axes)
-        target = list(target)
-
-        assert len(target) == len(axes)
-        for a in axes:
-            assert a in target
-        for a in target:
-            assert a in axes
-
-        target_positions = [target.index(a) for a in axes]
-        pixels = np.moveaxis(pixels, range(len(axes)), target_positions)
-
-        return (pixels, "".join(target))
-
-    def select_fov(pixels, si, mode="GPSeq"):
-        """Generator that yields one channel stack with output path at a time.
-
-        Args:
-            pixels (np.ndarray): stacks.
-            si (int): ID of the current Field of View (only for output porpuses).
-            mode (str): output path notation.
-
-        """
-
-        assert mode in output_modes
-
-        for ci in range(pixels.shape[0]):
-            stack = pixels[ci]
-
-            # Identify ouytput file name notation
-            if "GPSeq" == mode:
-                outpath = "%s.channel%03d.series%03d.tif" % (
-                    channel_names[ci],
-                    ci + 1,
-                    si + 1,
-                )
-            elif "DOTTER" == mode:
-                outpath = "%s_%03d.tif" % (channel_names[ci], si + 1)
-
-            yield ((stack, outpath))
 
     # RUN ==========================================================================
 

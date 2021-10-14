@@ -68,6 +68,137 @@ from pygpseq.tools import stat as stt
 from pygpseq.tools import vector as vt
 
 
+# FUNCTIONS ====================================================================
+version = "3.1.1"
+
+
+def run_segmentation(args, imgpath, imgdir, radius_interval):
+    # Perform 3D segmentation of nuclear staining image.
+    #
+    # Args:
+    #   imgpath (string): input image file name.
+    #   imgdir (string): input image folder.
+    #
+    # Returns:
+    #   string: path to output image.
+
+    # Preparation --------------------------------------------------------------
+
+    # Read image
+    irf = imt.get_rescaling_factor(os.path.join(imgdir, imgpath))
+    img = imt.read_tiff(os.path.join(imgdir, imgpath), 3, rescale=irf)
+
+    # binarize -----------------------------------------------------------------
+
+    binarization = Binarize(
+        an_type=const.AN_3D,
+        seg_type=const.SEG_3D,
+        verbose=False,
+        radius_interval=radius_interval,
+        min_z_size=args.min_Z,
+        do_clear_Z_borders=args.do_clear_Z,
+        adp_neigh=args.neighbour,
+    )
+
+    mask2d = None
+    if args.combineWith2D:
+        mask2d_path = os.path.join(args.manual_2d_masks, imgpath)
+        if os.path.isfile(mask2d_path):
+            mask2d = imt.read_tiff(mask2d_path)
+        else:
+            print("Warning: 2D mask not found at '%s'" % mask2d_path)
+
+    if type(None) != type(mask2d):
+        (mask, thr, log) = binarization.run(img, mask2d, args.labeled)
+    else:
+        (mask, thr, log) = binarization.run(img)
+
+    # Filter based on object size
+    mask, tmp = binarization.filter_obj_XY_size(mask)
+    mask, tmp = binarization.filter_obj_Z_size(mask)
+
+    # Perform dilate-fill-erode operation
+    if 0 != args.dilate_fill_erode:
+        strel = args.dilate_fill_erode
+        strel = cube(strel) if 3 == len(mask.shape) else square(strel)
+        mask = imt.dilate_fill_erode(mask, strel)
+
+    # Label nuclei if not done already
+    if not (args.combineWith2D and args.labeled):
+        L = label(mask)
+    else:
+        L = mask
+        if type(None) != type(mask2d):
+            # Re-assign extra-mask labels
+            L = binarization.combine_2d_mask(L, mask2d, args.labeled)
+
+    # Output -------------------------------------------------------------------
+    outpath = "%s%s" % (args.outFolder, args.outprefix + imgpath)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        if args.labeled:
+            plot.save_tif(outpath, L, "uint8", args.compressed, "ZYX")
+        else:
+            L[np.nonzero(L)] = 255
+            plot.save_tif(outpath, L, "uint8", args.compressed, "ZYX")
+    print("Segmentation output written to %s" % (outpath,))
+
+    return outpath
+
+
+def print_settings(args, radius_interval, clear=True):
+    """Show input settings, for confirmation.
+
+    Args:
+        args (Namespace): arguments parsed by argparse.
+        clear (bool): clear screen before printing.
+    """
+    s = " # Automatic 3D segmentation v%s\n" % version
+
+    s += """
+---------- SETTING :  VALUE ----------
+
+Input directory :  '%s'
+Output directory :  '%s'
+
+    Mask prefix :  '%s'
+    Neighbourhood :  %d
+        2D masks : '%s'
+        Labeled :  %r
+        Compressed :  %r
+
+Dilate-fill-erode :  %d
+Minimum Z portion :  %.2f
+    Minimum radius :  [%.2f, %.2f] vx
+        Clear Z :  %r
+
+        Threads :  %d
+            Regexp :  '%s'
+
+    """ % (
+        args.imgFolder,
+        args.outFolder,
+        args.outprefix,
+        args.neighbour,
+        args.manual_2d_masks,
+        args.labeled,
+        args.compressed,
+        args.dilate_fill_erode,
+        args.min_Z,
+        radius_interval[0],
+        radius_interval[1],
+        args.do_clear_Z,
+        args.threads,
+        args.inreg,
+    )
+
+    if clear:
+        print("\033[H\033[J%s" % s)
+    else:
+        print(s)
+    return s
+
+
 def run():
 
     # PARAMETERS ===================================================================
@@ -196,7 +327,6 @@ def run():
     )
 
     # Version flag
-    version = "3.1.1"
     parser.add_argument(
         "--version",
         action="version",
@@ -217,145 +347,18 @@ def run():
     if args.compressed and "mask_" == args.outprefix:
         args.outprefix = "cmask_"
 
-    combineWith2D = type(None) != type(args.manual_2d_masks)
-    if combineWith2D:
+    args.combineWith2D = type(None) != type(args.manual_2d_masks)
+    if args.combineWith2D:
         assert_msg = "2D mask folder not found, '%s'" % args.manual_2d_masks
         assert os.path.isdir(args.manual_2d_masks), assert_msg
 
     # Additional checks
     args.threads = check_threads(args.threads)
 
-    # FUNCTIONS ====================================================================
-
-    def run_segmentation(imgpath, imgdir):
-        # Perform 3D segmentation of nuclear staining image.
-        #
-        # Args:
-        #   imgpath (string): input image file name.
-        #   imgdir (string): input image folder.
-        #
-        # Returns:
-        #   string: path to output image.
-
-        # Preparation --------------------------------------------------------------
-
-        # Read image
-        irf = imt.get_rescaling_factor(os.path.join(imgdir, imgpath))
-        img = imt.read_tiff(os.path.join(imgdir, imgpath), 3, rescale=irf)
-
-        # binarize -----------------------------------------------------------------
-
-        binarization = Binarize(
-            an_type=const.AN_3D,
-            seg_type=const.SEG_3D,
-            verbose=False,
-            radius_interval=radius_interval,
-            min_z_size=args.min_Z,
-            do_clear_Z_borders=args.do_clear_Z,
-            adp_neigh=args.neighbour,
-        )
-
-        mask2d = None
-        if combineWith2D:
-            mask2d_path = os.path.join(args.manual_2d_masks, imgpath)
-            if os.path.isfile(mask2d_path):
-                mask2d = imt.read_tiff(mask2d_path)
-            else:
-                print("Warning: 2D mask not found at '%s'" % mask2d_path)
-
-        if type(None) != type(mask2d):
-            (mask, thr, log) = binarization.run(img, mask2d, args.labeled)
-        else:
-            (mask, thr, log) = binarization.run(img)
-
-        # Filter based on object size
-        mask, tmp = binarization.filter_obj_XY_size(mask)
-        mask, tmp = binarization.filter_obj_Z_size(mask)
-
-        # Perform dilate-fill-erode operation
-        if 0 != args.dilate_fill_erode:
-            strel = args.dilate_fill_erode
-            strel = cube(strel) if 3 == len(mask.shape) else square(strel)
-            mask = imt.dilate_fill_erode(mask, strel)
-
-        # Label nuclei if not done already
-        if not (combineWith2D and args.labeled):
-            L = label(mask)
-        else:
-            L = mask
-            if type(None) != type(mask2d):
-                # Re-assign extra-mask labels
-                L = binarization.combine_2d_mask(L, mask2d, args.labeled)
-
-        # Output -------------------------------------------------------------------
-        outpath = "%s%s" % (args.outFolder, args.outprefix + imgpath)
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            if args.labeled:
-                plot.save_tif(outpath, L, "uint8", args.compressed, "ZYX")
-            else:
-                L[np.nonzero(L)] = 255
-                plot.save_tif(outpath, L, "uint8", args.compressed, "ZYX")
-        print("Segmentation output written to %s" % (outpath,))
-
-        return outpath
-
-    def print_settings(args, clear=True):
-        """Show input settings, for confirmation.
-
-        Args:
-            args (Namespace): arguments parsed by argparse.
-            clear (bool): clear screen before printing.
-        """
-        s = " # Automatic 3D segmentation v%s\n" % version
-
-        s += """
-    ---------- SETTING :  VALUE ----------
-
-    Input directory :  '%s'
-    Output directory :  '%s'
-
-        Mask prefix :  '%s'
-        Neighbourhood :  %d
-            2D masks : '%s'
-            Labeled :  %r
-            Compressed :  %r
-
-    Dilate-fill-erode :  %d
-    Minimum Z portion :  %.2f
-        Minimum radius :  [%.2f, %.2f] vx
-            Clear Z :  %r
-
-            Threads :  %d
-                Regexp :  '%s'
-
-        """ % (
-            args.imgFolder,
-            args.outFolder,
-            args.outprefix,
-            args.neighbour,
-            args.manual_2d_masks,
-            args.labeled,
-            args.compressed,
-            args.dilate_fill_erode,
-            args.min_Z,
-            radius_interval[0],
-            radius_interval[1],
-            args.do_clear_Z,
-            args.threads,
-            args.inreg,
-        )
-
-        if clear:
-            print("\033[H\033[J%s" % s)
-        else:
-            print(s)
-        return s
-
     # RUN ==========================================================================
 
     # Show current settings
-    ssettings = print_settings(args)
+    ssettings = print_settings(args, radius_interval)
     if not args.do_all:
         ask("Confirm settings and proceed?")
 
@@ -390,10 +393,11 @@ def run():
 
     if 1 == args.threads:
         for imgpath in tqdm(imglist):
-            run_segmentation(imgpath, args.imgFolder)
+            run_segmentation(args, imgpath, args.imgFolder, radius_interval)
     else:
         outlist = Parallel(n_jobs=args.threads, verbose=11)(
-            delayed(run_segmentation)(imgpath, args.imgFolder) for imgpath in imglist
+            delayed(run_segmentation)(args, imgpath, args.imgFolder, radius_interval)
+            for imgpath in imglist
         )
 
     # END ==========================================================================

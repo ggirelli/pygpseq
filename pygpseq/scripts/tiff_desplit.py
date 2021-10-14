@@ -54,6 +54,35 @@ from pygpseq.tools import plot
 from pygpseq.tools.io import printout
 
 
+# FUNCTIONS ====================================================================
+version = "1.1.0"
+
+
+def clear_screen():
+    print("\033[H\033[J")
+
+
+def print_settings(args, clear=True):
+    """Show input settings, for confirmation.
+
+    Args:
+        args (Namespace): arguments parsed by argparse.
+        clear (bool): clear screen before printing.
+    """
+
+    s = " # TIFF desplit v%s\n" % version
+    s += """
+Input directory :  %s
+    Output path :  %s
+    """ % (
+        args.indir,
+        args.output,
+    )
+
+    print(s)
+    return s
+
+
 def run():
 
     # PARAMETERS ===================================================================
@@ -134,7 +163,6 @@ def run():
         default=False,
     )
 
-    version = "1.1.0"
     parser.add_argument(
         "--version",
         action="version",
@@ -150,31 +178,6 @@ def run():
     assert os.path.isdir(args.indir), "input folder not found: %s" % args.indir
     assert_msg = "output path cannot be a directory: %s" % (args.output)
     assert not os.path.isdir(args.output), assert_msg
-
-    # FUNCTIONS ====================================================================
-
-    def clear_screen():
-        print("\033[H\033[J")
-
-    def print_settings(args, clear=True):
-        """Show input settings, for confirmation.
-
-        Args:
-            args (Namespace): arguments parsed by argparse.
-            clear (bool): clear screen before printing.
-        """
-
-        s = " # TIFF desplit v%s\n" % version
-        s += """
-    Input directory :  %s
-        Output path :  %s
-        """ % (
-            args.indir,
-            args.output,
-        )
-
-        print(s)
-        return s
 
     # RUN ==========================================================================
 

@@ -9,6 +9,7 @@
 # DEPENDENCIES =================================================================
 
 import matplotlib
+
 matplotlib.use("ps")
 
 __all__ = [
