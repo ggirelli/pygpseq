@@ -57,13 +57,13 @@ from pygpseq.tools.io import printout
 def getOutpath(args, metadata, cid, fid):
     outpath = None
     # Identify ouytput file name notation
-    if "GPSeq" == args.mode:
+    if args.mode == "GPSeq":
         outpath = "%s.channel%03d.series%03d.tif" % (
             metadata["channels"][cid].lower(),
             cid + 1,
             fid + 1,
         )
-    elif "DOTTER" == args.mode:
+    elif args.mode == "DOTTER":
         outpath = "%s_%03d.tif" % (metadata["channels"][cid].lower(), fid + 1)
     return outpath
 
@@ -94,7 +94,7 @@ def export_fov_3d(fov, metadata, fid, bundled_axes):
     """
 
     # Get Z resolution
-    if not type(None) == type(args.deltaZ):
+    if type(None) != type(args.deltaZ):
         resolutionZ = args.deltaZ
     else:
         with open(args.input, "rb") as fh:
@@ -248,7 +248,7 @@ def run():
 
     # RUN ==========================================================================
 
-    if not type(None) == type(args.deltaZ):
+    if type(None) != type(args.deltaZ):
         print("Enforcing a deltaZ of %.3f um." % args.deltaZ)
 
     # Create buffer pointer to nd2 image

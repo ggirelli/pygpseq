@@ -68,8 +68,8 @@ def mkPlot(pdata, path):
 
     plt.figure(figsize=[12, 8])
 
-    xmax = max([max(f["x"]) for f in pdata.values()])
-    ymax = max([max(f["y"]) for f in pdata.values()])
+    xmax = max(max(f["x"]) for f in pdata.values())
+    ymax = max(max(f["y"]) for f in pdata.values())
 
     for (f, data) in pdata.items():
         plt.plot(data["x"], data["y"], linewidth=0.5)
@@ -104,7 +104,7 @@ def isOOF(args, impath):
     im = imt.read_tiff("%s%s" % (args.imdir[0], impath))
 
     # Select first time frame
-    while 3 < len(im.shape):
+    while len(im.shape) > 3:
         im = im[0]
 
     # Iterate through slices
@@ -125,7 +125,7 @@ def isOOF(args, impath):
 
         # If plot is required, update profile data
         if args.plot:
-            if impath in profile_data.keys():
+            if impath in profile_data:
                 profile_data[impath]["x"].append(zi + 1)
                 profile_data[impath]["y"].append(intlist[zi])
             else:
@@ -252,7 +252,7 @@ def run():
     # RUN ==========================================================================
 
     # Add trailing slash to image folder path
-    if not "/" == args.imdir[0][-1]:
+    if args.imdir[0][-1] != "/":
         args.imdir[0] += "/"
 
     # Check that image folder path exists
@@ -268,20 +268,18 @@ def run():
     for (dirpath, dirnames, filenames) in os.walk(args.imdir[0]):
         flist.extend(filenames)
         break
-    immatch = lambda f: not type(None) == type(re.match(args.pattern[0], f))
+    immatch = lambda f: type(None) != type(re.match(args.pattern[0], f))
     imlist = [f for f in flist if immatch(f)]
 
     # Iterate through fields of view
-    if 1 == args.threads:
+    if args.threads == 1:
         if args.silent:
             t = imlist
         else:
             t = tqdm(imlist)
             t.set_description(os.path.dirname(args.imdir[0]))
 
-        data = []
-        for impath in t:
-            data.append(isOOF(args, impath))
+        data = [isOOF(args, impath) for impath in t]
     else:
         verbosity = 11 if not args.silent else 0
         data = Parallel(n_jobs=args.threads, verbose=verbosity)(

@@ -41,7 +41,7 @@ def add_extension(path, ext):
 
 def add_leading_dot(s):
     """Add leading dot."""
-    if "." != s[0]:
+    if s[0] != ".":
         s = "." + s
     return s
 
@@ -71,25 +71,24 @@ def select_folders(path, ext):
     # Return an empty list if the provided path is not a directory
     if not os.path.isdir(path):
         return []
-    else:
-        # Retreive subdirectory list
-        sdirs = [add_trailing_slash(path + x) for x in next(os.walk(path))[1]]
+    # Retreive subdirectory list
+    sdirs = [add_trailing_slash(path + x) for x in next(os.walk(path))[1]]
 
-        # Will contain the selected subdirectories
-        selected = []
+    # Will contain the selected subdirectories
+    selected = []
 
-        for sdir in sdirs:
+    for sdir in sdirs:
 
-            # Retreive file list
-            flist = os.listdir(sdir)
+        # Retreive file list
+        flist = os.listdir(sdir)
 
             # Look for files with the proper extension
-            if 0 != len(select_files(sdir, ext)):
-                selected.append(sdir)
+        if len(select_files(sdir, ext)) != 0:
+            selected.append(sdir)
 
-        selected.sort()
+    selected.sort()
 
-        return selected
+    return selected
 
 
 def select_files(path, ext):
@@ -110,25 +109,24 @@ def select_files(path, ext):
     # Return an empty list if the provided path is not a directory
     if not os.path.isdir(path):
         return []
-    else:
-        # Retreive file list
-        flist = os.listdir(path)
+    # Retreive file list
+    flist = os.listdir(path)
 
-        # Will contain the selected files
-        selected = []
+    # Will contain the selected files
+    selected = []
 
-        for f in flist:
-            if os.path.isfile(path + f):
-                # Retreive file extension
-                fname, fext = os.path.splitext(f)
+    for f in flist:
+        if os.path.isfile(path + f):
+            # Retreive file extension
+            fname, fext = os.path.splitext(f)
 
-                # Compare file extension with .ext
-                if fext == ext:
-                    selected.append(f)
+            # Compare file extension with .ext
+            if fext == ext:
+                selected.append(f)
 
-        selected.sort()
+    selected.sort()
 
-        return selected
+    return selected
 
 
 def select_series(flist, reg, series_field=None):
@@ -144,7 +142,7 @@ def select_series(flist, reg, series_field=None):
     """
 
     # Default series string field name
-    if None == series_field:
+    if series_field is None:
         series_field = const.REG_SERIES_ID
 
     if type(str()) == type(reg):
@@ -160,12 +158,12 @@ def select_series(flist, reg, series_field=None):
         # Search for matches
         m = re.search(reg, f)
 
-        if None != m:
+        if m != None:
             # Identify the series string
             scur = m.groupdict()[series_field]
 
             # Save in the output dictionary
-            if scur in d.keys():
+            if scur in d:
                 # Add channel to existing series
                 d[scur][f] = m.groupdict()
             else:

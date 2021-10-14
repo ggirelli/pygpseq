@@ -218,19 +218,18 @@ def run():
             )
         else:
             outdir = args.output[0]
-    else:
-        if os.path.isfile(args.input[0]):
-            imgpath = args.input[0]
-            if os.path.isdir(args.output[0]):
-                printout(
-                    """Output can be a folder only if the provided input is a
+    elif os.path.isfile(args.input[0]):
+        imgpath = args.input[0]
+        if os.path.isdir(args.output[0]):
+            printout(
+                """Output can be a folder only if the provided input is a
                     folder too.""",
-                    -2,
-                )
-            else:
-                outpath = args.output[0]
+                -2,
+            )
         else:
-            printout("Input file not found: %s" % (args.input[0],), -2)
+            outpath = args.output[0]
+    else:
+        printout("Input file not found: %s" % (args.input[0],), -2)
 
     # RUN ==========================================================================
 
@@ -254,8 +253,9 @@ def run():
             f
             for f in os.listdir(imgdir)
             if os.path.isfile(os.path.join(imgdir, f))
-            and not type(None) == type(re.match(inpattern, f))
+            and type(None) != type(re.match(inpattern, f))
         ]
+
 
         # Start iteration
         outlist = Parallel(n_jobs=ncores)(

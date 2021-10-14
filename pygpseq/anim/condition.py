@@ -57,15 +57,15 @@ class Condition(iot.IOinterface):
         """
 
         # If required, inherit from `main` wrap
-        if None != main:
+        if main is None:
+            super(Condition, self).__init__()
+
+        else:
             logpath = main.logpath
             super(Condition, self).__init__(path=logpath, append=True)
             self.ext = main.ext
             self.verbose = main.verbose
             self.reg = main.reg
-        else:
-            super(Condition, self).__init__()
-
         # Save input parameters
         self.path = pt.add_trailing_slash(os.path.abspath(path))
         self.name = self.path[: len(self.path) - 1].split("/")
@@ -78,27 +78,23 @@ class Condition(iot.IOinterface):
 
         # Check that each series has at least one dna_channel and sig_channel
         for s in self.series:
-            if not any(
-                [
-                    cdata["channel_name"] in dna_channels
-                    for (cname, cdata) in s[1].items()
-                ]
+            if all(
+                cdata["channel_name"] not in dna_channels
+                for (cname, cdata) in s[1].items()
             ):
                 self.printout(
                     "No DNA channel found in '%s' of '%s'" % (s[0], self.name), -2
                 )
-            if not any(
-                [
-                    cdata["channel_name"] in sig_channels
-                    for (cname, cdata) in s[1].items()
-                ]
+            if all(
+                cdata["channel_name"] not in sig_channels
+                for (cname, cdata) in s[1].items()
             ):
                 self.printout(
                     "No Signal channel found in '%s' of '%s'" % (s[0], self.name), -2
                 )
 
         # If no series, stop and trigger error
-        if 0 == len(self.series):
+        if len(self.series) == 0:
             msg = "No series found in condition %s." % (self.name,)
             self.printout(msg, -2)
         else:
@@ -151,11 +147,7 @@ class Condition(iot.IOinterface):
         # CHECK PARAMS =========================================================
 
         # Get default number of cores
-        if not "ncores" in kwargs.keys():
-            ncores = 1
-        else:
-            ncores = kwargs["ncores"]
-
+        ncores = 1 if not "ncores" in kwargs.keys() else kwargs["ncores"]
         # Set output suffix
         if not "suffix" in kwargs.keys():
             suffix = ""
@@ -187,7 +179,7 @@ class Condition(iot.IOinterface):
         nuclei = self.get_nuclei()
 
         # Check that the condition contains nuclei
-        if 0 == len(nuclei):
+        if len(nuclei) == 0:
             return (None, None, None, None)
 
         if kwargs["seg_type"] == const.SEG_3D:
@@ -207,7 +199,7 @@ class Condition(iot.IOinterface):
         selected = self.multi_threshold_nuclei(data=summary, **kwargs)
 
         # Check that nuclei are selected
-        if 0 == len(selected):
+        if len(selected) == 0:
             return (None, None, None, None)
 
         # Apply selection
@@ -233,14 +225,14 @@ class Condition(iot.IOinterface):
         currpos = 0
         for d in data:
             merged[currpos : (currpos + d.shape[0])] = d
-            currpos = currpos + d.shape[0]
+            currpos += d.shape[0]
 
         # Remove rows with no DNA signal
         self.printout("Removing pixels without DNA signal...", 1)
         self.printout("Identifying pixels...", 2)
         toKeep = np.where(merged["dna"] != 0)[0]
         nToRemove = len(merged) - len(toKeep)
-        if not 0 == nToRemove:
+        if not nToRemove == 0:
             merged = merged[toKeep]
             msg = "Removed %i pixels without DNA signal..." % nToRemove
             self.printout(msg, 2)
@@ -318,85 +310,6 @@ class Condition(iot.IOinterface):
 
         # Close figure
         plt.close(fig)
-
-        # PARTIAL VOLUME -------------------------------------------------------
-        if const.AN_3D == kwargs["an_type"] and False:
-            part = merged[np.where(merged["part"] == 1)]
-
-            # Produce partial nucleus profile plots
-            msg = "Generating partial profiles ["
-            msg += str(kwargs["part_n_erosion"]) + "]..."
-            self.printout(msg, 1)
-
-            # Store partial profile in the output
-            profiles["part"] = self.make_profiles(part, len(data), **kwargs)
-
-            # Export single profile study for partial volume
-            msg = "Studying single-pixel behaviour"
-            msg += " on partial volume [" + str(kwargs["part_n_erosion"]) + "]"
-            msg += "..."
-            self.printout(msg, 1)
-            supcomm = " [partial volume " + str(kwargs["part_n_erosion"]) + "]"
-            self.check_single_pixels(
-                part, profiles["part"], partial=True, supcomm=supcomm, **kwargs
-            )
-
-            # Export partial nucleus single-condition plot
-            title = "partial_volume " + str(kwargs["part_n_erosion"])
-            fig = plot.single_condition_profiles(
-                profiles["part"], n_nuclei=len(data), title_comment=title, **kwargs
-            )
-            plot.single_condition_profiles(
-                profiles["part"],
-                n_nuclei=len(data),
-                yfield="median",
-                title_comment=title,
-                new_figure=False,
-                **kwargs
-            )
-            plot.single_condition_profiles(
-                profiles["part"],
-                n_nuclei=len(data),
-                yfield="mode",
-                title_comment=title,
-                new_figure=False,
-                **kwargs
-            )
-            plot.single_condition_profiles(
-                profiles["part"],
-                n_nuclei=len(data),
-                yfield="max",
-                title_comment=title,
-                new_figure=False,
-                **kwargs
-            )
-
-            # Add legend
-            plt.subplot(3, 2, 1)
-            plot.set_font_size(12)
-            plt.legend(
-                labels=["mean", "median", "mode", "max"],
-                bbox_to_anchor=(0.0, 1.12, 1.0, 0.102),
-                loc=3,
-                ncol=2,
-                mode="expand",
-                borderaxespad=0.0,
-            )
-
-            # Export PDF
-            fname = kwargs["out_dir"] + const.OUTDIR_PDF + self.name
-            fname += ".profiles.part" + suffix + ".pdf"
-            if kwargs["plotting"]:
-                plot.export(fname, "pdf")
-
-            # Export PNG
-            fname = kwargs["out_dir"] + const.OUTDIR_PNG + self.name
-            fname += ".profiles.part" + suffix + ".png"
-            if kwargs["plotting"]:
-                plot.export(fname, "png")
-
-            # Close figure
-            plt.close(fig)
 
         # Output
         self.printout("", 0)

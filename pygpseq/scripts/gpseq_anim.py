@@ -454,7 +454,7 @@ def run():
 
     # Steps to be skipped
     dskip = {"inst": 1, "seg": 2, "an": 3, "box": 3.5, "plot": 4, "report": 5}
-    if not None is args.skip:
+    if None is not args.skip:
         gpi.skip = [dskip[e] for e in args.skip]
 
     # Channel names
@@ -497,9 +497,9 @@ def run():
     # Nuclear selection
     dnsel = {"size": 0, "surf": 1, "shape": 2, "sumI": 3, "meanI": 4, "flat_size": 5}
     arsel = ["size", "surf", "shape", "sumI", "meanI", "flat_size"]
-    gpi.nsf = tuple([dnsel[e] for e in args.nuclear_sel])
+    gpi.nsf = tuple(dnsel[e] for e in args.nuclear_sel)
     readable_nsf = "*NONE*"
-    if 0 != len(gpi.nsf):
+    if len(gpi.nsf) != 0:
         readable_nsf = " ".join([str(arsel[i]) for i in gpi.nsf])
 
     # Regular expression to identify image files
@@ -524,18 +524,18 @@ def run():
     gpi.nbins = args.nbins
 
     # Better condition naming
-    if not None is args.description:
+    if None is not args.description:
         for descr in args.description:
             c, d = descr.split(":")
             gpi.cdescr[c] = d
     cdescr_k = list(gpi.cdescr.keys())
     cdescr_k.sort()
     readable_cdescr = [str(k) + " => " + str(gpi.cdescr[k]) for k in cdescr_k]
-    if 0 == len(readable_cdescr):
+    if not readable_cdescr:
         readable_cdescr = ["*NONE*"]
 
     # Notes
-    if not None is args.note:
+    if None is not args.note:
         gpi.notes = args.note
 
     # Debugging mode

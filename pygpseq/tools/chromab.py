@@ -81,17 +81,17 @@ def dot_candidates(I, sigma=None, sigma_diff=None, max_n_dots=None, padding=None
     """
 
     # Chek image dimensionality
-    if 3 != len(I.shape):
+    if len(I.shape) != 3:
         return I
 
     # Default values
-    if None == sigma:
+    if sigma is None:
         sigma = 1.2
-    if None == sigma_diff:
+    if sigma_diff is None:
         sigma_diff = 1e-2
-    if None == max_n_dots:
+    if max_n_dots is None:
         max_n_dots = 1e4
-    if None == padding:
+    if padding is None:
         padding = (1, 5, 5)
 
     # Just look at the intensity
@@ -208,9 +208,9 @@ def set_borders(I, paddings=None, value=None):
     J = I.copy()
 
     # Default values
-    if None == paddings:
+    if paddings is None:
         paddings = np.zeros(len(I.shape)).tolist()
-    if None == value:
+    if value is None:
         value = 0
 
     # Set padding for missing dimensions

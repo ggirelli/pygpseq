@@ -80,7 +80,7 @@ def add_allele(data):
     IDmap = np.array(list(IDmap))
 
     # Stop if no dots are inside a cell
-    if 0 == sum(IDmap.shape):
+    if sum(IDmap.shape) == 0:
         return data
 
     # Fill Allele column -------------------------------------------------------
@@ -92,12 +92,12 @@ def add_allele(data):
 
     #  0 if less than 2 dots
     cond = IDmap[:, 1].astype("i") == 1
-    if 0 != sum(cond):
+    if sum(cond) != 0:
         subt.loc[validIdx[cond], "Allele"] = 0
 
     # Iterate over 2-dots cases
     cond = IDmap[:, 1].astype("i") == 2
-    if 0 != sum(cond):
+    if sum(cond) != 0:
         uID = np.unique(IDmap[cond, 0]).tolist()
         for ID in uID:
             dotPair = subt.loc[subt["universalID"] == ID, :]
@@ -156,7 +156,7 @@ def add_allele_polarity(t, nuclei, aspect):
 
         # Retrieve allele coordinates
         focus = subt.loc[subt["universalID"] == uid, ("x", "y", "z")]
-        if 0 == sum(focus.shape):
+        if sum(focus.shape) == 0:
             continue
 
         # Identify nucleus
@@ -234,14 +234,10 @@ def calc_dot_distances(msg, t, nuclei, aspect, dist_type, discard_dilation_mode=
         msg += "    >>> Working on cell #%d...\n" % (cid,)
 
         cell_cond = cid == t["cell_ID"]
-        if 0 == sum(cell_cond):
+        if sum(cell_cond) == 0:
             continue
 
-        if discard_dilation_mode:
-            mask = nuclei[cid].original_mask
-        else:
-            mask = nuclei[cid].mask
-
+        mask = nuclei[cid].original_mask if discard_dilation_mode else nuclei[cid].mask
         # Perform EDT and normalize
         laminD, centrD = dist.calc_nuclear_distances(dist_type, mask, aspect)
         laminD_norm = dist.normalize_nuclear_distance(dist_type, laminD, centrD)

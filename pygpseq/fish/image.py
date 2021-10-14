@@ -107,7 +107,7 @@ def analyze_field_of_view(
 
     # Check if already segmented
     already_segmented = False
-    if not type(None) == type(mask_dir):
+    if type(None) != type(mask_dir):
         mpath = os.path.join(mask_dir, mask_prefix + os.path.basename(im2fov[sid]))
         already_segmented = os.path.isfile(mpath)
 
@@ -140,7 +140,7 @@ def analyze_field_of_view(
         imbin, tmp = Segmenter.filter_obj_XY_size(imbin)
         imbin, tmp = Segmenter.filter_obj_Z_size(imbin)
 
-        if not type(None) == type(mask2d_dir):
+        if type(None) != type(mask2d_dir):
             mask2d_path = os.path.join(mask2d_dir, os.path.basename(im2fov[sid]))
             if os.path.isfile(mask2d_path):
                 mask2d = imt.read_tiff(mask2d_path, k=2)
@@ -154,15 +154,11 @@ def analyze_field_of_view(
     # NUCLEI ===================================================================
 
     msg += printout("Retrieving nuclei...", 2, v)
-    if 1 == np.max(imbin):
-        L = label(imbin)
-    else:
-        L = imbin
-
+    L = label(imbin) if np.max(imbin) == 1 else imbin
     # Save mask ----------------------------------------------------------------
 
     # Export binary mask as TIF
-    if not type(None) == type(mask_dir) and not already_segmented:
+    if type(None) != type(mask_dir) and not already_segmented:
         msg += printout("Exporting mask as tif...", 4, v)
         if not os.path.isdir(mask_dir):
             os.mkdir(mask_dir)
@@ -190,7 +186,7 @@ def analyze_field_of_view(
         )
 
         # Export dilated mask
-        if 0 != dilate_factor:
+        if dilate_factor != 0:
             msg += printout("Saving dilated mask...", 3, v)
             plot.export_mask_png(
                 "%smask.%s.dilated%d.png" % (maskdir, imbname, dilate_factor),

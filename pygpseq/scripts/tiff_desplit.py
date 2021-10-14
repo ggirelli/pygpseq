@@ -186,7 +186,6 @@ def run():
     clear_screen()
     if os.path.isfile(os.path.join(args.indir, "config.ini")):
         print("Loading settings from config.ini file...\n")
-        pass
     else:
         print("Cannot find config.ini file in input directory.\n")
 

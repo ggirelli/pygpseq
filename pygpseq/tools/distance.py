@@ -37,18 +37,16 @@ def calc_lamina_distance(mask, aspect):
         mask.min(),
         mask.max(),
     )
-    assert 1 >= mask.max() and 0 <= mask.min(), assert_msg
+    assert mask.max() <= 1 and mask.min() >= 0, assert_msg
 
     # Calculate lamin distance
-    if 3 == len(mask.shape):
-        # Add top/bottom empty slices
-        zero_slice = np.zeros((1, mask.shape[1], mask.shape[2]))
-        laminD = distance_transform_edt(
+    if len(mask.shape) != 3:
+        return distance_transform_edt(mask, aspect[3 - len(mask.shape) :])
+    # Add top/bottom empty slices
+    zero_slice = np.zeros((1, mask.shape[1], mask.shape[2]))
+    return distance_transform_edt(
             imt.add_top_bottom_slides(mask), aspect[3 - len(mask.shape) :]
         )[1:-1, :, :]
-    else:
-        laminD = distance_transform_edt(mask, aspect[3 - len(mask.shape) :])
-    return laminD
 
 
 def calc_center_distance(laminD, aspect, asPercentile=False):
@@ -61,19 +59,11 @@ def calc_center_distance(laminD, aspect, asPercentile=False):
         asPercentile (bool): define center as percentile.
     """
 
-    # Center as top percentile
-    if asPercentile:
-        centrD = distance_transform_edt(
+    return distance_transform_edt(
             laminD < np.percentile(laminD, 99.0), aspect[3 - len(laminD.shape) :]
-        )
-
-    # Center as top value
-    else:
-        centrD = distance_transform_edt(
+        ) if asPercentile else distance_transform_edt(
             laminD != laminD.max(), aspect[3 - len(laminD.shape) :]
         )
-
-    return centrD
 
 
 def mkGaussianKernel(size, sigma):
@@ -117,7 +107,7 @@ def simulate_diffusion(mask, sigma, aspect, simthr=0.7):
     iterative anisotropic Gaussian blurring."""
 
     timebox = np.zeros(mask.shape)
-    timebox[1 == mask] = -np.inf
+    timebox[mask == 1] = -np.inf
     reached = 0 == mask
     simbox = (1 - mask).astype(np.float64)
 
@@ -169,11 +159,11 @@ def calc_nuclear_distances(dist_type, mask, aspect):
 def normalize_nuclear_distance(dist_type, laminD, centrD):
     """Normalize lamina distnace."""
 
-    if dist_type == gp.const.LD_DIFFUSION:
-        dnorm = quick_normalize(laminD)
-    else:
-        dnorm = laminD / (laminD + centrD)
-    return dnorm
+    return (
+        quick_normalize(laminD)
+        if dist_type == gp.const.LD_DIFFUSION
+        else laminD / (laminD + centrD)
+    )
 
 
 # END ==========================================================================

@@ -58,21 +58,19 @@ def autoselect_time_frame(im):
       im (np.array): image.
     """
 
-    if 4 == len(im.shape):
-        if im.shape[0] == 1:
-            return im
-
-        selected = None
-
-        if 4 == len(im.shape):
-            for i in range(im.shape[3]):
-                if 0 != im[:, :, :, i].max():
-                    selected = i
-                    break
-
-        return im[:, :, :, selected]
-    else:
+    if len(im.shape) != 4:
         return im
+    if im.shape[0] == 1:
+        return im
+
+    selected = None
+
+    for i in range(im.shape[3]):
+        if im[:, :, :, i].max() != 0:
+            selected = i
+            break
+
+    return im[:, :, :, selected]
 
 
 def binarize(i, thr):
@@ -86,9 +84,9 @@ def binarize(i, thr):
       np.array: thresholded image.
     """
 
-    if 2 == len(i.shape):
+    if len(i.shape) == 2:
         i = closing(i > thr, square(3))
-    elif 3 == len(i.shape):
+    elif len(i.shape) == 3:
         i = closing(i > thr, cube(3))
     return i
 
@@ -106,14 +104,14 @@ def calc_surface(mask, spacing=None):
     """
 
     # Aspect ratio for 3d surface calculation
-    if None == spacing:
+    if spacing is None:
         spacing = [1.0 for d in mask.shape]
 
     # Force binary type
     mask = mask.astype("bool")
 
     # Check number of objects
-    if 1 != label(mask).max():
+    if label(mask).max() != 1:
         return 0
 
     # Add top/bottom slices
@@ -164,12 +162,12 @@ def clear_borders(img, clean_z=None):
       np.array: cleaned image.
     """
 
-    if 2 == len(img.shape):
+    if len(img.shape) == 2:
         img = clear_border(img)
-    elif 3 == len(img.shape):
+    elif len(img.shape) == 3:
         for slide_id in range(img.shape[0]):
             img[slide_id, :, :] = clear_border(img[slide_id, :, :])
-        if True == clean_z:
+        if clean_z == True:
             for slide_id in range(img.shape[1]):
                 img[:, slide_id, :] = clear_border(img[:, slide_id, :])
     return img
@@ -186,9 +184,9 @@ def clear_borders2(img, clean_z=None):
       np.array: cleaned image.
     """
 
-    if 2 == len(img.shape):
+    if len(img.shape) == 2:
         img = clear_border(img)
-    elif 3 == len(img.shape):
+    elif len(img.shape) == 3:
         # Identify 3D objects touching X/Y borders
         l = []
         l.extend(np.unique(img[:, 0, :]).tolist())
@@ -202,7 +200,7 @@ def clear_borders2(img, clean_z=None):
             img[img == i] = 0
 
         # Apply also to Z borders
-        if True == clean_z:
+        if clean_z == True:
             # Identify
             l = []
             l.extend(np.unique(img[0, :, :]).tolist())
@@ -232,21 +230,21 @@ def describe_shape(mask, spacing=None):
     """
 
     # Aspect ratio for 3d surface calculation
-    if None == spacing:
+    if spacing is None:
         spacing = [1.0 for d in mask.shape]
 
     # Force binary type
     mask = mask.astype("bool")
 
     # Check number of objects
-    if 1 != label(mask).max():
+    if label(mask).max() != 1:
         return 0
 
     # Calculate shape descriptor
-    if 2 == len(mask.shape):
+    if len(mask.shape) == 2:
         # Calculate solidity
         return float(mask.sum()) / convex_hull_image(mask).sum()
-    elif 3 == len(mask.shape):
+    elif len(mask.shape) == 3:
         # Add top/bottom slices
         shape = list(mask.shape)
         shape[0] = 1
@@ -285,18 +283,16 @@ def estimate_background(i, mask, seg_type):
       float: estimated background.
     """
 
-    if const.SEG_3D != seg_type and 2 != len(i.shape):
-        bg = np.median(mk_z_projection(i, seg_type)[mask == 0])
+    if const.SEG_3D != seg_type and len(i.shape) != 2:
+        return np.median(mk_z_projection(i, seg_type)[mask == 0])
     else:
-        bg = np.median(i[mask == 0])
-
-    return bg
+        return np.median(i[mask == 0])
 
 
 def fill_holes(mask):
     """Fill mask holes."""
     mask = ndi.binary_fill_holes(mask)
-    if 3 == len(mask.shape):
+    if len(mask.shape) == 3:
         for sliceid in range(mask.shape[0]):
             slide = mask[sliceid, :, :]
             mask[sliceid, :, :] = ndi.binary_fill_holes(slide)
@@ -334,11 +330,11 @@ def get_mid_section_idx(i, mask, mid_type=None):
     """
 
     # Back to default mid-section definition.
-    if None == mid_type:
+    if mid_type is None:
         mid_type = const.MID_SEC_DEFAULT
 
     # Need a stack, otherwise get the full image
-    if 3 > len(i.shape):
+    if len(i.shape) < 3:
         return 0
 
     # Select central slide
@@ -364,8 +360,7 @@ def get_objects_zsize(L):
       list: Z size of every object in the labelled image.
     """
 
-    sizes = [(L == i).astype("int").sum(0).max() for i in range(1, L.max())]
-    return sizes
+    return [(L == i).astype("int").sum(0).max() for i in range(1, L.max())]
 
 
 def get_objects_xysize(L):
@@ -379,8 +374,7 @@ def get_objects_xysize(L):
     """
 
     Larray = L.reshape([np.prod(L.shape)]).tolist()
-    sizes = [t[1] for t in vt.uniquec(Larray) if t[0] != 0]
-    return sizes
+    return [t[1] for t in vt.uniquec(Larray) if t[0] != 0]
 
 
 def get_partial_nuclear_volume(mask, i, erosion):
@@ -420,7 +414,7 @@ def get_partial_nuclear_volume(mask, i, erosion):
 
     # Normalize distance
     d2d = d2d - d2d.min()
-    if not 0 == d2d.max():
+    if d2d.max() != 0:
         d2d = d2d / float(d2d.max())
     else:
         # Log error
@@ -452,7 +446,7 @@ def get_rescaling_factor(path, **kwargs):
     """
 
     # Set basedir if not provided
-    if not "basedir" in kwargs.keys():
+    if "basedir" not in kwargs.keys():
         kwargs["basedir"] = os.path.dirname(path)
 
     # Build proper path to the deconvolution log file
@@ -473,11 +467,7 @@ def get_rescaling_factor(path, **kwargs):
         # Retrieve factor
         needle = "Stretched to Integer type"
         factor = [x for x in frows if needle in x]
-        if 0 == len(factor):
-            factor = 1
-        else:
-            factor = float(factor[0].strip().split(" ")[-1])
-
+        factor = 1 if not factor else float(factor[0].strip().split(" ")[-1])
     # Output
     return factor
 
@@ -491,9 +481,9 @@ def get_unit(shape):
     Returns:
       string: "vx" for 3d images, "px" for 2d images.
     """
-    if 2 == len(shape):
+    if len(shape) == 2:
         return "px"
-    elif 3 == len(shape):
+    elif len(shape) == 3:
         return "vx"
     else:
         return ""
@@ -533,7 +523,7 @@ def in_mask(coords, imbin):
         return False
 
     # Check the pixel is foreground
-    return 1 == imbin[coords[0], coords[1], coords[2]]
+    return imbin[coords[0], coords[1], coords[2]] == 1
 
 
 def mkIsoStruct(dilate_factor, aspect):
@@ -550,7 +540,7 @@ def mkIsoStruct(dilate_factor, aspect):
 
     # XY dilation factor
     df_xy = int(dilate_factor * 2 + 1)
-    if 0 == aspect[0]:
+    if aspect[0] == 0:
         se = cube(df_xy)
         se = se[0]
         new_shape = [1]
@@ -616,26 +606,25 @@ def read_tiff(impath, k=None, noSelection=False, rescale=1):
     try:
         with warnings.catch_warnings(record=True) as wlist:
             im = imread(impath)
-            if 0 != len(wlist):
-                if "axes do not match shape" in str(wlist[0]):
-                    printout(
-                        "image axes do not match metadata in '%s'. %s"
-                        % (impath, "Using the image axes."),
-                        -1,
-                    )
+            if len(wlist) != 0 and "axes do not match shape" in str(wlist[0]):
+                printout(
+                    "image axes do not match metadata in '%s'. %s"
+                    % (impath, "Using the image axes."),
+                    -1,
+                )
     except (ValueError, TypeError) as e:
         msg = "Something went wrong while trynig to read a file"
         printout("%s (possibly corrupt):\n%s\n" % (msg, impath), -2, canAbort=False)
         return None
 
     # Reshape and re-slice
-    while 0 == im.shape[0] and not noSelection:
+    while im.shape[0] == 0 and not noSelection:
         im = im[0]
     if type(0) == type(k):
         im = slice_k_d_img(im, k)
 
     # Rescale
-    if 1 != rescale:
+    if rescale != 1:
         im = (im / rescale).astype("float")
 
     return im
@@ -655,18 +644,15 @@ def rm_from_mask(L, torm):
         # Identify which objects to discard
         rm_mask = np.vectorize(lambda x: x in torm)(L)
 
-        # Discard and re-label
-        L[rm_mask] = 0
     else:
         # Select objects to be kept
-        tokeep = [e + 1 for e in range(L.max()) if not e in torm]
+        tokeep = [e + 1 for e in range(L.max()) if e not in torm]
 
         # Identify which objects to discard
-        rm_mask = np.vectorize(lambda x: not x in tokeep)(L)
+        rm_mask = np.vectorize(lambda x: x not in tokeep)(L)
 
-        # Discard and re-label
-        L[rm_mask] = 0
-
+    # Discard and re-label
+    L[rm_mask] = 0
     # Output
     return L > 0
 
@@ -720,7 +706,7 @@ def threshold_adaptive(
     lmask = i.copy()
 
     # Apply threshold per slice
-    if 3 == len(i.shape):
+    if len(i.shape) == 3:
         for slice_id in range(i.shape[0]):
             lmask[slice_id, :, :] = filters.threshold_local(
                 i[slice_id, :, :], block_size, method=method, mode=mode, param=param

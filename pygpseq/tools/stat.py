@@ -57,7 +57,7 @@ def binned_mode(x, nbins):
       int: the most occupied bin in the provided dataset.
     """
 
-    if 0 == len(x):
+    if len(x) == 0:
         return np.nan
 
     # Bin breaks
@@ -91,7 +91,7 @@ def binned_profile(x, y, nbins=None):
       np.array: profiles.
     """
 
-    if None == nbins:
+    if nbins is None:
         nbins = 200
 
     # Check format
@@ -124,7 +124,7 @@ def binned_profile(x, y, nbins=None):
     for bin_id in range(assigned_bins.max()):
         where = np.where(assigned_bins == bin_id)
         data["breaks"][bin_id] = breaks[bin_id]
-        if 0 != where[0].shape[0]:
+        if where[0].shape[0] != 0:
             data["mean"][bin_id] = np.mean(y[where])
             data["median"][bin_id] = np.median(y[where])
             data["mode"][bin_id] = binned_mode(y[where], nbins)
@@ -156,18 +156,14 @@ def calc_density(data, **kwargs):
     """
 
     # Default values
-    if not "sigma_density" in kwargs.keys():
+    if "sigma_density" not in kwargs.keys():
         sigma_density = 0.1
     else:
         sigma_density = kwargs["sigma_density"]
 
-    if not "nbins" in kwargs.keys():
-        nbins = 1000
-    else:
-        nbins = kwargs["nbins"]
-
+    nbins = 1000 if "nbins" not in kwargs.keys() else kwargs["nbins"]
     # If only one nucleus was found
-    if 1 == len(data):
+    if len(data) == 1:
         f = eval("lambda x: 1 if x == " + str(data[0]) + " else 0")
         f = np.vectorize(f)
         return {"x": np.array([data[0]]), "y": np.array([1]), "f": f}
@@ -180,8 +176,7 @@ def calc_density(data, **kwargs):
     density._compute_covariance()
 
     # Output
-    out = {}
-    out["x"] = np.linspace(min(data), max(data), nbins)
+    out = {'x': np.linspace(min(data), max(data), nbins)}
     out["f"] = density
     out["y"] = density(out["x"])
     return out
@@ -195,11 +190,7 @@ def calc_theta(a, b):
         float: theta in rad.
     """
     c = np.sqrt(a ** 2 + b ** 2)
-    if a > 0 and b < 0:
-        return np.arccos(a / c)
-    elif a < 0 and b > 0:
-        return -np.arccos(a / c)
-    elif a < 0 and b < 0:
+    if a > 0 and b < 0 or (a >= 0 or b <= 0) and a < 0 and b < 0:
         return np.arccos(a / c)
     else:
         return -np.arccos(a / c)
@@ -214,7 +205,7 @@ def centered_coords_3d(img, dot_coords=None):
     """
     z, x, y = np.nonzero(img)
 
-    if not type(None) == type(dot_coords):
+    if type(None) != type(dot_coords):
         zd, xd, yd = dot_coords
         xd = xd - np.mean(x)
         yd = yd - np.mean(y)
@@ -224,7 +215,7 @@ def centered_coords_3d(img, dot_coords=None):
     y = y - np.mean(y)
     z = z - np.mean(z)
 
-    if not type(None) == type(dot_coords):
+    if type(None) != type(dot_coords):
         return (x, y, z, xd, yd, zd)
     else:
         return (x, y, z, None, None, None)
@@ -273,7 +264,7 @@ def get_fwhm(xs, ys):
     if len(xs) != len(ys):
         return None
 
-    if 1 == len(ys):
+    if len(ys) == 1:
         return [xs[0] - 1, xs[0] + 1]
 
     # GET FWHM =================================================================
@@ -283,21 +274,17 @@ def get_fwhm(xs, ys):
 
     # Get FWHM range [left] ----------------------------------------------------
 
-    if 0 != xmaxi:
+    if xmaxi != 0:
         # Get absolute difference to HM value
         x1 = abs(ys[range(xmaxi)] - max(ys) / 2)
 
         # Get threshold based on average distance of consecutive points
-        if 1 == len(x1):
-            thr = x1[0]
-        else:
-            thr = np.max(abs(np.diff(x1)))
-
+        thr = x1[0] if len(x1) == 1 else np.max(abs(np.diff(x1)))
         # Select values close to the HM (based on threshold and abs difference)
         selected = [i for i in range(len(x1)) if x1[i] <= thr]
 
         # Select left boundary
-        if 0 == len(selected):
+        if not selected:
             x1 = xs[range(xmaxi)][x1.tolist().index(min(x1))]
         else:
             x1 = xs[range(xmaxi)][max(selected)]
@@ -311,16 +298,12 @@ def get_fwhm(xs, ys):
         x2 = abs(ys[range(xmaxi + 1, len(ys))] - max(ys) / 2)
 
         # Get threshold based on average distance of consecutive points
-        if 1 == len(x2):
-            thr = x2[0]
-        else:
-            thr = np.max(abs(np.diff(x2)))
-
+        thr = x2[0] if len(x2) == 1 else np.max(abs(np.diff(x2)))
         # Select values close to the HM (based on threshold and abs difference)
         selected = [i for i in range(len(x2)) if x2[i] <= thr]
 
         # Select right boundary
-        if 0 == len(selected):
+        if not selected:
             x2 = xs[range(xmaxi + 1, len(xs))][x2.tolist().index(min(x2))]
         else:
             x2 = xs[range(xmaxi + 1, len(xs))][min(selected)]
@@ -344,7 +327,7 @@ def get_intercepts(ys, xs=None):
     """
 
     # Return no intercept if no data was provided
-    if 0 == len(ys):
+    if len(ys) == 0:
         return []
 
     # Will contain the intercepts (pairs of) indexes
@@ -357,7 +340,7 @@ def get_intercepts(ys, xs=None):
     nys = ys.shape[0]
 
     # Checking matching ys/xs size
-    if not type(None) == type(xs):
+    if type(None) != type(xs):
         xs = np.array(xs)
         if ys.shape[0] != xs.shape[0]:
             print(ys.shape[0])
@@ -369,7 +352,7 @@ def get_intercepts(ys, xs=None):
 
     # Identify zero-holding cells
     bys = ys == 0
-    if 0 != bys.sum():
+    if bys.sum() != 0:
         # Save zero-holding cells index
         out.extend([i for i in range(nys) if bys[i]])
 
@@ -429,16 +412,16 @@ def get_outliers(x, non=None, fig=None, close=None):
       list: (non-)outlier indexes.
     """
 
-    if None == non:
+    if non is None:
         non = False
-    if None == fig:
+    if fig is None:
         fig = plt.figure()
         ax = fig.gca()
-    if None == close:
+    if close is None:
         close = False
 
     # If no dataset is provided
-    if 0 == len(x):
+    if len(x) == 0:
         return []
 
     # Identify outliers through boxplot
@@ -460,7 +443,7 @@ def get_outliers(x, non=None, fig=None, close=None):
     if not non:
         return [i for i in range(len(x)) if x[i] in outliers]
     else:
-        return [i for i in range(len(x)) if not x[i] in outliers]
+        return [i for i in range(len(x)) if x[i] not in outliers]
 
 
 def gpartial(V, d, sigma):
@@ -471,10 +454,10 @@ def gpartial(V, d, sigma):
     """
 
     w = round(8 * sigma + 2)
-    if 0 == w % 2:
+    if w % 2 == 0:
         w = w + 1
     w = 2 * w + 1
-    if 1 == sigma:
+    if sigma == 1:
         w = 11
 
     if sigma == 0:
@@ -490,29 +473,29 @@ def gpartial(V, d, sigma):
     # Iterate through slices
     intlist2 = []
 
-    if 3 == len(V.shape):
-        if 1 == d:
+    if len(V.shape) == 3:
+        if d == 1:
             V = convolve(V, dg.reshape([1, 1, w + 1]), "same")
         else:
             V = convolve(V, g.reshape([1, 1, w + 1]), "same")
 
-        if 2 == d:
+        if d == 2:
             V = convolve(V, dg.reshape([1, w + 1, 1]), "same")
         else:
             V = convolve(V, g.reshape([1, w + 1, 1]), "same")
 
-        if 3 == d:
+        if d == 3:
             V = convolve(V, dg.reshape([w + 1, 1, 1]), "same")
         else:
             V = convolve(V, g.reshape([w + 1, 1, 1]), "same")
 
-    elif 2 == len(V.shape):
-        if 1 == d:
+    elif len(V.shape) == 2:
+        if d == 1:
             V = convolve(V, dg.reshape([1, w + 1]), "same")
         else:
             V = convolve(V, g.reshape([1, w + 1]), "same")
 
-        if 2 == d:
+        if d == 2:
             V = convolve(V, dg.reshape([w + 1, 1]), "same")
         else:
             V = convolve(V, g.reshape([w + 1, 1]), "same")
@@ -557,7 +540,7 @@ def rotate3d(coords, theta, axis):
 
     rotation_mat = False
 
-    if 0 == axis:  # X axis rotation
+    if axis == 0:  # X axis rotation
         rotation_mat = np.matrix(
             [
                 [1, 0, 0],
@@ -566,7 +549,7 @@ def rotate3d(coords, theta, axis):
             ]
         )
 
-    if 1 == axis:  # Y axis rotation
+    if axis == 1:  # Y axis rotation
         rotation_mat = np.matrix(
             [
                 [np.cos(theta), 0, np.sin(theta)],
@@ -575,7 +558,7 @@ def rotate3d(coords, theta, axis):
             ]
         )
 
-    if 2 == axis:  # Z axis rotation
+    if axis == 2:  # Z axis rotation
         rotation_mat = np.matrix(
             [
                 [np.cos(theta), -np.sin(theta), 0],
@@ -608,11 +591,7 @@ def round_unicode(n, nsig):
     n = str(n.replace(u"\u2212", "-"))
 
     # Split on the exponent
-    if "e" in n:
-        n = n.split("e")
-    else:
-        n = [n]
-
+    n = n.split("e") if "e" in n else [n]
     # Round the float part
     n[0] = str(round(float(n[0]), nsig))
 
@@ -635,10 +614,10 @@ def smooth_gaussian(x, y, sigma_smooth=None, nbins=None):
 
     # SET PARAMS ===============================================================
 
-    if None == nbins:
+    if nbins is None:
         nbins = 500
 
-    if None == sigma_smooth:
+    if sigma_smooth is None:
         sigma_smooth = 0.1
 
     # SMOOTHEN =================================================================
@@ -677,11 +656,11 @@ def smooth_sparse_gaussian(
       dict: various metrics profiles (mean, median, mode, std).
     """
 
-    if None == nbins:
+    if nbins is None:
         nbins = 200
-    if None == sigma_smooth:
+    if sigma_smooth is None:
         sigma_smooth = 0.01
-    if None == rescale_sigma:
+    if rescale_sigma is None:
         rescale_sigma = True
 
     if rescale_sigma:

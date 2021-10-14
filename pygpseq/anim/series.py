@@ -63,7 +63,7 @@ class Series(iot.IOinterface):
         """
 
         # If required, inherit from `condition` wrap
-        if None != condition:
+        if condition != None:
             logpath = condition.logpath
             super(Series, self).__init__(path=logpath, append=True)
             self.basedir = condition.path
@@ -105,11 +105,11 @@ class Series(iot.IOinterface):
         """
 
         # Start log
-        if None == log:
+        if log is None:
             log = ""
 
         # Only work on dna channel
-        if None == read_only_dna:
+        if read_only_dna is None:
             read_only_dna = False
 
         # Add necessary options
@@ -128,7 +128,7 @@ class Series(iot.IOinterface):
         """Export current series nuclei."""
 
         # Set output suffix
-        if not "suffix" in kwargs.keys():
+        if "suffix" not in kwargs.keys():
             suffix = ""
         else:
             suffix = st.add_leading_dot(kwargs["suffix"])
@@ -178,7 +178,7 @@ class Series(iot.IOinterface):
             idx = self.find_channel_id(cname)
 
             # Return the channel
-            if -1 != idx:
+            if idx != -1:
                 return [i for i in self.filist.items()][idx]
 
         # Return empty dictionary if no matching channel is found
@@ -190,7 +190,7 @@ class Series(iot.IOinterface):
         # Retrieve available channel names
         names = self.get_channel_names()
 
-        if 0 != names.count(channel_name):
+        if names.count(channel_name) != 0:
             # Return matching channel id
             return names.index(channel_name)
         else:
@@ -215,13 +215,13 @@ class Series(iot.IOinterface):
         """
 
         # Set output suffix
-        if not "suffix" in kwargs.keys():
+        if "suffix" not in kwargs.keys():
             suffix = ""
         else:
             suffix = st.add_leading_dot(kwargs["suffix"])
 
         # Check plotting
-        if not "plotting" in kwargs.keys():
+        if "plotting" not in kwargs.keys():
             kwargs["plotting"] = True
 
         log = ""
@@ -253,16 +253,9 @@ class Series(iot.IOinterface):
         log += self.printout("Signal channel: " + str(kwargs["sig_bg"]), 3)
 
         log += self.printout("Saving series object mask...", 2)
-        if 1 == np.max(mask):
-            L = label(mask)
-        else:
-            L = mask
+        L = label(mask) if np.max(mask) == 1 else mask
         if kwargs["correct_shift"]:
-            if 1 == np.max(sigMask):
-                sigL = label(sigMask)
-            else:
-                sigL = sigMask
-
+            sigL = label(sigMask) if np.max(sigMask) == 1 else sigMask
         already_segmented, mpath, mask_tiff_dir = self.is_channel_segmented(
             "dna", **kwargs
         )
@@ -289,32 +282,35 @@ class Series(iot.IOinterface):
                 )
                 L = label(mask)
 
-        if kwargs["correct_shift"]:
-            if not type(None) == type(mask_tiff_dir) and not sig_already_segmented:
-                log += self.printout("Exporting signal mask as tif...", 4)
-                if not os.path.isdir(mask_tiff_dir):
-                    os.mkdir(mask_tiff_dir)
-                if not os.path.isdir("%s/%s/" % (mask_tiff_dir, self.c)):
-                    os.mkdir("%s/%s/" % (mask_tiff_dir, self.c))
+        if (
+            kwargs["correct_shift"]
+            and not type(None) == type(mask_tiff_dir)
+            and not sig_already_segmented
+        ):
+            log += self.printout("Exporting signal mask as tif...", 4)
+            if not os.path.isdir(mask_tiff_dir):
+                os.mkdir(mask_tiff_dir)
+            if not os.path.isdir("%s/%s/" % (mask_tiff_dir, self.c)):
+                os.mkdir("%s/%s/" % (mask_tiff_dir, self.c))
 
-                if kwargs["labeled"]:
-                    plot.save_tif(
-                        sig_mpath,
-                        sigL,
-                        "uint8",
-                        kwargs["compressed"],
-                        bundled_axes="ZYX",
-                    )
-                else:
-                    sigL[np.nonzero(sigL)] = 255
-                    plot.save_tif(
-                        sig_mpath,
-                        sigL,
-                        "uint8",
-                        kwargs["compressed"],
-                        bundled_axes="ZYX",
-                    )
-                    sigL = label(sigMask)
+            if kwargs["labeled"]:
+                plot.save_tif(
+                    sig_mpath,
+                    sigL,
+                    "uint8",
+                    kwargs["compressed"],
+                    bundled_axes="ZYX",
+                )
+            else:
+                sigL[np.nonzero(sigL)] = 255
+                plot.save_tif(
+                    sig_mpath,
+                    sigL,
+                    "uint8",
+                    kwargs["compressed"],
+                    bundled_axes="ZYX",
+                )
+                sigL = label(sigMask)
 
         # Export mask as PNG
         if kwargs["plotting"]:
@@ -332,22 +328,21 @@ class Series(iot.IOinterface):
                 'Nuclei in "%s" [%d objects]' % (os.path.basename(self.name), L.max()),
             )
 
-        if kwargs["correct_shift"]:
-            if kwargs["plotting"]:
-                # Create png masks output directory
-                maskdir = os.path.join(kwargs["outdir"], const.OUTDIR_MASK)
-                if not os.path.isdir(maskdir):
-                    os.mkdir(maskdir)
-                imbname = os.path.splitext(os.path.basename(self.name))[0]
+        if kwargs["correct_shift"] and kwargs["plotting"]:
+            # Create png masks output directory
+            maskdir = os.path.join(kwargs["outdir"], const.OUTDIR_MASK)
+            if not os.path.isdir(maskdir):
+                os.mkdir(maskdir)
+            imbname = os.path.splitext(os.path.basename(self.name))[0]
 
-                # Export labeled mask
-                log += self.printout("Saving nuclear ID mask...", 3)
-                plot.export_mask_png(
-                    "%s%s.sigMask.%s.nuclei.png" % (maskdir, self.c, imbname),
-                    sigL,
-                    'Nuclei in "%s" [%d objects]'
-                    % (os.path.basename(self.name), L.max()),
-                )
+            # Export labeled mask
+            log += self.printout("Saving nuclear ID mask...", 3)
+            plot.export_mask_png(
+                "%s%s.sigMask.%s.nuclei.png" % (maskdir, self.c, imbname),
+                sigL,
+                'Nuclei in "%s" [%d objects]'
+                % (os.path.basename(self.name), L.max()),
+            )
 
         # Initialize nuclei
         log += self.printout("Bounding " + str(L.max()) + " nuclei...", 2)

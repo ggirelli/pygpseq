@@ -38,11 +38,11 @@ def merge_nparrays(npal):
     """
 
     # Check matching dtype definitions
-    if not all([npal[i].dtype == npal[0].dtype for i in range(len(npal))]):
+    if any(npal[i].dtype != npal[0].dtype for i in range(len(npal))):
         return npal
 
     # Count total rows
-    nrows = sum([a.shape[0] for a in npal])
+    nrows = sum(a.shape[0] for a in npal)
 
     # Initialize output
     merged = np.zeros((nrows,), dtype=npal[0].dtype)
@@ -80,18 +80,15 @@ def rm_from_mask(L, torm):
         # Identify which objects to discard
         rm_mask = np.vectorize(lambda x: x in torm)(L)
 
-        # Discard and re-label
-        L[rm_mask] = 0
     else:
         # Select objects to be kept
-        tokeep = [e + 1 for e in range(L.max()) if not e in torm]
+        tokeep = [e + 1 for e in range(L.max()) if e not in torm]
 
         # Identify which objects to discard
-        rm_mask = np.vectorize(lambda x: not x in tokeep)(L)
+        rm_mask = np.vectorize(lambda x: x not in tokeep)(L)
 
-        # Discard and re-label
-        L[rm_mask] = 0
-
+    # Discard and re-label
+    L[rm_mask] = 0
     # Output
     return L > 0
 
