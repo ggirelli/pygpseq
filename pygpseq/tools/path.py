@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 @author: Gabriele Girelli
 @contact: gigi.ga90@gmail.com
 @description: path string management library.
-'''
+"""
 
 # DEPENDENCIES =================================================================
 
@@ -15,6 +15,7 @@ from pygpseq import const
 
 # FUNCTIONS ====================================================================
 
+
 def add_extension(path, ext):
     """Add extension to path.
     If the provided path is missing the extension, add it.
@@ -22,7 +23,7 @@ def add_extension(path, ext):
     Args:
       path (string)
       ext (string): extension.
-    
+
     Returns:
       string: path + extension.
     """
@@ -35,19 +36,22 @@ def add_extension(path, ext):
         path += ext
 
     # Output
-    return(path)
+    return path
+
 
 def add_leading_dot(s):
-    """Add leading dot. """
-    if '.' != s[0]:
-        s = '.' + s
-    return(s)
+    """Add leading dot."""
+    if s[0] != ".":
+        s = "." + s
+    return s
+
 
 def add_trailing_slash(s):
-    """Add trailing slash. """
-    if not s.endswith('/'):
-        s = s + '/'
-    return(s)
+    """Add trailing slash."""
+    if not s.endswith("/"):
+        s = s + "/"
+    return s
+
 
 def select_folders(path, ext):
     """Select subdirectories containing files with the given extension.
@@ -66,26 +70,26 @@ def select_folders(path, ext):
 
     # Return an empty list if the provided path is not a directory
     if not os.path.isdir(path):
-        return([])
-    else:
-        # Retreive subdirectory list
-        sdirs = [add_trailing_slash(path + x) for x in next(os.walk(path))[1]]
+        return []
+    # Retreive subdirectory list
+    sdirs = [add_trailing_slash(path + x) for x in next(os.walk(path))[1]]
 
-        # Will contain the selected subdirectories
-        selected = []
+    # Will contain the selected subdirectories
+    selected = []
 
-        for sdir in sdirs:
+    for sdir in sdirs:
 
-            # Retreive file list
-            flist = os.listdir(sdir)
+        # Retreive file list
+        flist = os.listdir(sdir)
 
-            # Look for files with the proper extension
-            if 0 != len(select_files(sdir, ext)):
-                selected.append(sdir)
+        # Look for files with the proper extension
+        if len(select_files(sdir, ext)) != 0:
+            selected.append(sdir)
 
-        selected.sort()
+    selected.sort()
 
-        return(selected)
+    return selected
+
 
 def select_files(path, ext):
     """Select the files with the proper .ext in the provided path.
@@ -97,35 +101,35 @@ def select_files(path, ext):
     Returns:
       list: list of selected path's files *.ext.
     """
-    
+
     # Check input params
     path = add_trailing_slash(os.path.abspath(path))
     ext = add_leading_dot(ext)
 
     # Return an empty list if the provided path is not a directory
     if not os.path.isdir(path):
-        return([])
-    else:
-        # Retreive file list
-        flist = os.listdir(path)
+        return []
+    # Retreive file list
+    flist = os.listdir(path)
 
-        # Will contain the selected files
-        selected = []
+    # Will contain the selected files
+    selected = []
 
-        for f in flist:
-            if os.path.isfile(path + f):
-                # Retreive file extension
-                fname, fext = os.path.splitext(f)
+    for f in flist:
+        if os.path.isfile(path + f):
+            # Retreive file extension
+            fname, fext = os.path.splitext(f)
 
-                # Compare file extension with .ext
-                if fext == ext:
-                    selected.append(f)
+            # Compare file extension with .ext
+            if fext == ext:
+                selected.append(f)
 
-        selected.sort()
+    selected.sort()
 
-        return(selected)
+    return selected
 
-def select_series(flist, reg, series_field = None):
+
+def select_series(flist, reg, series_field=None):
     """Group a list of files by series based on the provided regexp.
 
     Args:
@@ -136,9 +140,9 @@ def select_series(flist, reg, series_field = None):
     Returns:
       list: series channel paths with separated fields in a dictionary.
     """
-    
+
     # Default series string field name
-    if None == series_field:
+    if series_field is None:
         series_field = const.REG_SERIES_ID
 
     if type(str()) == type(reg):
@@ -153,20 +157,21 @@ def select_series(flist, reg, series_field = None):
 
         # Search for matches
         m = re.search(reg, f)
-        
-        if None != m:
+
+        if m != None:
             # Identify the series string
             scur = m.groupdict()[series_field]
 
             # Save in the output dictionary
-            if scur in d.keys():
+            if scur in d:
                 # Add channel to existing series
                 d[scur][f] = m.groupdict()
             else:
                 # Add new series
-                d[scur] = {f : m.groupdict()}
-    
-    return(d)
+                d[scur] = {f: m.groupdict()}
+
+    return d
+
 
 # END ==========================================================================
 

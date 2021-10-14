@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 @author: Gabriele Girelli
 @contact: gigi.ga90@gmail.com
 @description: IO management library.
-'''
+"""
 
 # DEPENDENCIES =================================================================
 
@@ -20,6 +20,7 @@ from pygpseq.tools import path as pt, string as st
 
 # FUNCTIONS ====================================================================
 
+
 class IOinterface(object):
     """Interface with input-output methods.
 
@@ -28,7 +29,7 @@ class IOinterface(object):
       verbose (bool): True to be verbose.
     """
 
-    logpath = ''
+    logpath = ""
     verbose = True
 
     def __init__(self, **kwargs):
@@ -41,19 +42,15 @@ class IOinterface(object):
         super(IOinterface, self).__init__()
 
         # Append to existing log?
-        if not 'append' in kwargs.keys():
-            append = False
-        else:
-            append = kwargs['append']
-
+        append = False if "append" not in kwargs.keys() else kwargs["append"]
         # Select path for log file
-        if not 'path' in kwargs.keys():
+        if "path" not in kwargs.keys():
             curpath = pt.add_trailing_slash(tempfile.gettempdir())
-            curpath += 'pyGPSeq/log/'
-            now = datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
-            curpath += now + '.log'
+            curpath += "pyGPSeq/log/"
+            now = datetime.fromtimestamp(time()).strftime("%Y-%m-%d_%H:%M:%S")
+            curpath += now + ".log"
         else:
-            curpath = kwargs['path']
+            curpath = kwargs["path"]
 
         # Create log file directory if missing
         self.check_log_dir(curpath)
@@ -63,13 +60,13 @@ class IOinterface(object):
             c = 1
             while os.path.exists(curpath):
                 fname, fext = os.path.splitext(curpath)
-                fname = fname + ' (' + str(c) + ')'
+                fname = fname + " (" + str(c) + ")"
                 curpath = fname + fext
                 c += 1
 
         self.logpath = curpath
-    
-    def check_log_dir(self, path = None):
+
+    def check_log_dir(self, path=None):
         """Create log file directory if missing.
 
         Args:
@@ -79,7 +76,7 @@ class IOinterface(object):
           None: creates the folder that will contain the log, if missing.
         """
 
-        if None == path:
+        if path is None:
             path = self.logpath
 
         dpath = os.path.dirname(path)
@@ -87,10 +84,9 @@ class IOinterface(object):
             os.makedirs(dpath)
 
     def gen_log_name(self):
-        """Generate logfile name. """
-        now = datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
-        name = now + '_pyGPSeq.log'
-        return(name)
+        """Generate logfile name."""
+        now = datetime.fromtimestamp(time()).strftime("%Y-%m-%d_%H:%M:%S")
+        return now + "_pyGPSeq.log"
 
     def log(self, s):
         """Write to logfile.
@@ -105,10 +101,8 @@ class IOinterface(object):
         # Create log file directory if missing
         self.check_log_dir()
 
-        # Write to logfile
-        f = open(self.logpath, 'a')
-        f.write(s)
-        f.close()
+        with open(self.logpath, "a") as f:
+            f.write(s)
 
     def printout(self, s, lvl):
         """Output for user.
@@ -124,7 +118,8 @@ class IOinterface(object):
         if self.verbose:
             s = printout(s, lvl)
             self.log(s)
-        return(printout(s, lvl, verbose = False))
+        return printout(s, lvl, verbose=False)
+
 
 def merge_profiles(profiles):
     """Formats the profiles into a single table.
@@ -136,27 +131,30 @@ def merge_profiles(profiles):
       np.array: merged profiles.
     """
 
-    nsteps = len(profiles[0]['ratio']['x'])
+    nsteps = len(profiles[0]["ratio"]["x"])
     nrows = nsteps * len(profiles)
 
-    out = np.zeros((nrows,), dtype = const.DTYPE_PROFILE_EXPORT)
+    out = np.zeros((nrows,), dtype=const.DTYPE_PROFILE_EXPORT)
 
     c = 0
     for profile in profiles:
-        subcsv = np.zeros((nsteps,), dtype = const.DTYPE_PROFILE_EXPORT)
-        subcsv['condition'] = [profile['condition'] for i in range(nsteps)]
-        subcsv['x'] = profile['ratio']['x']
+        subcsv = np.zeros((nsteps,), dtype=const.DTYPE_PROFILE_EXPORT)
+        subcsv["condition"] = [profile["condition"] for i in range(nsteps)]
+        subcsv["x"] = profile["ratio"]["x"]
 
-        for k1 in ['dna', 'sig', 'ratio']:
-            for k2 in ['mean', 'median', 'mode', 'std']:
-                subcsv[k1 + '_' + k2] = profile[k1][k2]
-                subcsv[k1 + '_' + k2 + '_raw'] = profile[k1][k2 + '_raw']
+        for k1 in ["dna", "sig", "ratio"]:
+            for k2 in ["mean", "median", "mode", "std"]:
+                subcsv[k1 + "_" + k2] = profile[k1][k2]
+                subcsv[k1 + "_" + k2 + "_raw"] = profile[k1][k2 + "_raw"]
 
-        subcsv['n'] = [profile['n'] for i in range(nsteps)]
-        out[c:(c+nsteps),] = subcsv
+        subcsv["n"] = [profile["n"] for i in range(nsteps)]
+        out[
+            c : (c + nsteps),
+        ] = subcsv
         c += nsteps
 
-    return(out)
+    return out
+
 
 def merge_summaries(sums):
     """Formats the nuclear summaries into a single table.
@@ -168,23 +166,25 @@ def merge_summaries(sums):
       np.array: merged summaries.
     """
 
-    nrows = sum([st.shape[0] for st in sums])
+    nrows = sum(st.shape[0] for st in sums)
     ncols = len(sums[0].dtype)
 
-    out = np.zeros((nrows,), dtype = const.DTYPE_NDATA_EXPORT)
+    if ncols == 16:
+        out = np.zeros((nrows,), dtype=const.DTYPE_NDATA_EXPORT_2D)
+    else:
+        out = np.zeros((nrows,), dtype=const.DTYPE_NDATA_EXPORT_3D)
 
-    c = 0
     crow = 0
-    for summary in sums:
-        out[out.dtype.names[0]][crow:(crow + summary.shape[0])] = c + 1
+    for c, summary in enumerate(sums):
+        out[out.dtype.names[0]][crow : (crow + summary.shape[0])] = c + 1
         for name in summary.dtype.names:
-            out[name][crow:(crow + summary.shape[0])] = summary[name]
-        c += 1
+            out[name][crow : (crow + summary.shape[0])] = summary[name]
         crow += summary.shape[0]
 
-    return(out)
+    return out
 
-def printout(s, lvl, verbose = True, canAbort = True):
+
+def printout(s, lvl, verbose=True, canAbort=True):
     """Log to shell.
 
     Args:
@@ -193,34 +193,36 @@ def printout(s, lvl, verbose = True, canAbort = True):
       verbose (bool): True to display formatted message.
       canAbort (bool): whether to abort if lvl==-2.
     """
-    
+
     # Only a string can be logged
     if type(str()) != type(s):
-        return()
+        return ()
 
     # Add level-based prefix
-    if -2 == lvl:
+    if lvl == -2:
         if not canAbort:
-            s = '\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s' % s
+            s = "\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s" % s
         if canAbort:
             print("\n~~ ERROR ~~ ლ(ಠ益ಠლ)\n%s\nTerminated.\n" % s)
             raise Exception(s)
-    elif -1 == lvl:
-        s = 'WARNING: %s' % s
-    elif 0 == lvl:
-        s = ' %s' % s
-    elif 1 == lvl:
-        s = '  · %s' % s
-    elif 2 == lvl:
-        s = '    > %s' % s
-    elif 3 == lvl:
-        s = '    >> %s' % s
-    elif 4 <= lvl:
-        s = '    >>> %s' % s
+    elif lvl == -1:
+        s = "WARNING: %s" % s
+    elif lvl == 0:
+        s = " %s" % s
+    elif lvl == 1:
+        s = "  · %s" % s
+    elif lvl == 2:
+        s = "    > %s" % s
+    elif lvl == 3:
+        s = "    >> %s" % s
+    elif lvl >= 4:
+        s = "    >>> %s" % s
 
     # Log
-    if verbose: print(s)
-    return(st.add_trailing_new_line(s))
+    if verbose:
+        print(s)
+    return st.add_trailing_new_line(s)
+
 
 # END ==========================================================================
 

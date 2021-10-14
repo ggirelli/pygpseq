@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "pygpseq"
+version = "3.3.6"
+description = "A GPSeq image analysis package"
+authors = ["Gabriele Girelli <gigi.ga90@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/ggirelli/pygpseq"
+repository = "https://github.com/ggirelli/pygpseq"
+keywords = ["microscopy", "image", "analysis", "bioimaging", "nucleus", "segmentation", "conversion"]
+classifiers = [
+  'Development Status :: 5 - Production/Stable',
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "Operating System :: Unix",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3.6",
+]
+include = ["CHANGELOG.md", "LICENSE"]
+
+[tool.poetry.dependencies]
+python = ">=3.6,<3.7"
+ggc = "0.0.3"
+czifile = "0.1.5"
+Cython = "0.29.5"
+Jinja2 = "2.11.3"
+joblib = "0.11"
+matplotlib = "2.2.2"
+nd2reader = "3.1.0"
+numpy = "1.16.1"
+pandas = "0.24.1"
+scipy = "1.2.1"
+scikit-image = "0.14.2"
+seaborn = "0.9.0"
+tifffile = "2019.2.10"
+tqdm = "4.31.1"
+weasyprint = "45"
+
+[tool.poetry.dev-dependencies]
+black = "18.9b0"
+
+[tool.poetry.scripts]
+"czi_to_tiff" = "pygpseq.scripts.czi_to_tiff:run"
+"nd2_to_tiff" = "pygpseq.scripts.nd2_to_tiff:run"
+"gpseq_anim" = "pygpseq.scripts.gpseq_anim:run"
+"gpseq_fromfish" = "pygpseq.scripts.gpseq_fromfish:run"
+"gpseq_fromfish_merge" = "pygpseq.scripts.gpseq_fromfish_merge:run"
+"tiff_auto3dseg" = "pygpseq.scripts.tiff_auto3dseg:run"
+"tiff_findoof" = "pygpseq.scripts.tiff_findoof:run"
+"tiff_split" = "pygpseq.scripts.tiff_split:run"
+"tiff_desplit" = "pygpseq.scripts.tiff_desplit:run"
+"tiffcu" = "pygpseq.scripts.tiffcu:run"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
