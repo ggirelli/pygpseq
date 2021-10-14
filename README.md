@@ -6,35 +6,20 @@
 pyGPSeq
 ===
 
-A Python3 package that provides tools to analyze images of GPSeq samples.
+A Python3.8/3.9 package that provides tools to analyze images of GPSeq samples.
 
-* Read the GitHub pages [documentation](https://ggirelli.github.io/pygpseq/) for more details.
 * Read the Wiki [documentation](https://github.com/ggirelli/pygpseq/wiki) for more details.  
-*Wiki docs will be merged with GitHub pages ones soon.*
 
 Installation
 -------------
 
-To **install**, run the following:
+We recommend installing `pygpseq` using [`pipx`](https://github.com/pipxproject/pipx). Check how to install `pipx` [here](https://github.com/pipxproject/pipx#install-pipx) if you don't have it yet!
 
+Once you have `pipx` ready on your system, install the latest stable release of `pygpseq` by running:
 ```
-git clone http://github.com/ggirelli/pygpseq
-cd pygpseq
-sudo -H pip3 install .
+pipx install pygpseq
 ```
-
-To **uninstall** run the following from within the repository folder:
-
-```
-sudo -H pip3 uninstall pygpseq
-```
-
-To **update**, first uninstall, and then run the following from within the repository folder.
-
-```
-git pull
-sudo -H pip3 install .
-```
+If you see the stars (✨ 🌟 ✨), then the installation went well!
 
 Usage
 ----------
@@ -81,5 +66,5 @@ License
 
 ```
 MIT License
-Copyright (c) 2017 Gabriele Girelli
+Copyright (c) 2017-21 Gabriele Girelli
 ```
