@@ -17,7 +17,7 @@ We would still recommend using our new [`radiantkit`](https://github.com/ggirell
 Use `pygpseq==3.3.6` only if strictly necessary and at your own risk, as this package is not currently maintained.
 
 ### Changed
-- Now supporting Python 3.8 and 3.9 only.
+- Now supporting specifically only Python 3.6.
 - Moved scripts to sub-module and updated entry points.
 - Switched to Poetry for dependency management.
 - Using black for format consistency.
