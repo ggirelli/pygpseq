@@ -37,9 +37,6 @@
 
 # DEPENDENCIES =================================================================
 
-import matplotlib
-
-matplotlib.use("ps")
 import matplotlib.pyplot as plt
 
 import argparse

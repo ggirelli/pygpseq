@@ -36,10 +36,6 @@
 
 # DEPENDENCIES =================================================================
 
-import matplotlib
-
-matplotlib.use("ps")
-
 import argparse
 import datetime
 import multiprocessing

@@ -37,10 +37,6 @@
 
 # DEPENDENCIES =================================================================
 
-import matplotlib
-
-matplotlib.use("ps")
-
 import argparse
 import datetime
 from joblib import Parallel, delayed

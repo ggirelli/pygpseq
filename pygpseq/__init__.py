@@ -8,6 +8,9 @@
 
 # DEPENDENCIES =================================================================
 
+import matplotlib
+matplotlib.use("ps")
+
 __all__ = [
     "jinja2",
     "joblib",
