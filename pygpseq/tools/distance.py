@@ -45,8 +45,8 @@ def calc_lamina_distance(mask, aspect):
     # Add top/bottom empty slices
     zero_slice = np.zeros((1, mask.shape[1], mask.shape[2]))
     return distance_transform_edt(
-            imt.add_top_bottom_slides(mask), aspect[3 - len(mask.shape) :]
-        )[1:-1, :, :]
+        imt.add_top_bottom_slides(mask), aspect[3 - len(mask.shape) :]
+    )[1:-1, :, :]
 
 
 def calc_center_distance(laminD, aspect, asPercentile=False):
@@ -59,11 +59,15 @@ def calc_center_distance(laminD, aspect, asPercentile=False):
         asPercentile (bool): define center as percentile.
     """
 
-    return distance_transform_edt(
+    return (
+        distance_transform_edt(
             laminD < np.percentile(laminD, 99.0), aspect[3 - len(laminD.shape) :]
-        ) if asPercentile else distance_transform_edt(
+        )
+        if asPercentile
+        else distance_transform_edt(
             laminD != laminD.max(), aspect[3 - len(laminD.shape) :]
         )
+    )
 
 
 def mkGaussianKernel(size, sigma):

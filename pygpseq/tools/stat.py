@@ -176,7 +176,7 @@ def calc_density(data, **kwargs):
     density._compute_covariance()
 
     # Output
-    out = {'x': np.linspace(min(data), max(data), nbins)}
+    out = {"x": np.linspace(min(data), max(data), nbins)}
     out["f"] = density
     out["y"] = density(out["x"])
     return out

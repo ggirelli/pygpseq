@@ -130,7 +130,7 @@ def extract_data(did, date, sid):
         ipath = "%s/%s" % (indir, flag)
 
         # Prepare flag output
-        out = {'good': True, 'partial': False}
+        out = {"good": True, "partial": False}
         if not os.path.isdir(ipath):
             msg = "Warning! Cannot find folder for %s." % flag
             msg += "\nSkipped. Folder: %s" % ipath

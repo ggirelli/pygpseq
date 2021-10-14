@@ -457,7 +457,9 @@ def run():
     prefix = os.path.splitext(os.path.basename(args.input))[0]
     ext = os.path.splitext(os.path.basename(args.input))[1]
 
-    for ic, isplit in enumerate(tiff_split(img, sides, args.step, args.inverted), start=1):
+    for ic, isplit in enumerate(
+        tiff_split(img, sides, args.step, args.inverted), start=1
+    ):
         opath = os.path.join(args.outdir, "%s.sub%d%s" % (prefix, ic, ext))
         plot.save_tif(opath, isplit, imt.get_dtype(isplit.max()), False)
     # END ==========================================================================

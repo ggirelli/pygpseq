@@ -82,7 +82,7 @@ def select_folders(path, ext):
         # Retreive file list
         flist = os.listdir(sdir)
 
-            # Look for files with the proper extension
+        # Look for files with the proper extension
         if len(select_files(sdir, ext)) != 0:
             selected.append(sdir)
 

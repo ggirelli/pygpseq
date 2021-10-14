@@ -340,8 +340,7 @@ class Series(iot.IOinterface):
             plot.export_mask_png(
                 "%s%s.sigMask.%s.nuclei.png" % (maskdir, self.c, imbname),
                 sigL,
-                'Nuclei in "%s" [%d objects]'
-                % (os.path.basename(self.name), L.max()),
+                'Nuclei in "%s" [%d objects]' % (os.path.basename(self.name), L.max()),
             )
 
         # Initialize nuclei

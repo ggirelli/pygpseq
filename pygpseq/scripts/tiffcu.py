@@ -256,7 +256,6 @@ def run():
             and type(None) != type(re.match(inpattern, f))
         ]
 
-
         # Start iteration
         outlist = Parallel(n_jobs=ncores)(
             delayed(run)(imgpath, imgdir, outdir, compress=doCompress)

@@ -506,7 +506,6 @@ class Main(Analyzer):
             "cdescr": self.cdescr,
         }
 
-
         # Escape characters
         for (k, v) in tempv.items():
             if type("") == type(v):
