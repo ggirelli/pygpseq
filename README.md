@@ -1,4 +1,8 @@
-# NOTE: this package is not currently maintained. A new package that will include all `pygpseq` features is being implemented at [`radiantkit`](https://github.com/ggirelli/radiantkit).
+# NOTES
+
+1. **This package is not currently maintained. A new package that will include all `pygpseq` features is being implemented at [`radiantkit`](https://github.com/ggirelli/radiantkit).**
+2. **This package has been developed and tested ONLY for Python3.6, which will reach its end of life On December 23rd, 2021.**
+3. **Version 3.4.0 of this package only changes package dependencies to fix an issue due to incorrect dependency declaration.**
 
 ---
 
@@ -6,9 +10,19 @@
 pyGPSeq
 ===
 
-A Python3.8/3.9 package that provides tools to analyze images of GPSeq samples.
+A Python3.6 package that provides tools to analyze images of GPSeq samples.
 
 * Read the Wiki [documentation](https://github.com/ggirelli/pygpseq/wiki) for more details.  
+
+Requirements
+-------------
+
+Python3.6 and compatible `tkinter` package are required to run `pygpseq`. On Ubuntu 20.04, you can install them with:
+```bash
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt install python3.6
+sudo apt install python3.6-tk
+```
 
 Installation
 -------------
