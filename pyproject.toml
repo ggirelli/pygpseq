@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pygpseq"
-version = "3.3.6"
+version = "3.4.0"
 description = "A GPSeq image analysis package"
 authors = ["Gabriele Girelli <gigi.ga90@gmail.com>"]
 license = "MIT"
