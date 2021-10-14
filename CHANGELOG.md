@@ -441,7 +441,7 @@ Use `pygpseq==3.3.6` only if strictly necessary and at your own risk, as this pa
 
 
 [Unreleased] https://github.com/ggirelli/gpseq-img-py
-[3.4.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.4.0
+[3.4.1] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.4.1
 [3.3.5] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.5
 [3.3.4] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.4
 [3.3.3] https://github.com/ggirelli/gpseq-img-py/releases/tag/v3.3.3
