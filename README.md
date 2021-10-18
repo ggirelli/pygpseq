@@ -11,6 +11,12 @@
 pyGPSeq
 ===
 
+
+
+[![DOI](https://zenodo.org/badge/84576000.svg)](https://zenodo.org/badge/latestdoi/84576000)
+
+
+
 A Python3.6 package that provides tools to analyze images of GPSeq samples.
 Read the Wiki [documentation](https://github.com/ggirelli/pygpseq/wiki) for more details.  
 
